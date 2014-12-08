@@ -1,0 +1,1077 @@
+body,
+input,
+textarea,
+select { font-family:"Lucida","Lucida Grande","Trebuchet MS",Tahoma,Verdana,sans-serif; }
+
+body.rubik {
+    color:#565656;
+    background:#eee url(images/body.jpg) repeat 0 0;
+}
+
+a {
+    color:#39c;
+    text-decoration:none;
+}
+
+.limiter { width: 98%; max-width: 1200px; }
+
+#top { background:url(images/header.png) 0px 0 repeat-x; height: 191px; position: relative; }
+
+/**
+ * Branding ===========================================================
+ */
+#branding {
+    position: absolute; bottom: 0;
+    height:30px; width: 100%;
+}
+
+#branding .limiter {width: 98%; max-width: 1200px; margin: 0 auto;}
+#branding ul.links {
+    float:right;
+    padding:5px 10px;
+}
+
+#branding .breadcrumb {
+    padding:5px 10px 4px 5px;
+    float:left;
+    font-weight:normal;
+}
+#branding ul.links a {display: none;}
+#branding .breadcrumb span.breadcrumb-link {
+    float:left;
+}
+
+#branding .breadcrumb a,
+#branding .breadcrumb strong {
+    font-weight:normal;
+    float:left;
+    padding:0px 5px; color: #b3b3b3; font-size: 11px; text-transform: uppercase;
+}
+
+/**
+ * Page title =========================================================
+ */
+#page-title {
+    position:relative;
+    padding:10px 0px 10px;
+    color:#fff;
+
+}
+
+#page-title .icon {display: none !important;}
+
+#page-title a { color:#fff; }
+
+#page-title .page-title {
+    padding:70px 10px 10px 10px;
+    line-height:30px;
+    min-height:30px; text-indent: -9999px;
+    background: url(images/logo.png) no-repeat left center; padding-left: 100px !important; height: 46px;
+}
+
+#page-title .page-title span.icon {
+    float:left;
+    margin-right:10px;
+}
+
+#page-title ul.links {
+    letter-spacing:1px;
+    text-transform:uppercase;
+    float:right;
+    padding:10px 0px;
+}
+
+#page-title ul.links a {
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    color:#888;
+    padding:5px 10px 5px 25px;
+}
+
+#page-title ul.links li.active a,
+#page-title ul.links li a.active {
+    color:#fff;
+    background:#40444d url(images/cube.png) 0px -160px repeat-x;
+}
+
+#page-title ul.links li a:hover { color:#fff; }
+
+/**
+ * Page elements ======================================================
+ */
+div.pager,
+#header,
+#footer,
+#page,
+#tabs .page-tabs {
+    background:#fff;
+    margin:10px auto;
+}
+
+#header {
+    width:950px;
+    padding:5px;
+}
+
+/**
+ * Tabs, pagers =======================================================
+ */
+#tabs .page-tabs {
+    background: url(images/heading-bg.png) 0px 0 repeat-x; border-radius: 4px; padding: 0px; border: 0;
+    color:#fff;
+}
+
+div.pager,
+#page div.pager {
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+
+    background:#fff;
+    line-height:18px;
+    border-width:1px;
+    border-style:solid;
+    border-color:#ccc #ddd #eee;
+}
+
+#tabs .page-tabs ul.links {
+    float:none;
+    height:30px;
+    position:static;
+    padding:0px;
+}
+
+#tabs .page-tabs li { padding:0px; }
+
+.pager a,
+.pager li.pager-current,
+#tabs .page-tabs li a,
+#tabs .page-tabs li a:hover,
+#tabs .page-tabs li.active a,
+#tabs .page-tabs li a.active {
+    color:#888;
+    font-weight:normal;
+    font-size:13px;
+    -moz-border-radius:0px;
+    -webkit-border-radius:0px;
+    padding:5px 15px;
+    border:0px;
+    background:transparent;
+}
+
+.pager a,
+.pager li.pager-current { padding:5px 10px; }
+
+#page .pager a:hover,
+#tabs .page-tabs li a:hover {
+    background:#fff;
+    color:#333;
+}
+
+#page .pager a:hover { background:#eee; }
+
+#page .pager ul.pager-list li:first-child a,
+#page .pager ul.pager-list li.pager-current:first-child,
+#tabs .page-tabs li:first-child a {
+    -moz-border-radius:5px 0px 0px 5px;
+    -webkit-border-radius:5px 0px 0px 5px;
+}
+
+#page .pager ul.pager-links li:last-child a {
+    -moz-border-radius:0px 5px 5px 0px;
+    -webkit-border-radius:0px 5px 5px 0px;
+}
+
+.pager li.pager-current,
+#tabs .page-tabs li.active a,
+#tabs .page-tabs li a.active {
+    background: #2669b1;
+    color:#fff;
+    -webkit-border-top-left-radius: 4px;
+    -webkit-border-bottom-left-radius: 4px;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-bottomleft: 4px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+/**
+ * Page layout ========================================================
+ */
+#page {
+    width: 98%;
+	max-width: 1200px;
+    padding:5px;
+    background:#fff; border-radius: 4px; border: 1px solid #d5d5d5;
+}
+
+.page-content { padding:4px; }
+
+.content-wrapper { margin:5px; }
+
+/**
+ * Footer =============================================================
+ */
+#footer {
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    padding:10px 0px;
+    margin:0px auto 60px;
+    background:#f8f8f8;
+    font-size:11px;
+    text-shadow:#fff 0px 1px 0px;
+}
+
+#footer .footer-message {
+    padding:0px 10px;
+    float:left;
+}
+
+#footer .feed-icons {
+    margin:0px;
+    padding:2px 5px;
+    background:transparent;
+
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+
+    /* Assume icons are 16x16 like Drupal core. */
+    line-height:16px;
+    float:right;
+}
+
+#footer .feed-icons img { display:block; }
+
+#footer .feed-icons label,
+#footer .feed-icons a {
+    padding:0px 5px;
+    float:left;
+}
+
+/**
+ * Form goodness
+ */
+input.form-submit:hover {
+    border-color:#08a #08a #046;
+    background:#40444d url(images/cube.png) 0px -190px repeat-x;
+    color:#fff;
+}
+
+/**
+ * Blocks
+ */
+div.messages,
+.block { margin:5px; }
+
+.block .block-title, .item-list h3, .block .block-title, .admin-panel h3, .fieldset-title, .collapsible .fieldset-title a {
+    background: #40444d url(images/heading-bg.png) 0px 0 repeat-x; border-radius: 4px; padding: 6px 10px; border: 0;
+    color:#fff;
+}
+
+/**
+ * Help ===============================================================
+ */
+#page-help { background:#404040; }
+
+#page-help .limiter {
+    z-index:1;
+    position:relative;
+}
+
+a#help-toggler {
+    position:absolute;
+    right:0px;
+    bottom:-15px;
+    left:auto;
+    width:auto;
+    height:auto;
+
+    -moz-border-radius:0px 0px 3px 3px;
+    -webkit-border-radius:0px 0px 3px 3px;
+
+    color:#888;
+    background:#333;
+
+    padding:0px 15px;
+    line-height:15px;
+    height:15px;
+
+    font-size:10px;
+    text-transform:uppercase;
+    text-indent:0px;
+}
+
+a#help-toggler:hover { color:#fff; }
+
+div#help-text {
+    -moz-border-radius:0px 0px 0px 3px;
+    -webkit-border-radius:0px 0px 0px 3px;
+    color:#ccc;
+    background:#333;
+    border:0px;
+}
+
+div#help-text .column-side .help-links { background:#222; }
+
+/**
+ * Content ============================================================
+ */
+.help-page,
+div.comment,
+div.node {  }
+.table-columns
+{
+    color: blue;
+}
+#help-text .column-main .column-wrapper,
+.help-page .column-main .column-wrapper,
+div.comment .column-main .column-wrapper,
+div.node .column-main .column-wrapper { padding:19px; }
+
+#help-text .column-main .column-wrapper {
+    padding-left:59px;
+    position:relative;
+}
+
+#help-text .column-main .column-wrapper span.icon {
+    position:absolute;
+    top:15px;
+    left:15px;
+}
+
+#help-text .column-side .column-wrapper,
+.help-page .column-side .column-wrapper,
+div.comment .column-side .column-wrapper,
+div.node .column-side .column-wrapper {
+    padding:9px;
+    font-size:11px;
+}
+
+#help-text .column-side .help-links,
+.help-page .column-side .help-page-links,
+.node-submitted,
+.comment-submitted {
+    padding:10px;
+    background:#f8f8f8;
+}
+
+.comment-links,
+.node-links { padding:10px 0px; }
+
+.help-page .help-page-links ul.links {
+    -moz-column-count:2;
+    -webkit-column-count:2;
+}
+
+.column-side ul.links li,
+.column-side ul.links a,
+.column-side ul.links span {
+    display:block;
+    float:none;
+}
+
+.column-side ul.links a,
+.column-side ul.links span {
+    padding:0px 10px;
+    display:block;
+    float:none;
+}
+
+.column-side ul.links span a {
+    padding:0px;
+    display:inline;
+}
+
+.column-side ul.links a.active,
+.column-side ul.links a:hover { background:#fff; }
+.comment-links ul.links a:hover { background:#f4f4f4; }
+
+.comment-title,
+.node-title {
+    margin:0px 0px 20px;
+    font-weight:normal;
+    font-size:16px;
+}
+
+
+.logged-in .column-side {float: none !important;}
+
+.logged-in .column-main {width: 100% !important; margin-bottom: 20px;float: none !important;}
+
+.logged-in .form-layout-default, .help-page, div.comment, div.node {background-image: none !important; }
+
+
+
+.form-item .form-item {border: 0 !important;}
+
+#autocomplete {background: #fff !important;}
+
+#block-views-crew_members-block_1 .views-field-value-1 a {color: #494949; font-size: 20px; display: block; text-decoration: none; margin-bottom: 10px;}
+
+#block-views-crew_members-block_1 .views-row {padding: 2em 0; border-bottom: 1px solid #494949; overflow: hidden; margin-bottom: 2em;}
+
+
+ul li.leaf a, ul li.expanded a, ul li.collapsed a {
+    display: block; color: #40444d; }
+
+
+
+
+
+#edit-date-timer-datepicker-popup-0-wrapper {margin-top: 0px !important; padding: 0 !important;}
+
+
+.node-job .node-content .field-label {float: none !important;}
+
+
+
+.field-field-job-session-crews-item-odd {background: #f4f4f4 !important; padding: 10px;}
+.field-field-job-session-crews-item-even {background: #fff !important; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 10px;}
+.node-job .node-content .del_crew_from_session {float: right;}
+
+
+.field-field-job-session-crews-item-odd .field-item, .field-field-job-session-crews-item-even .field-item {padding: 5px 0;}
+
+
+
+.field-field-job-session-crews-items {padding-left: 0 !important; margin: 20px 0;}
+
+/*
+.node-job .node-content .field-field-job-client-contact .field-label, .node-job .node-content .field-field-job-client-name .field-label, .node-job .node-content .field-field-job-venue .field-label, .node-job .node-content .field-field-job-status .field-label, .node-job .node-content .field-field-job-date .field-label, .node-job .node-content .field-field-job-number .field-label, .node-job .node-content .field-field-session-job-nid .field-label {float: left !important;}
+
+.node-job .node-content .field-field-job-client-contact, .node-job .node-content .field-field-job-client-name, .node-job .node-content .field-field-job-venue, .node-job .node-content .field-field-job-status, .node-job .node-content .field-field-job-date, .node-job .node-content .field-field-job-number {margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #ccc;}
+
+.node-job .node-content .acecrew_session_totals {text-align: right; font-size: 16px; line-height: 1.5;}
+
+.node-job .node-content .field-field-session-job-nid { font-size: 16px; line-height: 1.5;}
+*/
+
+
+
+.acecrew_session_edit_button, .acecrew_session_sms_button, .acecrew_session_del_button, .form-submit, button, #acecrew_session_add_buttons a, #acecrew_job_button_quote, #acecrew_job_button_invoice, input.teaser-button, input.form-submit, .call-buttons a {
+
+    color: #ffffff;
+    padding: 8px 19px;
+    background: #656e7a;
+    background: -moz-linear-gradient(
+        top,
+        #727a84 0%,
+        #515a67);
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#727a84),
+        to(#515a67));
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid #4c5764;
+    text-shadow:
+        -1px -1px 3px rgba(62,69,80,1)
+
+
+}
+
+
+#edit-submit {margin-bottom: 10px;}
+
+
+.acecrew_session_edit_button:hover, .acecrew_session_sms_button:hover, .acecrew_session_del_button:hover, .form-submit:hover, button:hover, #acecrew_session_add_buttons a:hover, #acecrew_job_button_quote:hover, #acecrew_job_button_invoice:hover, input.teaser-button:hover, input.form-submit:hover, .call-buttons a:hover {
+    background: #30353d;
+    background: -moz-linear-gradient(
+        top,
+        #595a5c 0%,
+        #30353d);
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#595a5c),
+        to(#30353d));
+    border: 1px solid #141517;
+    text-shadow:
+        -1px -1px 3px rgba(62,69,80,1)
+
+
+
+}
+
+
+
+.acecrew_session_edit_button, .acecrew_session_sms_button, .acecrew_session_del_button {margin: 5px;}
+.acecrew_session_buttons {text-align: right; padding: 10px;}
+
+#acecrew_session_add_buttons a, #acecrew_job_button_quote, #acecrew_job_button_invoice {font-size: 14px !important;}
+
+.acecrew_job_docs li {margin-bottom: 10px !important;}
+
+#header-output {position: absolute; top: 35px; right: 0; width: 196px; height: 52px; background: url(images/header-content.png) no-repeat 0 0; padding-left: 75px; color: #aaa; padding-top: 15px;}
+#header-output div {background: transparent !important; border: 0 !important; padding: 0 !important; margin: 0 !important;}
+#header-output i {text-transform: capitalize; font-weight: bold;}
+#header-output strong {text-transform: capitalize; font-weight: bold; font-size: 1.2em;}
+#block-nice_menus-1 {margin: -29px;}
+#block-nice_menus-1 .block-title {display: none;}
+#block-nice_menus-1 .block-content {width: 98%; max-width: 1200px; margin: 0 auto; background: url(images/menu.png) repeat-x 0 0; -webkit-border-top-left-radius: 4px; padding: 0; height: 43px;
+    -webkit-border-top-right-radius: 4px;
+    -moz-border-radius-topleft: 4px;
+    -moz-border-radius-topright: 4px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;}
+#block-nice_menus-1.block {border: 0 !important; background: none !important}
+#block-nice_menus-1 .block-content .nice-menu {padding: 10px;}
+
+.not-logged-in .column-main { width: 100%; }
+.not-logged-in #tabs, .not-logged-in .breadcrumb { display: none; }
+.not-logged-in .content-wrapper  {/*display: none;*/}
+
+.block, .item-list, .help-items ul, .form-item, .confirmation ul, .admin-list, .node-type-list, .admin-panel {border: 0;}
+input.form-autocomplete, input.form-text, textarea.form-textarea {background: #f7f7f7; border: 1px solid #d5d5d5; padding: 6px 10px; width: 80%;}
+select.form-select {background: #f7f7f7; border: 1px solid #d5d5d5; padding: 6px 10px; width: 88.6%;}
+#user-login-form .form-item {width: 220px !important; padding: 0 !important; margin-bottom: 10px !important;}
+#user-login-form .form-item input {width: 198px !important;}
+.not-logged-in #user-login-form .item-list {display: none;}
+#user-login-form {width: 220px; margin: 20px auto;}
+#user-login-form #edit-submit {float: right; margin-top: 10px;}
+.container-inline .fieldset-content, .fieldset-content {border: 0;}
+.page-acecrew #page, .page-acecrew .content-wrapper, .page-supplement #page, .page-supplement .content-wrapper {background: transparent !important; border: 0 !important; padding: 0 !important;}
+
+.page-acecrew .content-wrapper {margin: 30px 0 !important;position: relative}
+.block .block-content, .container-inline .fieldset-content, .fieldset-content {background: transparent;}
+#acecrew-calendar-form .fieldset-content {background: url(images/pattern-grey.png) repeat 0 0; border-radius: 6px; padding: 2px 10px 8px !important; margin-top: 20px;}
+#edit-date-timer-wrapper {padding-top: 0 !important;}
+.loading-gif {display: block; margin: 100px auto;}
+.icon-info {display: block; margin: 10px auto; width: 57px; height: 60px; background: url(images/icon-info.png) no-repeat 0 0;}
+span.icon {display: none !important}
+form .buttons {padding: 0; border: 0; background: transparent;}
+/*
+.fieldset.titled.collapsible.collapsed.tao-processed {display: none;}
+*/
+fieldset.group-company-contact-details, fieldset.group-company-other, fieldset.group-accounts, fieldset.group-additional-office {display: block !important;}
+fieldset.group-company-contact-details #edit-field-client-logo-0-ahah-wrapper {width: 220px;}
+#edit-date-timer-datepicker-popup-0 {background-image: url(images/calendar.png); background-repeat: no-repeat; background-position: 97% center;}
+
+#acecrew-calendar-form fieldset.fieldset, #acecrew-calendar-form fieldset.fieldset legend {display: block; width: 100%; overflow: hidden; clear: both;}
+#acecrew-calendar-form span.fieldset-title {position: static; display: block;}
+
+
+/*sidebar AJAX block */
+#block-block-2 {background: url(images/pattern-blue.png) repeat 0 0; border: 1px solid #99c4ea; border-radius: 6px; margin: 30px 0 30px 0;}
+#block-block-2 div {background: transparent !important;padding: 3px;}
+.info-icon {display: block; margin: 10px auto;}
+#block-block-2 p {text-align: center;}
+#node-14 .column-main, #node-11 .column-main  {display: none;}
+#node-11, #node-14 {border: 0;}
+
+
+
+
+/*call listing*/
+.call-buttons a {display: inline-block; margin-left: 20px; padding: 4px 8px !important; font-size: 12px;}
+.call-buttons {text-align: right; margin: 10px 35px 10px 0;}
+ul.call-listing li.call-listing-item {position: relative; background: #fff url(images/listing-header.png) repeat-x 0 0; border: 1px solid #d5d5d5; border-radius: 6px; margin-top: 10px;}
+.call-count-title {background: url(images/pattern-dark-blue.png) repeat-x 0 0; height: 25px; color: #fff; display: inline-block; border-radius: 4px; padding: 0 12px; line-height: 25px;}
+.call-first-row {height: 30px; margin-bottom: 20px; line-height: 30px;}
+.call-first-row span {color: #363636; line-height: 30px;}
+.call-first-row .call-id {background: url(images/call-id.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
+.call-first-row .call-flag {background: url(images/call-flag.png) no-repeat 0 center;padding: 0px 18px;margin-left:10px;display:inline-block;height:30px;color:#fff; float: right; cursor: pointer}
+.call-first-row .call-time {background: url(images/call-time.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
+.call-first-row .call-crew-count {background: url(images/call-crew.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
+.call-first-row .call-hours {background: url(images/call-hours.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
+.call-first-row .call-vehicle {background: url(images/call-vehicle.png) no-repeat 0 0; padding-left: 100px; display: inline-block; height: 30px;}
+.call-first-row .call-vehicle1 {padding-left: 100px; display: inline-block; height: 30px;}
+.call-first-row .call-vehicle .call-alert {background: url(images/call-alert.png) no-repeat 0 0; padding: 0 20px; display: inline-block; height: 30px;color: #fff;}
+.call-second-row, .call-third-row, .call-fourth-row {padding: 10px; background: #f7f7f7;}
+.call-second-row, .call-fourth-row {border: 1px solid #d5d5d5;}
+.call-third-row {border-left: 1px solid #d5d5d5; border-right: 1px solid #d5d5d5;}
+.call-third-row strong {margin-right: 10px;}
+.call-third-row span, #supplements span {display: inline-block; margin-left: 5px; background: url(images/supplement-bg.png) repeat-x 0 0; border: 1px solid #4c5764 !important; border-radius: 2px; color: #fff; font-size: 11px; padding: 0px 7px !important; text-transform: lowercase;}
+.call-second-row span {display: inline-block; margin-right: 50px;}
+.call-second-row span:last-child {margin: 0;}
+.call-fourth-row li {display: inline-block !important; border: 0; padding: 0px 7px !important; font-size: 11px; margin-right: 5px;}
+.call-fourth-row .session_crew_statused_name_confirm {background: url(images/crew-status-confirm.png) repeat-x 0 0; border: 1px solid #9dc845 !important; border-radius: 2px; color: #768421;}
+.call-fourth-row .session_crew_statused_name_sms {background: url(images/crew-status-text.png) repeat-x 0 0; border: 1px solid #eaa552 !important; border-radius: 2px; color: #e17821;}
+#acecrew_calendar_output .item-list {background: transparent !important;position:relative;}
+.acecrew_calendar_no_events {display: block; font-size: 1.25em; text-align: center; margin: 50px auto;}
+
+/*main menu*/
+ul.nice-menu > li {border: 0 !important; background: transparent !important; margin: 0 35px;}
+ul.nice-menu a {color: #fff; text-transform: uppercase; text-shadow: -1px -1px 0 #7f0205; font-weight: bold;}
+ul.nice-menu > li.first {margin-left: 0;}
+ul.nice-menu li.menuparent ul {background: #aa2933 !important; border: 0; top: 23px !important;}
+ul.nice-menu li.menuparent ul li, ul.nice-menu li.menuparent ul li a {border: 0 !important; background: transparent !important; text-transform: none !important; font-weight: normal !important}
+ul.nice-menu li.menuparent ul li a {display: block; float: none; padding: 8px;}
+
+
+/*create user profile page*/
+#user-profile-form .form-item{ float:left; width: 150px; margin-right: 20px;}
+#edit-acecrew-payrate-id-wrapper {clear: both; float: none; margin-top: 30px;}
+.profile_title {
+    background: #40444d url(images/heading-bg.png) 0px 0 repeat-x; border-radius: 4px; padding: 6px 10px; border: 0;
+    color:#fff; cursor:pointer;
+}
+#edit-pass-pass1-wrapper,#edit-pass-pass2-wrapper{width:162px;padding:0;}
+select.form-select {padding: 5px 10px!important;}
+
+#edit-profile-crew-dob-wrapper label,#edit-profile-visa-start-wrapper label,#edit-profile-visa-end-date-wrapper label{padding-left:5px;}
+/*
+#edit-profile-crew-dob-day-wrapper,#edit-profile-crew-dob-month-wrapper,#edit-profile-crew-dob-year-wrapper,#edit-profile-visa-start-day-wrapper,#edit-profile-visa-start-month-wrapper,#edit-profile-visa-start-year-wrapper,#edit-profile-visa-end-date-day-wrapper,#edit-profile-visa-end-date-month-wrapper,#edit-profile-visa-end-date-year-wrapper{ padding-top:0;}
+#edit-profile-crew-skills-chief-wrapper,#edit-profile-crew-skills-driver-wrapper,#edit-profile-crew-skill-new-wrapper,#edit-profile-crew-skills-cherry-wrapper,#edit-profile-crew-skills-forklift-wrapper{padding-top:30px;}
+#edit-profile-crew-dob-wrapper,#edit-profile-visa-start-wrapper,#edit-profile-visa-end-date-wrapper{ padding-left:0; padding-right:0;}
+/*create venue page*
+.page-node #edit-field-venue-name-0-value-wrapper, .page-node #edit-field-venue-email-0-email-wrapper, .page-node #edit-field-venue-telephone-0-value-wrapper, .page-node #edit-field-venue-contact-0-value-wrapper, .page-node #edit-field-venue-contact-telephone-0-value-wrapper, .page-node #edit-field-nearest-station-0-value-wrapper, .page-node #edit-field-venue-post-code-0-value-wrapper, .page-node #edit-field-boundary-round-trip-0-value-wrapper, .page-node #edit-field-boundary-charge-0-value-wrapper {width: 17%; display: inline-block;}
+.page-node #edit-field-boundary-round-trip-0-value-wrapper input, .page-node #edit-field-boundary-charge-0-value-wrapper input {width: 80%;}
+.page-node #edit-field-venue-address-0-value-wrapper, .page-node #edit-field-venue-notes-0-value-wrapper {display: inline-block; width: 34.3%;}
+.page-node #edit-field-venue-notes-0-value-wrapper {margin-left: 20px;}
+
+
+/*additional styles added by Rob */
+.node .node-submitted {display: none;}
+.content-add-more {margin-top: 20px;}
+
+
+/*added by anton*/
+.crew-names {display: inline-block; margin-right: 10px; margin-top: 10px; padding: 1px 8px !important; font-size: 12px; border-radius: 4px; -moz-border-radius: 4px; }
+#supplements span {
+    margin-top: 5px;
+}
+
+#call-search-form .form-item, #call-search-form .container-inline-date, #call-search-form .form-submit{
+    float: left;
+}
+.flag-msg {
+    background:rgba(211, 34, 5, 0.8);
+    top: 0;
+    color: #ffffff;
+    display: none;
+    margin: 0;
+    padding: 15px;
+    position: absolute;
+    right: 70px;
+    width: 250px;
+    z-index: 5;
+    transition: all .2s ease-in;
+}
+
+
+
+#call-search-form #edit-submit {
+    display:block;
+    margin: 10px 0 0 10px;
+    clear: both;
+}
+
+
+
+/* DatePicker Container */
+.ui-datepicker {
+    height: auto;
+    margin: 5px auto 0;
+    font: 9pt Arial, sans-serif;
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+}
+.ui-datepicker a {
+    text-decoration: none;
+}
+/* DatePicker Table */
+.ui-datepicker table {
+    width: 100%;
+}
+.ui-datepicker-header {
+    background: url('images/dark_leather.png') repeat 0 0 #000;
+    color: #e0e0e0;
+    font-weight: bold;
+    -webkit-box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, 2);
+    -moz-box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, .2);
+    box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, .2);
+    text-shadow: 1px -1px 0px #000;
+    filter: dropshadow(color=#000, offx=1, offy=-1);
+    line-height: 30px;
+    border-width: 1px 0 0 0;
+    border-style: solid;
+    border-color: #111;
+}
+.ui-datepicker-title {
+    text-align: center;
+}
+.ui-datepicker-prev, .ui-datepicker-next {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    cursor: pointer;
+    background-image: url('images/arrow.png');
+    background-repeat: no-repeat;
+    line-height: 600%;
+    overflow: hidden;
+}
+.ui-datepicker-prev {
+    float: left;
+    background-position: center -30px;
+}
+.ui-datepicker-next {
+    float: right;
+    background-position: center 0px;
+}
+.ui-datepicker thead {
+    background-color: #f7f7f7;
+    background-image: -moz-linear-gradient(top,  #f7f7f7 0%, #f1f1f1 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f7f7f7), color-stop(100%,#f1f1f1));
+    background-image: -webkit-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: -o-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: -ms-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f7f7f7', endColorstr='#f1f1f1',GradientType=0 );
+    border-bottom: 1px solid #bbb;
+}
+.ui-datepicker th {
+    text-transform: uppercase;
+    font-size: 6pt;
+    padding: 5px 0;
+    color: #666666;
+    text-shadow: 1px 0px 0px #fff;
+    filter: dropshadow(color=#fff, offx=1, offy=0);
+}
+.ui-datepicker tbody td {
+    padding: 0;
+    border-right: 1px solid #bbb;
+}
+.ui-datepicker tbody td:last-child {
+    border-right: 0px;
+}
+.ui-datepicker tbody tr {
+    border-bottom: 1px solid #bbb;
+}
+.ui-datepicker tbody tr:last-child {
+    border-bottom: 0px;
+}
+.ui-datepicker td span, .ui-datepicker td a {
+    display: inline-block;
+    font-weight: bold;
+    text-align: center;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    color: #666666;
+    text-shadow: 1px 1px 0px #fff;
+    filter: dropshadow(color=#fff, offx=1, offy=1);
+}
+.ui-datepicker-calendar .ui-state-default {
+    background: #ededed;
+    background: -moz-linear-gradient(top,  #ededed 0%, #dedede 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ededed), color-stop(100%,#dedede));
+    background: -webkit-linear-gradient(top,  #ededed 0%,#dedede 100%);
+    background: -o-linear-gradient(top,  #ededed 0%,#dedede 100%);
+    background: -ms-linear-gradient(top,  #ededed 0%,#dedede 100%);
+    background: linear-gradient(top,  #ededed 0%,#dedede 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ededed', endColorstr='#dedede',GradientType=0 );
+    -webkit-box-shadow: inset 1px 1px 0px 0px rgba(250, 250, 250, .5);
+    -moz-box-shadow: inset 1px 1px 0px 0px rgba(250, 250, 250, .5);
+    box-shadow: inset 1px 1px 0px 0px rgba(250, 250, 250, .5);
+}
+.ui-datepicker-calendar .ui-state-hover {
+    background: #f7f7f7;
+}
+.ui-datepicker-calendar .ui-state-active {
+    background: #ad2d38;
+    -webkit-box-shadow: inset 0px 0px 10px 0px rgba(0, 0, 0, .1);
+    -moz-box-shadow: inset 0px 0px 10px 0px rgba(0, 0, 0, .1);
+    box-shadow: inset 0px 0px 10px 0px rgba(0, 0, 0, .1);
+    color: #e0e0e0;
+    text-shadow: none;
+    -moz-text-shadow: none;
+    -webkit-text-shadow: none;
+    border: 1px solid #880813;
+    position: relative;
+
+    margin: -1px;
+}
+.ui-datepicker-unselectable .ui-state-default {
+    background: #f4f4f4;
+    color: #b4b3b3;
+}
+.ui-datepicker-calendar td:first-child .ui-state-active {
+    width: 29px;
+    margin-left: 0;
+}
+.ui-datepicker-calendar td:last-child .ui-state-active {
+    width: 29px;
+    margin-right: 0;
+}
+.ui-datepicker-calendar tr:last-child .ui-state-active {
+    height: 29px;
+    margin-bottom: 0;
+}
+
+div#ui-datepicker-div.ui-datepicker.ui-widget {width: 222px !important;}
+
+table.ui-datepicker-calendar {margin: 0 !important;}
+.ui-datepicker th {text-align: center;}
+
+#edit-field-job-client-name-0-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-venue-0-value-wrapper, #edit-field-job-status-value-wrapper, .page-node .date-clear-block, #edit-field-job-po-number-0-value-wrapper, #edit-field-job-discount-0-value-wrapper, #edit-field-job-booked-by-0-value-wrapper, #edit-field-job-created-by-0-value-wrapper, #edit-field-additional-charge-ammount-0-value-wrapper, #edit-field-additional-charge-desc-0-value-wrapper {float: left; width: 23%; overflow: hidden; height: 70px; margin-right: 3px !important;}
+.modalframe-page-container .form-item  {float: none !important; width: 100% !important;}
+.modalframe-page-container .form-textarea.resizable {min-height: 300px !important;}
+.buttons, #acecrew_session_add_buttons {clear: both}
+#edit-field-job-comments-0-value-wrapper, #edit-field-invoice-notes-0-value-wrapper {float: left; width: 43.8%; overflow: hidden; height: auto;  margin-right: 30px;}
+.form-textarea.resizable {min-height: 120px;}
+
+#edit-field-job-discount-0-value-wrapper {
+    float: left;
+}
+
+#edit-field-job-discount-desc-0-value-wrapper {
+    float: left;
+    clear: none;
+}
+
+.node-type-job #node-form .column-wrapper fieldset {
+    clear: both;
+}
+
+.node-type-job .field-type-text, .page-node .field-type-datestamp  {float: left; width: 30%; overflow: hidden; margin-right: 30px !important; background: #f7f7f7; border: 1px solid #D5D5D5; padding: 8px 0; text-align: center; margin-bottom: 10px;}
+.node-type-job .field-type-text.field-field-job-comments {}
+.node-job  {position: relative; padding-top: 0px;}
+.node-job .column-side {display: none;}
+.node-job  .field-field-job-number {background: #40444d; font-size: 24px; text-align: center;  text-transform: capitalize;}
+.node-job  .field-field-job-number .field-label, .node-job  .field-field-job-number .field-items {display: inline !important; width: 150px;}
+.node-job  .field-field-job-number {	color: #ffffff;
+    padding: 16px 0px;
+    background: #656e7a;
+    background: -moz-linear-gradient(
+        top,
+        #727a84 0%,
+        #515a67);
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#727a84),
+        to(#515a67));
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid #4c5764;
+    text-shadow:
+        -1px -1px 3px rgba(62,69,80,1);
+		margin-bottom: 30px;
+}
+
+html {overflow-y: scroll;}
+
+.acecrew_job_docs {background: url("images/listing-header.png") repeat-x scroll 0 0 #FFFFFF;
+    border: 1px solid #D5D5D5;
+    border-radius: 6px 6px 6px 6px;
+    margin-top: 10px;}
+.acecrew_job_docs .document-wrapper {background: #fff; border: 1px solid #d7d7d7; margin: 10px; overflow: hidden; padding: 0px 0 10px 0;}
+.acecrew_job_docs h2 {margin-left: 20px; margin-top: 10px;}
+.acecrew_job_docs .document-wrapper h3 {background: #f7f7f7; border-bottom: 1px solid #d7d7d7; margin: 0px 0 10px 0; overflow: hidden; padding: 10px;}
+.acecrew_job_docs .document-wrapper ul {float: left; margin: 10px;}
+.invoice-wrapper {margin-top: 30px !important;}
+.acecrew_job_button {float: right; margin-right: 10px;}
+.acecrew_sessions_container {overflow: hidden; clear: both; padding: 50px 0;}
+
+
+.acecrew_session_content {background: url("images/listing-header.png") repeat-x scroll 0 0 #FFFFFF;
+    border: 1px solid #D5D5D5;
+    border-radius: 6px 6px 6px 6px;
+    margin-top: 10px; padding-top: 20px; position: relative;}
+.acecrew_session_content h2 {display: none;}
+.acecrew_session_content .field-field-session-callid .field-label {background: url("images/call-id.png") no-repeat scroll 0 0 transparent;
+    display: inline-block;
+    height: 30px; width: 40px; text-indent: -9999px;}
+.acecrew_session_content .field-type-text {background: none !important; border: 0 !important; float: none !important;}
+.acecrew_session_content .field-type-text .field-label, .acecrew_session_content .field-type-text .field-items, .acecrew_session_content .field-field-job-session-crew .field-label, .acecrew_session_content .field-field-job-session-date-time .field-label, .acecrew_session_content .field-field-job-session-hours .field-label {float: left !important;}
+.acecrew_session_content .field-field-session-callid {width: 90px !important; line-height: 2; position: absolute; left: 20px; top: 5px; padding: 0 !important; margin: 0 !important;}
+.acecrew_session_content .field-field-job-session-date-time .field-label {background: url("images/call-time.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
+.acecrew_session_content .field-field-job-session-crew .field-label {background: url("images/call-crew.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
+.acecrew_session_content .field-field-job-session-hours .field-label {background: url("images/call-hours.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
+.acecrew_session_content .field-field-job-session-date-time {width: 230px !important; line-height: 2; position: absolute; left: 220px; top: 5px;padding: 0 !important; margin: 0 !important;}
+.acecrew_session_content .field-field-job-session-crew {width: 90px !important; line-height: 2; position: absolute; left: 520px; top: 5px;padding: 0 !important; margin: 0 !important;}
+.acecrew_session_content .field-field-job-session-hours {width: 90px !important; line-height: 2; position: absolute; left: 700px; top: 5px;padding: 0 !important; margin: 0 !important;}
+.acecrew_session_buttons {margin-top: 10px;}
+#acecrew_calendar_forward_days {width: 80px !important;}
+#acecrew-calendar-form .fieldset-content.clear-block {}
+#acecrew-calendar-form  #edit-date-forward-days-wrapper {float: left; margin-left: 20px; margin-right: 20px;}
+#acecrew-calendar-form  .container-inline-date {float: left;}
+#acecrew-calendar-form   #edit-date-submit {margin: 15px 0 0px 0px;}
+
+
+.call-listing-item .crew-names, .each-crew span {background: #fff; border-radius: 2px; -moz-border-radius: 2px; -webkit-border-radius: 2px; display: inline-block;}
+.call-listing-item .crew-names.to-be-allocated, .each-crew span.to-be-allocated {height: 20px; width: 50px; border: 1px solid #ccc; background: #fff !important;}
+.crew-names.text_not_sent, .each-crew span.text_not_sent { color: #a4622a;
+    background-color: #F1DC6E;
+    border: 1px solid #BFA620;}
+.crew-names.text_sent, .each-crew span.text_sent {background-color: #5FC6FA;
+    border: 1px solid #3ca0d2;
+    color: #265e9a;}
+.crew-names.confirmed, .each-crew span.confirmed {background-color: #80B16C;
+    border: 1px solid #5D9645;
+    color: #28695c;}
+#crews-status-set-box .allocated-skills {display: none}
+.call-fourth-row {overflow: hidden;}
+.call-fourth-row strong {float: none; clear: both; display: block;}
+.call-fourth-row .crew-names {display: block; float: left;}
+.supplements-type {background: #fff;}
+
+#call-info2 span {border: 1px solid #D5D5D5; background: none repeat scroll 0 0 #F7F7F7; padding: 4px; display: block; margin:2px 0 0 0;}
+#call-info2 br {display: none;}
+
+#supplement-allocation-form .call-first-row {padding: 5px;}
+
+#acecrew_session_add_form {clear: both; padding: 30px 0; border: 0 !important;}
+#acecrew_session_add_form .container-inline-date {width: 100% !important;}
+#acecrew_session_add_form .container-inline-date .form-item, #acecrew_session_add_form .container-inline-date .form-item input {width: auto !important;}
+#acecrew_session_add_form  #edit-field-job-session-comment-0-value-wrapper {width: 59% !important; float: left;}
+#acecrew_session_add_form .form-item {float: left; width: 23%;}
+.nodereference-views-multifield {clear: both; width: 100%;}
+#acecrew_session_add_form  .grippie, #edit-field-session-job-nid-0-value-wrapper, #comments {display: none;}
+
+
+
+/*Added by Igor*/
+ul.call-listing li.active-load-call {border-color: #ff0000}
+#block-block-2 {width: 100%; position: absolute;z-index: 1000;}
+
+#members-wrapper { width: 320px; clear: both; margin: 0px 0 10px; }
+#members-wrapper .viewport { width: 299px; height: 162px; overflow: hidden; position: relative; }
+#members-wrapper .overview { list-style: none; position: absolute; left: 0; top: 0; }
+#members-wrapper .thumb .end,
+#members-wrapper .thumb { background-color: #003D5D !important; }
+#members-wrapper .scrollbar {background: transparent url(images/bg-scrollbar-track-y.png) no-repeat 0 0 !important;position: relative;background-position: 0 0;float: right;width: 15px;padding: 0;margin-bottom: 5px}
+#members-wrapper .track { background: transparent url(images/bg-scrollbar-trackend-y.png) no-repeat 0 100% !important;height: 100%;width: 15px;position: relative; padding: 0; margin-top: 2px}
+#members-wrapper .thumb { background: transparent url(images/bg-scrollbar-thumb-y.png) no-repeat 50% 100% !important;height: 20px;width: 25px;cursor: pointer;overflow: hidden;position: absolute;top: 0;padding: 0;left: -5px;}
+#members-wrapper .thumb .end { background: transparent url(images/bg-scrollbar-thumb-y.png) no-repeat 50% 0 !important;overflow: hidden;height: 5px;width: 25px;padding: 0}
+#members-wrapper .disable{ display: none; }
+.noSelect { user-select: none; -o-user-select: none; -moz-user-select: none; -khtml-user-select: none; -webkit-user-select: none; }
+
+.acecrew-profile-view {
+    width: 1130px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.acecrew-profile-view #page {
+    position: static;
+    margin: 10px 0 10px 258px;
+    width: 860px;
+}
+
+.acecrew-profile-view #tabs {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 250px;
+}
+
+.acecrew-profile-tabs {
+    width: 250px !important;
+    margin-top: 10px !important;
+}
+
+.acecrew-profile-view #tabs .page-tabs {
+    background: #fff;
+    padding: 0;
+    border: 0;
+    color: #fff;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 4px rgba(0,0,0,.065);
+    -moz-box-shadow: 0 1px 4px rgba(0,0,0,.065);
+    box-shadow: 0 1px 4px rgba(0,0,0,.065);
+    margin-top: 0;
+    border: 1px solid #d5d5d5;
+    width: 100%;
+}
+
+.acecrew-profile-view #tabs .page-tabs li a {
+    border-bottom: 1px solid #e5e5e5;
+    display: block;
+    width: 220px;
+    border-radius: 0;
+}
+
+.acecrew-profile-view #tabs .page-tabs li a:last-child {
+    border-bottom: 0;
+}
+
+.acecrew-profile-view #tabs .page-tabs li:first-child.active a {
+    background: #2669b1;
+    color: #fff;
+    -webkit-border-top-left-radius: 4px;
+    -moz-border-radius-topleft: 4px;
+    border-top-left-radius: 4px;
+    -webkit-border-top-right-radius: 4px;
+    -moz-border-radius-topright: 4px;
+    border-top-right-radius: 4px;
+}
+
+.acecrew-profile-view #tabs .page-tabs li:last-child.active a {
+    background: #2669b1;
+    color: #fff;
+    -webkit-border-bottom-left-radius: 4px;
+    -moz-border-radius-bottomleft: 4px;
+    border-bottom-left-radius: 4px;
+    -webkit-border-bottom-right-radius: 4px;
+    -moz-border-radius-bottomright: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.acecrew-profile-view #tabs .page-tabs li {
+    float: none;
+}
+
+.print_html {
+    display: none !important;
+}
+
+.front .print_html {
+    display: block !important;
+}
+
+.content-wrapper .print_html {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    z-index: 100;
+}
+
+.acecrew-profile-view .print_html {
+    display: inline !important;
+}
+
+.content-wrapper .supp-page .print_html {
+    position: relative !important;
+    top: 0;
+    right: 0;
+}
+
+@media (max-width:1040px){
+	
+	ul.nice-menu > li, ul.nice-menu > li.first {margin: 0 10px;}
+	ul.nice-menu-down {float: none;}
+	.call-first-row .call-time, .call-first-row .call-id, .call-first-row .call-hours, .call-first-row .call-vehicle1, .call-first-row .call-crew-count {background: transparent; padding: 0 5px; margin: 0 5px;}
+	.call-buttons a {float: none; display: block; clear: both; width: 100%; margin: 5px 0; text-align: center;}
+	.call-first-row {height: auto;}
+	.call-first-row .call-flag {float: none; clear: both; margin: 10px 0 10px auto; display: table;}
+	#supplements span {margin-bottom: 7px;}
+	#block-block-2.scroller-static {max-width: 35.5%; right: 20px;}
+	#top #block-nice_menus-1 {max-width: 98%; margin: -29px auto 0 !important;}
+	#block-views-client_view-block_1 table th, #block-views-client_view-block_1 table td {display: none;}
+	#block-views-client_view-block_1 table th:nth-child(2), #block-views-client_view-block_1 table td:nth-child(2), #block-views-client_view-block_1 table th:nth-child(7), #block-views-client_view-block_1 table td:nth-child(7), #block-views-client_view-block_1 table th:nth-child(8), #block-views-client_view-block_1 table td:nth-child(8), #block-views-client_view-block_1 table th:nth-child(9), #block-views-client_view-block_1 table td:nth-child(9), #block-views-client_view-block_1 table th:nth-child(10), #block-views-client_view-block_1 table td:nth-child(10) {display: table-cell;}
+	#block-views-crew_view-block_1 table th:nth-child(4), #block-views-crew_view-block_1 table td:nth-child(4), #block-views-crew_view-block_1 table th:nth-child(5), #block-views-crew_view-block_1 table td:nth-child(5) {display: none;}
+	.views-exposed-widget {display: block; float: none; clear: both; width: 100%;}
+	.acecrew-profile-view #page {max-width: 860px; width: auto;}
+	.acecrew-profile-view {max-width: 99%;}
+	#node-form div.form-item {float: none !important; width: auto !important; clear: both !important; margin: 10px 0 !important;}
+	#node-form div.form-item input.form-autocomplete, #node-form div.form-item input.form-text, #node-form div.form-item textarea.form-textarea {width: 90% !important;}
+	.node-type-job .node-content div.field {float: none !important; width: auto !important; clear: both !important; margin: 10px 0 !important;}
+	#node-form div.form-item select.form-select {width: 93% !important;}
+}
+
+
+@media (max-width:780px){
+	
+	ul.nice-menu > li, ul.nice-menu > li.first {margin: 0 10px;}
+	#acecrew-calendar-form  #edit-date-submit {clear: both; float: none; display: block; width: 100%; margin-top: 20px;}
+	#acecrew-calendar-form #edit-date-forward-days-wrapper {float: none; margin: 0; clear: both;}
+	#block-block-2.scroller-static {max-width: 45%; right: 20px;}
+	
+}
+
+#block-block-2.scroller-static {max-width: 300px !important;}

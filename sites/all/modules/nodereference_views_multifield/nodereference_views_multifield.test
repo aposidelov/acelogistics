@@ -1,0 +1,387 @@
+<?php
+
+class NodereferenceViewsMultifieldTestCase extends DrupalWebTestCase {
+  protected $privileged_user;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'nodereference_views_multifield',
+      'description' => 'Ensure that nodereference_views_multifield functions properly.',
+      'group' => 'CCK',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp(
+      'content',
+      'text',
+      'optionwidgets',
+      'nodereference',
+
+      'views',
+
+      'nodereference_views_multifield'
+    );
+
+    // make sure our immediate dependencies are enabled, since parent::setUp() doesn't check this for us
+    $this->assertTrue(module_exists('nodereference'), "nodereference.module isn't installed");
+    $this->assertTrue(module_exists('views'), "views.module isn't installed");
+
+
+
+    $u = $this->drupalCreateUser(array(
+      'access administration pages',
+      'administer content types',
+      'administer views',
+    ));
+    $this->drupalLogin($u);
+
+
+
+    // set up the Line Item content type
+    $edit = array(
+      'name' => 'Line Item',
+      'type' => 'nrvm_lineitem',
+      'title_label' => 'Line Item Title',
+      'body_label' => '',
+      'node_options[status]' => 'status',
+      'node_options[revision]' => 'revision',
+      'comment' => '0',
+    );
+    $this->drupalPost('admin/content/types/add', $edit, 'Save content type');
+    $this->assertRaw("The content type <em>Line Item</em> has been added.", "nrvm_lineitem content type creation failed");
+
+    // nrvm_lineitem_price field
+    $edit = array(
+      '_add_new_field[label]' => 'Line Item Price',
+      '_add_new_field[field_name]' => 'nrvm_lineitem_price',
+      '_add_new_field[type]' => 'text',
+      '_add_new_field[widget_type]' => 'text_textfield',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-lineitem/fields', $edit, 'Save');
+    $this->assertRaw("These settings apply to the <em>Line Item Price</em> field", "nrvm_lineitem_price field creation failed");
+    $edit = array(
+      'required' => '1',
+      'multiple' => '0',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-lineitem/fields/field_nrvm_lineitem_price', $edit, 'Save field settings');
+    $this->assertRaw("/admin/content/node-type/nrvm-lineitem/fields/field_nrvm_lineitem_price", "nrvm_lineitem_price field settings failed");
+
+    // nrvm_lineitem_enabled field
+    $edit = array(
+      '_add_new_field[label]' => 'Line Item Enabled',
+      '_add_new_field[field_name]' => 'nrvm_lineitem_enabled',
+      '_add_new_field[type]' => 'text',
+      '_add_new_field[widget_type]' => 'text_textfield',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-lineitem/fields', $edit, 'Save');
+    $this->assertRaw("These settings apply to the <em>Line Item Enabled</em> field", "nrvm_lineitem_enabled field creation failed");
+    $edit = array(
+      'required' => '1',
+      'multiple' => '0',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-lineitem/fields/field_nrvm_lineitem_enabled', $edit, 'Save field settings');
+    $this->assertRaw("/admin/content/node-type/nrvm-lineitem/fields/field_nrvm_lineitem_enabled", "nrvm_lineitem_enabled field settings failed");
+
+
+
+    // set up a view to list the lineitems
+    $view = views_new_view();
+    $view->name = 'nrvm_lineitems';
+    $view->base_table = 'node';
+    $handler = $view->new_display('default', 'Defaults', 'default');
+    $handler->override_option('fields', array(
+      'field_nrvm_lineitem_price_value' => array(
+        'label' => 'Line Item Price',
+        'exclude' => 0,
+        'id' => 'field_nrvm_lineitem_price_value',
+        'table' => 'node_data_field_nrvm_lineitem_price',
+        'field' => 'field_nrvm_lineitem_price_value',
+        'link_to_node' => 0,
+      ),
+      'title' => array(
+        'label' => 'Title',
+        'exclude' => 0,
+        'id' => 'title',
+        'table' => 'node',
+        'field' => 'title',
+        'link_to_node' => 1,
+      ),
+    ));
+    $handler->override_option('filters', array(
+      'type' => array(
+        'operator' => 'in',
+        'value' => array(
+          'nrvm_lineitem' => 'nrvm_lineitem',
+        ),
+        'id' => 'type',
+        'table' => 'node',
+        'field' => 'type',
+      ),
+      'field_nrvm_lineitem_enabled_value' => array(
+        'operator' => '=',
+        'value' => '1',
+        'id' => 'field_nrvm_lineitem_enabled_value',
+        'table' => 'node_data_field_nrvm_lineitem_enabled',
+        'field' => 'field_nrvm_lineitem_enabled_value',
+      ),
+    ));
+    $view->save();
+    $this->assertNotNull(views_get_view('nrvm_lineitems'), "nrvm_lineitems view creation failed");
+
+
+
+    // set up the Order content type
+    $edit = array(
+      'name' => 'Order',
+      'type' => 'nrvm_order',
+      'title_label' => 'Order Title',
+      'body_label' => '',
+      'node_options[status]' => 'status',
+      'node_options[revision]' => 'revision',
+      'comment' => '0',
+    );
+    $this->drupalPost('admin/content/types/add', $edit, 'Save content type');
+    $this->assertRaw('/admin/content/node-type/nrvm-order', 'nrvm_order content type creation failed');
+
+    $edit = array(
+      '_add_new_field[label]' => 'Order Line Items',
+      '_add_new_field[field_name]' => 'nrvm_order_lineitems',
+      '_add_new_field[type]' => 'nodereference_views_multifield',
+      '_add_new_field[widget_type]' => 'nodereference_views_multifield',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-order/fields', $edit, 'Save');
+    $this->assertRaw("These settings apply to the <em>Order Line Items</em> field", "nrvm_order_lineitems field creation failed");
+
+    $edit = array(
+      'required' => '1',
+      'multiple' => '1',
+      'viewdisplay' => 'nrvm_lineitems default',
+      'fields' => 'discount|Discount per Item
+taxed|Apply Sales Tax?|checkbox
+quantity|Quantity of Items',
+    );
+    $this->drupalPost('admin/content/node-type/nrvm-order/fields/field_nrvm_order_lineitems', $edit, 'Save field settings');
+    $this->assertRaw("/admin/content/node-type/nrvm-order/fields/field_nrvm_order_lineitems", "nrvm_order_lineitems field settings failed");
+
+
+
+    // now that sitebuilding is done, switch to a less-powerful user
+    $this->drupalLogout();
+
+    // reset everybody's caches (otherwise drupalCreateUser() doesn't know about the new permissions)
+    node_get_types('types', NULL, TRUE);
+    _content_type_info(TRUE);
+    drupal_get_schema(NULL, TRUE);
+    $this->checkPermissions(array(), TRUE);
+
+    $u = $this->drupalCreateUser(array(
+      'access all views',
+      'access content',
+      'create nrvm_lineitem content',
+      'create nrvm_order content',
+      'edit any nrvm_order content',
+      'field_nrvm_order_lineitems extrafield discount edit',
+      'field_nrvm_order_lineitems extrafield quantity edit',
+      'field_nrvm_order_lineitems select rows',
+    ));
+    $this->drupalLogin($u);
+
+
+
+    // create some sample line items
+    $edit = array (
+      'title' => 'Snugget',
+      'field_nrvm_lineitem_enabled[0][value]' => '1',
+      'field_nrvm_lineitem_price[0][value]' => '32.00',
+    );
+    $this->drupalPost('node/add/nrvm-lineitem', $edit, 'Save');
+    $this->assertRaw("Line Item <em>Snugget</em> has been created.", "nrvm_lineitem Snugget failed");
+
+    $edit = array (
+      'title' => 'Applesauce',
+      'field_nrvm_lineitem_enabled[0][value]' => '1',
+      'field_nrvm_lineitem_price[0][value]' => '3.75',
+    );
+    $this->drupalPost('node/add/nrvm-lineitem', $edit, 'Save');
+    $this->assertRaw("Line Item <em>Applesauce</em> has been created.", "nrvm_lineitem Applesauce failed");
+
+    $edit = array (
+      'title' => 'Sword of Otto',
+      'field_nrvm_lineitem_enabled[0][value]' => '1',
+      'field_nrvm_lineitem_price[0][value]' => '1999.99',
+    );
+    $this->drupalPost('node/add/nrvm-lineitem', $edit, 'Save');
+    $this->assertRaw("Line Item <em>Sword of Otto</em> has been created.", "nrvm_lineitem Sword of Otto failed");
+
+    $edit = array (
+      'title' => 'Golden Milktab',
+      'field_nrvm_lineitem_enabled[0][value]' => '1',
+      'field_nrvm_lineitem_price[0][value]' => '100000.00',
+    );
+    $this->drupalPost('node/add/nrvm-lineitem', $edit, 'Save');
+    $this->assertRaw("Line Item <em>Golden Milktab</em> has been created.", "nrvm_lineitem Golden Milktab failed");
+  }
+
+
+
+  public function testNRVMStandard() {
+    // create an order
+    {
+      $this->drupalGet('node/add/nrvm-order');
+  
+      // since we have three lineitems, the Add Order form should have a fieldset with a table, containing a row for each nrvm_lineitem.
+      $rows = $this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr");
+      $this->assertEqual(4, count($rows), "nrvm_order_lineitems field doesn't have four rows");
+      
+      // each row should include a checkbox, the two non-excluded fields in the view, our three extra fields, and a hidden nid field.
+      for ($i=0; $i<4; ++$i) {
+        $this->assertEqual(7,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//td")),
+          "wrong number of columns in row {$i}");
+
+        $this->assertEqual(1,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//input[@id='edit-field-nrvm-order-lineitems-rows-$i-nodereference-views-multifield-checkbox' and @type='checkbox']")),
+          "couldn't find node selection checkbox in row {$i}");
+        
+        $this->assertEqual(1,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//input[@id='edit-field-nrvm-order-lineitems-rows-$i-discount' and @type='text']")),
+          "couldn't find Discount textbox in row {$i}");
+        
+        $this->assertEqual(1,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//input[@id='edit-field-nrvm-order-lineitems-rows-$i-taxed' and @type='checkbox']")),
+          "couldn't find Taxed checkbox on row {$i}");
+        
+        $this->assertEqual(1,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//input[@id='edit-field-nrvm-order-lineitems-rows-$i-quantity' and @type='text']")),
+          "couldn't find Quantity textbox on row {$i}");
+        
+        $this->assertEqual(1,
+          count($this->xpath("//fieldset[@class='nodereference-views-multifield']/table/tbody/tr[".($i+1)."]//input[@id='edit-field-nrvm-order-lineitems-rows-$i-nodereference-views-multifield-nid' and @type='hidden']")),
+          "couldn't find hidden nid on row {$i}");
+      }
+      
+      // create an order by filling out the form, and skim the result
+      $edit = array (
+        'title' => 'Order for The Department Store',
+        'field_nrvm_order_lineitems[rows][0][nodereference_views_multifield_checkbox]' => '1',
+        'field_nrvm_order_lineitems[rows][0][discount]' => '1.00',
+        'field_nrvm_order_lineitems[rows][0][quantity]' => '12',
+        'field_nrvm_order_lineitems[rows][0][nodereference_views_multifield_nid]' => '2',
+        'field_nrvm_order_lineitems[rows][1][nodereference_views_multifield_checkbox]' => '1',
+        'field_nrvm_order_lineitems[rows][1][discount]' => '0.25',
+        'field_nrvm_order_lineitems[rows][1][quantity]' => '4',
+        'field_nrvm_order_lineitems[rows][1][nodereference_views_multifield_nid]' => '3',
+        'field_nrvm_order_lineitems[rows][2][nodereference_views_multifield_checkbox]' => '1',
+        'field_nrvm_order_lineitems[rows][2][discount]' => '0.00',
+        'field_nrvm_order_lineitems[rows][2][quantity]' => '1',
+        'field_nrvm_order_lineitems[rows][2][nodereference_views_multifield_nid]' => '4',
+      );
+      $this->drupalPost('node/add/nrvm-order', $edit, 'Save');
+      $this->assertRaw('Order <em>Order for The Department Store</em> has been created.', 'order form post failed');
+      $this->assertRaw('32.00', '32.00');
+      $this->assertRaw('Snugget', 'Snugget');
+      $this->assertRaw('1.00', '1.00');
+      $this->assertRaw('12', '12');
+      $this->assertRaw('3.75', '3.75');
+      $this->assertRaw('Applesauce', 'Applesauce');
+      $this->assertRaw('0.25', '0.25');
+      $this->assertRaw('4', '4');
+      $this->assertRaw('1999.99', '1999.99');
+      $this->assertRaw('Sword of Otto', 'Sword of Otto');
+      $this->assertRaw('0.00', '0.00');
+      $this->assertRaw('1', '1');
+
+      // now create the same order by filling in node fields
+//      $order = new StdClass();
+//      $order->title = 'Order for The Department Store';
+//      $order->field_nrvm_order_lineitems[0]['nid'] = 1;
+//      $order->field_nrvm_order_lineitems[0]['fields'] = '{"discount":"1.00","quantity":"12"}';
+//      $order->field_nrvm_order_lineitems[1]['nid'] = 2;
+//      $order->field_nrvm_order_lineitems[1]['fields'] = '{"discount":"0.25","quantity":"4"}';
+//      $order->field_nrvm_order_lineitems[2]['nid'] = 3;
+//      $order->field_nrvm_order_lineitems[2]['fields'] = '{"discount":"0.00","quantity":"1"}';
+//      node_save($order);
+//      $this->assertTrue($order->nid>0, 'order node creation failed');
+//    $this->fail(print_r(node_load($order->nid),true));
+// @@@ creating a node this way doesn't work --- to investigate
+    }
+    
+    // verify that the saved order looks ok
+    $order = node_load(5);
+    $this->assertEqual($order->field_nrvm_order_lineitems[0]['nid'], 1, "saved order nid=1");
+    $this->assertEqual($order->field_nrvm_order_lineitems[1]['nid'], 2, "saved order nid=2");
+    $this->assertEqual($order->field_nrvm_order_lineitems[2]['nid'], 3, "saved order nid=3");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[0]['fields']), array('discount'=>'1.00','quantity'=>'12','taxed'=>''), "saved order lineitem 1 fields");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[1]['fields']), array('discount'=>'0.25','quantity'=>'4', 'taxed'=>''), "saved order lineitem 2 fields");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[2]['fields']), array('discount'=>'0.00','quantity'=>'1', 'taxed'=>''), "saved order lineitem 3 fields");
+
+    // hide one of the lineitems from the view
+    $lineitem = node_load(3);
+    $lineitem->field_nrvm_lineitem_enabled[0]['value'] = '0';
+    node_save($lineitem);
+    
+    // make sure the saved order still has the now-hidden lineitem
+    $order = node_load(5);
+    $this->assertEqual($order->field_nrvm_order_lineitems[0]['nid'], 1, "saved order nid=1 hidden");
+    $this->assertEqual($order->field_nrvm_order_lineitems[1]['nid'], 2, "saved order nid=2 hidden");
+    $this->assertEqual($order->field_nrvm_order_lineitems[2]['nid'], 3, "saved order nid=3 hidden");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[0]['fields']), array('discount'=>'1.00','quantity'=>'12','taxed'=>''), "saved order lineitem 1 fields hidden");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[1]['fields']), array('discount'=>'0.25','quantity'=>'4', 'taxed'=>''), "saved order lineitem 2 fields hidden");
+    $this->assertEqual((array)json_decode($order->field_nrvm_order_lineitems[2]['fields']), array('discount'=>'0.00','quantity'=>'1', 'taxed'=>''), "saved order lineitem 3 fields hidden");
+
+    // make sure the **rendered** order still has the now-hidden lineitem
+    {
+      $this->drupalGet('node/5');
+  
+      $row = $this->xpath("//div[contains(@class,'field-field-nrvm-order-lineitems')]//table/tbody/tr[1]/td");
+      $this->assertEqual($row[0]->{0}, '32.00',         "order lineitem info incorrect 0/0");
+      $this->assertEqual($row[1]->a,   'Snugget',       "order lineitem info incorrect 0/1");
+      $this->assertEqual($row[2]->{0}, '1.00',          "order lineitem info incorrect 0/2");
+      $this->assertEqual($row[4]->{0}, '12',            "order lineitem info incorrect 0/3");
+      $row = $this->xpath("//div[contains(@class,'field-field-nrvm-order-lineitems')]//table/tbody/tr[2]/td");
+      $this->assertEqual($row[0]->{0}, '3.75',          "order lineitem info incorrect 1/0");
+      $this->assertEqual($row[1]->a,   'Applesauce',    "order lineitem info incorrect 1/1");
+      $this->assertEqual($row[2]->{0}, '0.25',          "order lineitem info incorrect 1/2");
+      $this->assertEqual($row[4]->{0}, '4',             "order lineitem info incorrect 1/3");
+      $row = $this->xpath("//div[contains(@class,'field-field-nrvm-order-lineitems')]//table/tbody/tr[3]/td");
+      $this->assertEqual($row[0]->{0}, '1999.99',       "order lineitem info incorrect 2/0");
+      $this->assertEqual($row[1]->a,   'Sword of Otto', "order lineitem info incorrect 2/1");
+      $this->assertEqual($row[2]->{0}, '0.00',          "order lineitem info incorrect 2/2");
+      $this->assertEqual($row[4]->{0}, '1',             "order lineitem info incorrect 2/3");
+    }
+    
+    // make sure the order edit page still has the now-hidden lineitem
+    {
+      $this->drupalGet('node/5/edit');
+
+      $this->assertEqual(count($this->xpath("//fieldset[@class='nodereference-views-multifield']//table/tbody/tr")), 4, "incorrect number of lineitems when editing order");
+
+      $this->assertEqual(count($this->xpath('//tr[td/input[@class="nodereference-views-multifield-nid" and @value=1] and td/div/input[@class="form-checkbox" and @checked]]')),      1, "order lineitem nid=1 is missing or unchecked");
+      $this->assertEqual(count($this->xpath('//tr[td/input[@class="nodereference-views-multifield-nid" and @value=2] and td/div/input[@class="form-checkbox" and @checked]]')),      1, "order lineitem nid=2 is missing or unchecked");
+      $this->assertEqual(count($this->xpath('//tr[td/input[@class="nodereference-views-multifield-nid" and @value=3] and td/div/input[@class="form-checkbox" and @checked]]')),      1, "order lineitem nid=3 is missing or unchecked");
+      $this->assertEqual(count($this->xpath('//tr[td/input[@class="nodereference-views-multifield-nid" and @value=4] and td/div/input[@class="form-checkbox" and not(@checked)]]')), 1, "order lineitem nid=4 is missing or checked");
+    }
+
+    // resave the order, and make sure the now-hidden lineitem is still there
+    {
+      // @@@ how does one submit a form retrieved with drupalGet()?  (I specifically do not want to construct my own $edit array, so I can't use drupalPost()...)
+/*
+      $order = node_load(5);
+      $this->assertEqual($order->field_nrvm_order_lineitems[0]['nid'], 1, "resaved order nid=1 hidden");
+      $this->assertEqual($order->field_nrvm_order_lineitems[0]['fields'], '{"discount":"1.00","quantity":"12"}', "resaved order lineitem 1 fields hidden");
+      $this->assertEqual($order->field_nrvm_order_lineitems[1]['nid'], 2, "resaved order nid=2 hidden");
+      $this->assertEqual($order->field_nrvm_order_lineitems[1]['fields'], '{"discount":"0.25","quantity":"4"}', "resaved order lineitem 2 fields hidden");
+      $this->assertEqual($order->field_nrvm_order_lineitems[2]['nid'], 3, "resaved order nid=3 hidden");
+      $this->assertEqual($order->field_nrvm_order_lineitems[2]['fields'], '{"discount":"0.00","quantity":"1"}', "resaved order lineitem 3 fields hidden");*/
+    }
+  }
+
+
+
+/*
+  public function testNRVMAddRemove() {
+      // @@@ todo
+  }
+*/
+}

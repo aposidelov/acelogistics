@@ -1,0 +1,2670 @@
+<?php
+
+require_once dirname(__FILE__) .'/acecrew_func.inc';
+
+// Delete node using ajax call
+function acecrew_del_user_bookedoff($nid){
+    node_delete($nid);
+    drupal_json(array('result' => '1', 'msg'=>'Successfully deleted'));
+    exit();
+}
+
+// Add node which has type = 'user_bookedoff' using ajax call
+function acecrew_add_user_bookedoff(){
+    $query = file_get_contents('php://input');
+    extract($_POST);
+    module_load_include('inc', 'node', 'node.pages');
+
+    $node = new StdClass();
+    $node->field_ub_label[0]['value']= $ub_label;
+
+    //$ub_date_start = explode(" ",$ub_date_start);
+    //   mm/dd/yy => yy-mm-dd
+    $ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
+    $node->field_ub_date_start[0]['value']= $ub_date_start;//array('date'=>$ub_date_start[0], 'time'=>$ub_date_start[1]);
+
+    $ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);
+    $node->field_ub_date_end[0]['value']=$ub_date_end;// array('date'=>$ub_date_end[0], 'time'=>$ub_date_end[1]);
+    $node->field_ub_owner = array(0=>array('uid'=>$uid ));
+    $node->{type} = 'user_bookedoff';
+
+    $form_state = array();
+    //drupal_execute( $node->type, $form_state, (object)$node);
+    $cn = node_submit($node);
+    node_save($cn);
+    if ($cn->nid){ //success
+        drupal_json(array('result' => '1', 'msg'=>'Added new bookoff',
+            'node_id'=>$cn->nid));
+    }else{
+        drupal_json(array('result' => '0', 'msg'=>'bookoff operatio failed'));
+    }
+    exit();
+}
+
+/**
+ * Implementaiton of hook_perm()
+ */
+function acecrew_perm() {
+    return array('acecrew calendar', 'acecrew access user payrate', 'acecrew access reports', 'acecrew access sms', 'acecrew time sheets');
+}
+
+/**
+ * Implementaiton of hook_theme_registry_alter()
+ */
+function acecrew_theme_registry_alter(&$theme_registry) {
+    $theme_registry['node']['theme paths'][] = drupal_get_path('module', 'acecrew') . '/theme';
+}
+
+/**
+ * Implementaiton of hook_form_alter()
+ */
+function acecrew_form_alter(&$form, $form_state, $form_id) {
+    //?? saf modified
+    if ($form_id  == 'job_session_node_form' || $form_id  == 'admin_settings_node_form' ) {
+        unset($form['buttons']['preview']);
+        unset($form['buttons']['delete']);
+    }
+    if ($form_id  == 'admin_settings_node_form' ){
+        $form['#redirect'] = false;
+    }
+
+    if ($form_id == 'user_register' || $form_id == 'user_profile_form'){
+        unset($form['Supplement']['profile_payrateid']);
+    }
+}
+
+
+/**
+ * Implementaiton of hook_menu()
+ */
+function acecrew_menu() {
+    $items = array();
+    //??saf
+    $items['acecrew/ajax/usr/delbookedoff/%'] = array(
+        'title' => 'Ace Crew AJAX Delete User\s Booked-off',
+        'page callback' => 'acecrew_del_user_bookedoff',
+        'page arguments' => array(4),
+        'access arguments' => array('delete any user_bookedoff content'),
+        'type' => MENU_CALLBACK,
+    );
+    //??saf
+    $items['acecrew/ajax/usr/addbookedoff/%'] = array(
+        'title' => 'Ace Crew AJAX Create User\'s Booked-off',
+        'page callback' => 'acecrew_add_user_bookedoff',
+        'page arguments' => array(3),
+        'access arguments' => array('create user_bookedoff content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/ajax/delsession/%'] = array(
+        'title' => 'Ace Crew AJAX Delete Session',
+        'page callback' => 'acecrew_del_job_session',
+        'page arguments' => array(3),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/ajax/session/sms/%'] = array(
+        'title' => 'Ace Crew send sms to session crews',
+        'page callback' => 'acecrew_session_sms',
+        'page arguments' => array(4),
+        'access arguments' => array('acecrew access sms'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/generateinvoice/%'] = array(
+        'title' => 'Ace Crew Generate Invoice',
+        'page callback' => 'acecrew_generate_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/delinvoice/%'] = array(
+        'title' => 'Ace Crew  Delete Invoice',
+        'page callback' => 'acecrew_delete_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/emailinvoice/%'] = array(
+        'title' => 'Ace Crew Email Invoice',
+        'page callback' => 'acecrew_email_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/generatequote/%'] = array(
+        'title' => 'Ace Crew Generate quote',
+        'page callback' => 'acecrew_generate_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/delquote/%'] = array(
+        'title' => 'Ace Crew  Delete quote',
+        'page callback' => 'acecrew_delete_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/emailquote/%'] = array(
+        'title' => 'Ace Crew Email quote',
+        'page callback' => 'acecrew_email_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/calendar'] = array(
+        'title' => 'Ace Crew Calendar',
+        'page callback' => 'acecrew_calendar',
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    // added by anton
+    $items['admin/reports/timesheets'] = array(
+        'title' => 'Timesheets',
+        'description' => "Ace Crew Time Sheets Reports.",
+        'page callback' => 'acecrew_report_timesheets',
+        'page arguments' => array('access denied'),
+        'access arguments' => array('acecrew time sheets'),
+        'file' => 'acecrew.admin.inc',
+    );
+    $items['timesheets/generate/csv'] = array(
+        'title' => 'Generate CSV',
+        'page callback' => 'timesheets_reports_generate',
+        'page arguments' => array('access denied'),
+        'access arguments' => array('generate each crews csv'),
+        'type' => MENU_CALLBACK,
+        'file' => 'acecrew.admin.inc'
+    );
+    //?? sasya added
+    $items['acecrew/calendar-popup/sms/%'] = array(
+        'title' => 'Ace Crew SMS',
+        'page callback' => 'acecrew_calendar_popup_sms',
+        'page arguments' => array(3),
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['acecrew/calendar/%'] = array(
+        'title' => 'Ace Crew Calendar Date',
+        'page callback' => 'acecrew_calendar_date',
+        'page arguments' => array(2),
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['js/acecrew/calendar/%'] = array(
+        'title' => 'Diary page JS-module-Callback',
+        'page callback' => 'acecrew_calendar_date',
+        'page arguments' => array(3),
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_CALLBACK,
+      );
+    $items['acecrew/calendar/set-status/%'] = array(
+        'title' => 'Ace Crew Set Status',
+        'page callback' => 'acecrew_calendar_set_supplements_status',
+        'page arguments' => array(3),
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/ajax/report/%/%/%'] = array(
+        'title' => 'Ace Crew report',
+        'page callback' => 'acecrew_report_date_ajax',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/report/print/%/%/%'] = array(
+        'title' => 'Ace Crew report',
+        'page callback' => 'acecrew_report_date_print',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/report/csv/%/%/%'] = array(
+        'title' => 'Ace Crew CSV report',
+        'page callback' => 'acecrew_report_date_csv',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/ajax/fines/%'] = array(
+        'title' => 'Ace Crew Fines Ajax',
+        'page callback' => 'acecrew_addfines_ajax',
+        'page arguments' => array(3),
+        'access arguments' => array('create fines content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/ajax/client_contacts'] = array(
+        'title' => 'Ace Crew Client Contacts For Create Job Page',
+        'page callback' => 'acecrew_ajax_client_contacts',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_client_name'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/ajax/client_contacts/%'] = array(
+        'title' => 'Ace Crew Client Contacts For Create Job Page',
+        'page callback' => 'acecrew_ajax_client_contacts',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_client_name'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/set_crew_session_status/%/%/%'] = array(
+        'title' => 'Set crew session status',
+        'page callback' => 'acecrew_set_crew_session_status',
+        'page arguments' => array(2, 3, 4),
+        'access arguments' => array('edit field_crew_job_session_status'),
+        'type' => MENU_CALLBACK,
+    );
+
+    // added by anton
+    $items['acecrew/quote/pdf/%'] = array(
+        'title' => 'Del crew from session',
+        'page callback' => 'acecrew_quote_view_pdf',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_session_crews'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/invoice/pdf/%'] = array(
+        'title' => 'Del crew from session',
+        'page callback' => 'acecrew_invoice_view_pdf',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_session_crews'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/quote/rtf/%'] = array(
+        'title' => 'Del crew from session',
+        'page callback' => 'acecrew_quote_view_rtf',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_session_crews'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/invoice/rtf/%'] = array(
+        'title' => 'Del crew from session',
+        'page callback' => 'acecrew_invoice_view_rtf',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_session_crews'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/client/autocomplete'] = array(
+        'title' => 'Acecrew Client autocomplete',
+        'page callback' => 'client_autocomplete',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+        'file' => 'acecrew.pages.inc',
+    );
+
+    $items['acecrew/venue/autocomplete'] = array(
+        'title' => 'Acecrew Venue autocomplete',
+        'page callback' => 'venue_autocomplete',
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+        'file' => 'acecrew.pages.inc',
+    );
+
+    return $items;
+}
+
+/**
+* Implementation of hook_js()
+* Defines the callback funciton/page for the JS handler module.
+*/
+function acecrew_js() {
+  return array(
+    'calendar' => array(
+      'callback' => 'acecrew_calendar_date',
+      'includes' => array('theme', 'unicode'),
+      'dependencies' => array('locale', 'filter', 'user', 'node', 'cck'), // , 'node', 'cck'
+    ),
+  );
+}
+
+/**
+* Implementation of autosuggest_query()
+* Gather query results and output JSON payload via JS handler
+*/
+function acecrew_calendar_query($date = 'nothing') {
+    $array = array();
+    $array['data'] = 'Hello world:' . $date;
+    print json_encode($array);
+}
+
+
+/**
+ * Implementaiton of hook_theme()
+ */
+function acecrew_theme($existing, $type, $theme, $path) {
+    $theme_registry['acecrew_customform'] = array(
+        'arguments' => array('acecrew_customform')
+    );
+
+    $theme_registry['acecrew_assigned_sessions'] = array(
+        'arguments' => array('acecrew_assigned_sessions' => ''),
+        "template" => "job-create--calls-list",
+        "path" => drupal_get_path('module', 'acecrew') . '/job_create',
+    );
+
+    $theme_registry['acecrew_assigned_docs'] = array(
+        'arguments' => array('acecrew_assigned_docs', 'client_emails')
+    );
+
+    $theme_registry['acecrew_session_totals'] = array(
+        'arguments' => array('acecrew_session_totals')
+    );
+
+    $theme_registry['acecrew_calendar_scheduler'] = array(
+        'arguments' => array('acecrew_calendar_scheduler')
+    );
+
+    $theme_registry['acecrew_report_table'] = array(
+        'arguments' => array('acecrew_report_table')
+    );
+
+    $theme_registry["views_view_table__job_view"] = array(
+        "template" => "views-view-table--job-view",
+        "path" => drupal_get_path('module', 'acecrew') . '/theme',
+        "arguments" => array (
+            "view" => NULL,
+            "options" => NULL,
+            "rows" => NULL,
+            "title" => NULL
+        ),
+        "preprocess functions" => array ("template_preprocess", "template_preprocess_views_view_table")
+    );
+
+    return $theme_registry;
+}
+
+/**
+ * Implementaiton of hook_user()
+ */
+function acecrew_user($op, &$edit, &$account, $category = NULL) {
+    global $user;
+    //watchdog('op_cat', '<pre>'.print_r($op, TRUE).'</pre>');
+    //watchdog('prof_cat', '<pre>'.print_r($category, TRUE).'</pre>');
+    //check access
+    if (!user_access('acecrew access user payrate', $user, true)){
+        return;
+    }
+
+    if ('insert' == $op) {
+        //If new crew member(user) is created, also set a new profile field with supplement = ""
+        $uid = $account->uid;
+        $query = "INSERT INTO  {profile_values} (fid, uid, value) VALUES ('41', '$uid', '');";
+        db_query($query);
+    }
+
+    if ('form' == $op  && 'Supplement' == $category) {
+        //display at edit form at appropriate category(tab)
+        $rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $account->uid));
+        return _acecrew_get_rates_form($rate, $account->profile_crew_skills);
+    } elseif ('register' == $op) {
+        //display at registration form
+        return _acecrew_get_rates_form();
+    } elseif ('update' == $op || 'insert' == $op) {
+        //save Pay Rate ID to appropriate profile field
+        $edit['profile_payrateid'] = $edit['acecrew_payrate_id'];
+    } elseif('insert' == $op) {
+
+    }
+    //??saf
+    if ('view' == $op)  {
+        $sql = "select * from {content_type_user_bookedoff} where field_ub_owner_uid = %d";
+        $query = db_query($sql, array($account->uid));
+        $ret = array();
+        while($row = db_fetch_array($query)){
+            $ret[] = $row;
+        }
+        $account->bookoff_list = $ret;
+    }
+}
+
+/**
+ * Implementaiton of hook_profile_alter()
+ */
+function acecrew_profile_alter(&$account){
+    $payrate_string = acecrew_get_payrate($account->acecrew_payrate_id, true);
+    $payrate = array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Payrate2'),
+        '#value' => $payrate_string,
+    );
+
+    $account->content['Supplement']['payrate'] = $payrate;
+
+    if (!user_access('acecrew access reports')){
+        return;
+    }
+
+    $account->content['Reports'] = array(
+        '#type' => 'user_profile_category',
+        '#title' => t('Reports')
+    );
+
+    $my_settings = array(
+        'basepath' => drupal_get_path('module', 'acecrew'),
+        'report_uid' => $account->uid,
+    );
+
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-profile-reports.css', 'module', 'all', false);
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-profile-reports.js');
+
+    $output = '';
+    $output .= '<div id="acecrew_report_form"> ' . drupal_get_form('acecrew_report_form') . ' </div> ';
+    $output .= '<div id="acecrew_report_output">  </div>';
+    $output = '<div id="acecrew_report">' . $output . '</div>';
+
+    $account->content['Reports']['Reports'] = array(
+        '#type' => 'user_profile_item',
+        '#title' => '',
+        '#value' => $output
+    );
+}
+
+// function to delete some node by nid
+function acecrew_del_job_session($ses_id) {
+    node_delete($ses_id);
+}
+
+/**
+ * Calculate cost of user hours
+ **/
+function _acecrew_calc_crew_hours_cost($hour_rate, $hours) {
+    $unit_cost = 0.0;
+    $min_charge = 45;
+    switch ($hours){
+        case 0:
+            $unit_cost = $min_charge;
+            break;
+        case 1:
+            $unit_cost = $min_charge;
+            break;
+        case 2:
+            $unit_cost = $min_charge;
+            break;
+        case 3:
+            $unit_cost = $min_charge + $hour_rate;
+            break;
+        default:
+            $unit_cost = $hour_rate * $hours;
+    }
+    return $unit_cost;
+}
+
+
+/*
+ * generate invoice
+ * modified by andton
+ */
+function acecrew_generate_invoice($job_id) {
+    $job = _acecrew_get_job_node_by_id($job_id);
+    _acecrew_add_invoice_job_relate($job_id);
+    _acecrew_invoice_raised_job_status($job_id);
+
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// delete invoice from custom table {acecrew_job_invoices}
+function acecrew_delete_invoice($invoice_id) {
+    /*$nid = db_result(db_query("SELECT nid FROM {invoice_invoices} WHERE iid=%d", $invoice_id));
+    node_delete($nid);*/
+    db_query("DELETE FROM {acecrew_job_invoices} WHERE acecrew_job_invoice_id=%d", $invoice_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// Generate Invoice Pdf and send mail it to client (client is taken by $invoice_id)
+function acecrew_email_invoice($invoice_id) {
+    $invoice_path = drupal_get_path('module', 'invoice');
+    require_once($invoice_path .'/dompdf/dompdf_config.inc.php');
+    $html = _acecrew_invoice_get_html($invoice_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $pdf = $dompdf->output();
+
+    $filename = 'invoice.pdf';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
+    file_put_contents($filepath . $filename, $pdf);
+
+    if(empty($_POST['client_emails'])){
+        $client = acecrew_get_client_by_invoice_id($invoice_id);
+        $client_email = $client->field_client_company_email[0]['email'];
+    } else {
+        $client_email = $_POST['client_emails'];
+    }
+
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From     = "from@example.com";
+    $mail->AddAddress($client_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Invoice');
+    $mail->Body = t('This is your invoice. Please see that attached file.');
+    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+
+    if(!$mail->Send()) {
+        drupal_set_message(t('Can\'t send email'));
+    } else {
+        drupal_set_message(t('Email has been sent'));
+    }
+
+    unlink($filepath . $filename);
+    _acecrew_invoice_sent_job_status($invoice_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+/*
+ * generate quote
+ */
+function acecrew_generate_quote($job_id)
+{
+    global $user;
+
+    // get job information
+    /*$job = _acecrew_get_job_node_by_id($job_id);
+    if (empty($job)){
+        return;
+    }
+
+    // get client information
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    if(empty($client)){
+        return;
+    }
+
+    // get venue information
+    $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+    $venue_name = $venue->field_venue_name[0]['value'];
+    $venue_name_address = $venue->field_venue_name[0]['value'] . ', ' . $venue->field_venue_address[0]['value'];
+
+    $job_sessions = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+    while ($job_session = db_fetch_object($job_sessions)) {
+        $works_hours = array();
+        $supplements = array();
+        $job_session = node_load(array('nid' => $job_session->nid));
+        $field_job_session_crews = $job_session->field_job_session_crews;
+    }*/
+
+    _acecrew_add_quote_job_relate($job_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// delete quote from custom table {acecrew_job_quotes}
+function acecrew_delete_quote($quote_id) {
+    db_query("DELETE FROM {acecrew_job_quotes} WHERE acecrew_job_quote_id=%d", $quote_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// Show SMS Content Popup after user clicks on "Generate SMS content" button
+function acecrew_calendar_popup_sms($callNodeid) {
+    modalframe_child_js();
+
+    $session_node = node_load(array('nid' => $callNodeid));
+
+    $ses_count_crews = $session_node->field_job_session_crew[0]['value'];
+    $ses_count_hours = $session_node->field_job_session_hours[0]['value'];
+    $ses_date_time = $session_node->field_job_session_date_time[0]['value'];
+    $ses_call_contact = $session_node->field_call_contact[0]['value'];
+    $ses_call_contact  = _get_client_contact_for_sms($ses_call_contact, $session_node->field_session_job_nid[0]['value']);
+//    $ses_call_contact = $ses_call_contact->field_client_name[0]['value'];
+    $node_id = $session_node->nid;
+
+    $ses_call_time = $session_node->field_job_session_date_time[0]['value'];
+    $ses_call_day = date('D', strtotime($ses_call_time));
+    $ses_call_time = date("d/m/Y H:i", strtotime($ses_call_time));
+    //$ses_call_day = date('l', strtotime($ses_call_time));
+    $ses_call_id = $session_node->field_session_callid[0]['value'];
+    $ses_call_comment = $session_node->field_job_session_comment[0][value];
+
+    $job = node_load(array('nid' => $session_node->field_session_job_nid[0]['value']));
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    $client_name = $client->field_client_name[0]['value'];
+    $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+    //If no call venue, display the job venue
+    if(acecrew_get_call_venue_by_call_id($node_id)) {
+        $venue_name = acecrew_get_call_venue_by_call_id($node_id);
+        $venu_address = acecrew_get_call_venue_address_by_call_id($node_id);
+        $venu_post_code = acecrew_get_call_venue_postcode_by_call_id($node_id);
+    } else {
+        $venue_name = $venue->field_venue_name[0]['value'];
+        $venu_address = $venue->field_venue_address[0]['value'];
+        $venu_post_code = $venue->field_venue_post_code[0]['value'];
+    }
+
+    $crew_suppl = $session_node->field_call_supplements[0]['value'];
+
+    //Check if job is plus call
+    $plus_call = $session_node->field_job_session_plus_call[0]['value'] ? ' +' : '';
+
+    $crew_with_supp = acecrew_get_crew_with_supplements($ses_call_id);
+
+    $output = <<<EOD
+        J:$ses_call_id <br/>
+        $ses_call_day $ses_call_time  <br/>
+        $ses_count_crews crew ($ses_count_hours hrs$plus_call) <br/>
+        $client_name <br/>
+        @ $venue_name, $venu_address, $venu_post_code <br/>
+        $crew_with_supp
+        Cont: {$ses_call_contact[0]} {$ses_call_contact[1]} <br/>
+        $ses_call_comment <br/>
+        Please reply J: $ses_call_id OK!<br/>
+        <br/>
+        <br/>
+        J: $ses_call_id <br/>
+        $ses_call_time<br/>
+EOD;
+    $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE cid='%s');";
+    $query_result1 =  db_query($query1, $ses_call_id);
+    while ($row1 = db_fetch_object($query_result1)) {
+        $crew_mobile = "undefined";
+        $query2 = "SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 12";
+        $query_result2 = db_query($query2, $row1->uid);
+        while ($row2 = db_fetch_object($query_result2)) {
+            $crew_mobile = $row2->value;
+            if(trim($crew_mobile) == "" )
+                $crew_mobile = "undefined";
+        }
+        $crew_name = $row1->name;
+        $output .= "$crew_name $crew_mobile<br/>";
+    }
+
+    return $output;
+
+};
+
+function acecrew_calendar() {
+    $my_settings = array(
+        'basepath' => drupal_get_path('module', 'acecrew'),
+    );
+    drupal_add_js(array('acecrew' => $my_settings), "setting");
+
+    /*drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/jquery.js');
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/jquery-ui.min.js.js');
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/ui.spinner.js');*/
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-calendar.js');
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew_session_crew_statused_name_colours.css', 'module', 'all', false);
+
+    //Add tinyscroll script to calendar page
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/js/tinyscroll.js');
+
+    //??sasya added
+    modalframe_parent_js();
+
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-diary-events.js');
+
+    $output = '';
+    $output .= print_insert_link();
+    $output .= drupal_get_form('acecrew_calendar_form');
+    $output .= '<div id="acecrew_calendar_output">';
+    $output .= acecrew_calendar_date(date('Y-m-d'), 0, true);
+    $output .= '</div>';
+    return $output;
+}
+
+function addDayswithdate($date,$days) {
+    $date = strtotime("+".$days." days", strtotime($date));
+    return  date("Y-m-d", $date);
+}
+
+/**
+ * Generate Call Jobs content for Homepage. Uses when page loads first tiem and in AJAX calls
+ * when admin clicks on Submit button to filter Calls by date (Diary Page fieldset).
+ * @param  [Y-m-d]  $date
+ * @param  integer  $forward_days
+ * @param  boolean $show_current_day_calls -- show Job Calls for current date on calendar page
+ * @return string/json
+ */
+function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls = false) {
+    //$node = node_load(6478);
+
+    // figure out max date in Y-m-d format; [min_date] + [forward days] = [max_date (Y-m-d)]
+    $max_date = strtotime("+".$forward_days." day", strtotime($date));
+    $max_date = date("Y-m-d", $max_date);
+    //jsn.created,
+    //    jsn.changed,
+    //    jsn.uid,
+    //    u.name AS username,
+
+    // LEFT JOIN {user} u ON js.uid = u.uid
+    // LEFT JOIN {node} jsn ON jsn.nid = js.nid
+    // call query between Min and Max dates
+    $main_query = "SELECT js.vid, js.nid,
+        jsn.created,
+        jsn.changed,
+        jsn.uid,
+        u.name AS username,
+        js.field_session_job_nid_value AS jsnid,
+        js.field_job_session_crew_value AS job_session_crew,
+        js.field_job_session_hours_value AS job_session_hours,
+        js.field_session_num_vehicles_value AS num_vehicles,
+        js.field_session_callid_value AS call_number,
+        ctc.field_client_name_value AS client_name,
+        ctv.field_venue_name_value AS venue_name,
+        ctj.field_job_status_value AS job_status,
+        ctj.field_job_number_value AS job_number,
+        ctj.nid AS job_nid,
+        js.field_call_contact_value AS job_client_contact,
+        TIME(js.field_job_session_date_time_value) AS jstime,
+        DATE(js.field_job_session_date_time_value) AS jsdate,
+        IF( js.field_call_time_tbc_value IS NULL , 0, js.field_call_time_tbc_value ) AS call_time_tbc,
+        IF( js.field_call_crew_tbc_value IS NULL , 0, js.field_call_crew_tbc_value ) AS call_crew_tbc,
+        IF( js.field_call_hours_tbc_value IS NULL , 0, js.field_call_hours_tbc_value ) AS call_hours_tbc,
+        IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc
+        FROM {content_type_job_session} js
+        INNER JOIN {content_type_job} ctj ON ctj.nid = js.field_session_job_nid_value
+        INNER JOIN {content_type_client} ctc ON ctc.field_client_id_value = ctj.field_job_client_name_value
+        INNER JOIN {content_type_venue} ctv ON ctv.field_venue_id_value = ctj.field_job_venue_value
+        INNER JOIN {node} jsn ON jsn.nid = js.nid
+        INNER JOIN {users} u ON jsn.uid = u.uid
+        WHERE DATE(js.field_job_session_date_time_value) BETWEEN '%s' AND '%s'
+        ORDER BY jsdate, jstime";
+    $main_query_result =  db_query($main_query, $date, $max_date);
+
+    $main_rows = array();
+    while ($main_row = db_fetch_object($main_query_result)) {
+        $main_rows[$main_row->jsdate][] = $main_row;
+    }
+
+    // get Dates list to group array by dates
+    $main_rows_dates = array_keys($main_rows);
+    $html = $tbc_calls_html = '';
+    $tbc_scheduler_date = array();
+    $tbc_index = 0;
+
+    $job_statuses = array(
+        AWAITING_PO  => 'Awaiting PO',
+        QUOTE        => 'Quote',
+        CONFIRMED    => 'Confirmed',
+        CANCELLED    => 'Cancelled',
+        PENCIL       => 'Pencil',
+        INVOICED     => 'Invoiced',
+        INVOICE_SENT => 'Invoice Sent'
+    );
+
+    foreach ($main_rows_dates as $date_item) {
+        $scheduler = $current_scheduler = array();
+        foreach ($main_rows[$date_item] as $row) {
+            $call_nid            = $row->nid;
+            $call_number         = $row->call_number;
+            $job_nid             = $row->jsnid;
+            $job_status          = $row->job_status;
+            $job_number          = $row->job_number;
+            $job_client_contact  = $row->job_client_contact;
+            $client_name         = $row->client_name;
+            $venue_name          = $row->venue_name;
+            $ses_count_crews     = $row->job_session_crew;
+            $ses_count_hours     = $row->job_session_hours;
+            $ses_number_vehicles = $row->num_vehicles;
+            $job_status_code     = $job_status;
+            $job_status          = $job_statuses[$job_status_code];
+
+            // if job status is 'canceled' or 'quote' it should not appear on diary page
+            if (in_array($job_status, array(CANCELLED, QUOTE))) {
+                continue;
+            }
+
+            $call_supp = _get_call_supplement($row->nid);
+            $supp_name = '';
+            if (isset($call_supp)) {
+                foreach ($call_supp as $item) {
+                    $fields     = json_decode($item->field_call_supplements_fields);
+                    $quantity   = $fields->quantity;
+                    $supp_title = $item->supplement_title;
+                    $supp_name .= "<span class='call-supp'>$supp_title ($quantity)</span>";
+                }
+            }
+
+            $supps = $supp_name;
+
+            $crews = array();
+            //$user_crew_query = "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
+            $user_crew_query = "SELECT u.name, u.uid FROM {users} u INNER JOIN {crew_call} cc ON u.uid = cc.uid WHERE cc.jsid='%s'";
+            $user_crew_result =  db_query($user_crew_query, $row->vid);
+            while ($user_crew_row = db_fetch_object($user_crew_result)) {
+                $call_crew_query = "SELECT supplements, fine, no_show FROM {crew_call} WHERE uid='%s' AND jsid='%s'";
+                $call_crew_result = db_query($call_crew_query, $user_crew_row->uid, $row->vid);
+                while ($call_crew_row = db_fetch_object($call_crew_result)) {
+                    $supplements = $call_crew_row->supplements;
+                    $fine = $call_crew_row->fine;
+                    $no_show = $call_crew_row->no_show;
+                }
+
+                $allocated_skills = acecrew_get_allocated_supplements($user_crew_row->uid, $row->vid);
+                $allocated_skills = implode(", ", $allocated_skills);
+
+                //Add to $crew, crew member name, uid, supplements, allocated skills, fine and no show
+                $crew = array($user_crew_row->name, $user_crew_row->uid, $supplements, $allocated_skills, $fine, $no_show);
+                $crews[] = $crew;
+            }
+
+            // field_call_supplements
+            // nid
+            // field_job_session_crew
+            // created
+            // changed
+            // uid
+            // username
+            // field_session_callid
+            /*
+            $call                           = new StdClass();
+            $call->nid                      = $row->nid;
+            $call->created                  = $row->created;
+            $call->changed                  = $row->changed;
+            $call->uid                      = $row->uid;
+            $call->username                 = $row->username;
+            $call->field_job_session_crew   = $row->field_job_session_crew;
+            $call->field_session_callid     = $row->field_session_callid;
+            $call->field_call_supplements   = $call_supp;
+            */
+            if ($row->call_time_tbc || $row->call_crew_tbc || $row->call_hours_tbc || $row->call_contract_tbc) {
+                $tbc_scheduler_date[$date_item]['scheduler'][] = array(
+                    'job_session_id' => $row->vid,
+                    'time' => $row->jstime,
+                    'venue' => $venue_name,
+                    'client' => $client_name,
+                    'job_id' => $job_number,
+                    'job_nid' => $row->job_nid,
+                    'call_id' => $call_number,
+                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
+                    'job_status_code' => $job_status_code,
+                    'job_status' => $job_status,
+                    'ses_count_crews' => $ses_count_crews,
+                    'ses_count_hours' => $ses_count_hours,
+                    'ses_number_vehicles' => $ses_number_vehicles,
+                    'flag' => get_flag_count($row->nid), // get_diary_flag_count($call)
+                    'crews' => $crews,
+                    'supplement' => $supps,
+                    'nodeid' => $call_nid,
+                    'call_contact_id' => $job_client_contact,
+                    'call_time_tbc' => $row->call_time_tbc,
+                    'call_crew_tbc' => $row->call_crew_tbc,
+                    'call_hours_tbc' => $row->call_hours_tbc,
+                    'call_contract_tbc' => $row->call_contract_tbc
+                );
+                $tbc_scheduler_date[$date_item]['date'] = $date_item;
+            } else {
+                $scheduler[] = array(
+                    'job_session_id' => $row->vid,
+                    'time' => $row->jstime,
+                    'venue' => $venue_name,
+                    'client' => $client_name,
+                    'job_id' => $job_number,
+                    'job_nid' => $row->job_nid,
+                    'call_id' => $call_number,
+                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
+                    'job_status_code' => $job_status_code,
+                    'job_status' => $job_status,
+                    'ses_count_crews' => $ses_count_crews,
+                    'ses_count_hours' => $ses_count_hours,
+                    'ses_number_vehicles' => $ses_number_vehicles,
+                    'flag' => get_flag_count($row->nid), //get_diary_flag_count($call)
+                    'crews' => $crews,
+                    'supplement' => $supps,
+                    'nodeid' => $call_nid,
+                    'call_contact_id' => $job_client_contact,
+                    'call_time_tbc' => $row->call_time_tbc,
+                    'call_crew_tbc' => $row->call_crew_tbc,
+                    'call_hours_tbc' => $row->call_hours_tbc,
+                    'call_contract_tbc' => $row->call_contract_tbc
+                );
+            }
+        } // dates foreach
+        $html .= theme('acecrew_calendar_scheduler', $scheduler, $date_item);
+    }
+
+    if ( sizeof($tbc_scheduler_date) ) {
+        foreach ($tbc_scheduler_date as $data) {
+            $tbc_calls_html .= theme('acecrew_calendar_scheduler', $data['scheduler'], $data['date']);
+        }
+    }
+    if (!empty($tbc_calls_html)) {
+        $tbc_calls_html = '<div class="to-be-confirmed calls">' . $tbc_calls_html . '</div>';
+    }
+    if (!empty($html)) {
+        $html = '<div class="calls">' . $html . '</div>';
+    }
+    $html =  $tbc_calls_html . $html;
+
+    if ($show_current_day_calls) {
+        return $html;
+    } else {
+        drupal_json(array('html' => $html));
+    };
+}
+
+/*
+function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls = false) {
+    //$date = date($date);
+    //$date = strtotime("+".$forward_days." days", strtotime($date));
+    //$date = date("Y-m-d", $date);
+    $html = $tbc_calls_html = '';
+    $tbc_scheduler_date = array();
+    $tbc_index = 0;
+    for ($i = 0; $i <= $forward_days; $i++) {
+        $query = "SELECT vid, nid, field_session_callid_value AS cid, field_session_job_nid_value AS jsnid,  TIME(field_job_session_date_time_value) AS jstime,
+             IF(  `field_call_time_tbc_value` IS NULL , 0,  `field_call_time_tbc_value` ) AS call_time_tbc,
+             IF(  `field_call_crew_tbc_value` IS NULL , 0,  `field_call_crew_tbc_value` ) AS call_crew_tbc,
+             IF(  `field_call_hours_tbc_value` IS NULL , 0,  `field_call_hours_tbc_value` ) AS call_hours_tbc,
+             IF(  `field_call_contract_tbc_value` IS NULL , 0,  `field_call_contract_tbc_value` ) AS call_contract_tbc
+            FROM {content_type_job_session} js
+            WHERE DATE(js.field_job_session_date_time_value) = '%s'
+            ORDER BY jstime";
+        $query_result =  db_query($query, $date);
+        $scheduler = $current_scheduler = array();
+
+        $job_statuses = array(
+            AWAITING_PO  => 'Awaiting PO',
+            QUOTE        => 'Quote',
+            CONFIRMED    => 'Confirmed',
+            CANCELLED    => 'Cancelled',
+            PENCIL       => 'Pencil',
+            INVOICED     => 'Invoiced',
+            INVOICE_SENT => 'Invoice Sent');
+
+        while ($row = db_fetch_object($query_result)) {
+            $job_nid = $row->jsnid;
+            $job_row = acecrew_get_job_row_by_id($job_nid);
+
+            //If job status is 'canceled' or 'quote' it should not appear on diary page
+            if($job_row->field_job_status_value == CANCELLED || $job_row->field_job_status_value == QUOTE) {
+                continue;
+            }
+
+            $client = acecrew_get_client_by_id($job_row->field_job_client_name_value);
+            $client_name = $client->field_client_name[0]['value'];
+            $venue = acecrew_get_venue_by_id($job_row->field_job_venue_value);
+            $venue_name = $venue->field_venue_name[0]['value'];
+
+            $session_node = node_load(array('nid' => $row->nid));
+            $ses_callid = $session_node->field_session_callid[0]['value'];
+            $ses_count_crews = $session_node->field_job_session_crew[0]['value'];
+            $ses_count_hours = $session_node->field_job_session_hours[0]['value'];
+            $ses_number_vehicles = $session_node->field_session_num_vehicles[0]['value'];
+
+            $node_id = $session_node->nid;
+
+            $crews = array();
+            if (isset($session_node->field_job_session_crews)) {
+                foreach ($session_node->field_job_session_crews as $ses_crew) {
+                    $crew_name = $ses_crew['value']['field_crew_job_session_name'][0]['value'];
+                    $crew_status = $ses_crew['value']['field_crew_job_session_status'][0]['value'];
+                    $user = user_load(array('uid' => $crew_name));
+                    $crew_name = $user->name;
+                    //$crews .= '<li class="session_crew_statused_name_' . $crew_status . '">' . $crew_name . '</li>';
+                }
+            }
+
+            $supp_name = '';
+            if (isset($session_node->field_call_supplements)) {
+                foreach ($session_node->field_call_supplements as $item) {
+                    $tmp = explode("\"", $item['fields']);
+                    $supp_node = node_load($item['nid']);
+                    $supp_title = $supp_node->title;
+                    $supp_name .= "<span class='call-supp'>$supp_title ($tmp[3])</span>";
+                }
+            }
+
+            $supps =  $supp_name;
+
+            $job_status_code = $job_row->field_job_status_value;
+            $job_status = $job_statuses[$job_status_code];
+
+            $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
+            $query_result1 =  db_query($query1, $row->vid);
+            while ($row1 = db_fetch_object($query_result1)) {
+                $query2 = "SELECT supplements, fine, no_show FROM {crew_call} WHERE uid='%s' AND jsid='%s'";
+                $query_result2 = db_query($query2, $row1->uid, $row->vid);
+                while ($row2 = db_fetch_object($query_result2)) {
+                    $supplements = $row2->supplements;
+                    $fine = $row2->fine;
+                    $no_show = $row2->no_show;
+                }
+
+                $allocated_skills = acecrew_get_allocated_supplements($row1->uid, $row->vid);
+                $allocated_skills = implode(", ", $allocated_skills);
+
+                //Add to $crew, crew member name, uid, supplements, allocated skills, fine and no show
+                $crew = array($row1->name, $row1->uid, $supplements, $allocated_skills, $fine, $no_show);
+                $crews[] = $crew;
+            }
+
+            if ($row->call_time_tbc || $row->call_crew_tbc || $row->call_hours_tbc || $row->call_contract_tbc) {
+                $tbc_scheduler_date[$i]['scheduler'][] = array(
+                    'job_session_id' => $row->vid,
+                    'time' => $row->jstime,
+                    'venue' => $venue_name,
+                    'client' => $client_name,
+                    'job_id' => $job_row->field_job_number_value,
+                    'call_id' => $ses_callid,
+                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
+                    'job_status_code' => $job_status_code,
+                    'job_status' => $job_status,
+                    'ses_count_crews' => $ses_count_crews,
+                    'ses_count_hours' => $ses_count_hours,
+                    'ses_number_vehicles' => $ses_number_vehicles,
+                    'flag' => get_flag_count($row->nid),
+                    'crews' => $crews,
+                    'supplement' => $supps,
+                    'nodeid' => $node_id,
+                    'call_contact_id' => $job_row->field_job_client_contact_value,
+                    'call_time_tbc' => $row->call_time_tbc,
+                    'call_crew_tbc' => $row->call_crew_tbc,
+                    'call_hours_tbc' => $row->call_hours_tbc,
+                    'call_contract_tbc' => $row->call_contract_tbc
+                );
+                $tbc_scheduler_date[$i]['date'] = $date;
+                //$tbc_index++;
+            } else {
+                $scheduler[] = array(
+                    'job_session_id' => $row->vid,
+                    'time' => $row->jstime,
+                    'venue' => $venue_name,
+                    'client' => $client_name,
+                    'job_id' => $job_row->field_job_number_value,
+                    'call_id' => $ses_callid,
+                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
+                    'job_status_code' => $job_status_code,
+                    'job_status' => $job_status,
+                    'ses_count_crews' => $ses_count_crews,
+                    'ses_count_hours' => $ses_count_hours,
+                    'ses_number_vehicles' => $ses_number_vehicles,
+                    'flag' => get_flag_count($row->nid),
+                    'crews' => $crews,
+                    'supplement' => $supps,
+                    'nodeid' => $node_id,
+                    'call_contact_id' => $job_row->field_job_client_contact_value,
+                    'call_time_tbc' => $row->call_time_tbc,
+                    'call_crew_tbc' => $row->call_crew_tbc,
+                    'call_hours_tbc' => $row->call_hours_tbc,
+                    'call_contract_tbc' => $row->call_contract_tbc
+                );
+            }
+        }
+
+        $html .= theme('acecrew_calendar_scheduler', $scheduler, $date);
+        $date = strtotime("+1 day", strtotime($date));
+        $date = date("Y-m-d", $date);
+    }
+
+    if ( sizeof($tbc_scheduler_date) ) {
+        foreach ($tbc_scheduler_date as $data) {
+            $tbc_calls_html .= theme('acecrew_calendar_scheduler', $data['scheduler'], $data['date']);
+        }
+    }
+    if (!empty($tbc_calls_html)) {
+        $tbc_calls_html = '<div class="to-be-confirmed calls">' . $tbc_calls_html . '</div>';
+    }
+    if (!empty($html)) {
+        $html = '<div class="calls">' . $html . '</div>';
+    }
+    $html =  $tbc_calls_html . $html;
+
+    if ($show_current_day_calls) {
+        return $html;
+    } else {
+        drupal_json(array('html' => $html));
+    };
+}
+*/
+
+function get_diary_flag_count($call) {
+    // field_call_supplements
+    // nid
+    // field_job_session_crew
+    // created
+    // changed
+    // uid
+    // username
+    // field_session_callid
+
+    $res = array();
+    //$call = node_load($call_id);
+    $res['count'] = 0;
+    $res['msg'] = 'test';
+    return $res;
+    /*
+    $supp = $call->field_call_supplements;
+    foreach ($supp as $s) {
+        $quoted_supplements[] = $s['nid'];
+    }
+    $query = "SELECT supplement_id FROM {crew_js_supplement} supplement WHERE jsid=" . $call->vid . " GROUP BY supplement_id";
+    $result = db_query($query);
+    $allocated_supplements = array();
+    while ($row = db_fetch_object($result)) {
+        $allocated_supplements[] = $row->supplement_id;
+    }
+    $diff = array_diff($quoted_supplements, $allocated_supplements);
+    if ($diff[0] != NULL  && $diff[0] && count($diff) > 0) {
+        $res['count']++;
+        $res['msg'] .= "<p>";
+        $c = 0;
+        foreach ($diff as $s) {
+            $n = node_load($s);
+            $res['msg'] .= $n->title;
+            if (++$c < count($diff))  $res['msg'] .= ", ";
+        }
+        if ($diff[0] != NULL && count($diff) > 0) {
+            if (count($diff) > 1) $res['msg'] .= " are";
+            else $res['msg'] .= " is";
+            $res['msg'] .= " not allocated!</p>";
+        }
+
+    }
+    $quoted_crew_number = $call->field_job_session_crew[0]['value'];
+    $query = "SELECT uid FROM {crew_call} crew_call WHERE jsid=" . $call->vid;
+    $result = db_query($query);
+    while ($row = db_fetch_object($result)) {
+        $allocated_crew[] = $row->uid;
+    }
+    $diff1 = $quoted_crew_number - count($allocated_crew);
+    if ($diff1 > 0) {
+        $res['count']++;
+        $res['msg'] .= "<p>You must still allocate $diff1 crew member";
+        if ($diff1 > 1) $res['msg'] .= "s.</p>";
+        else $res['msg'] .= ".</p>";
+    }
+    $created = $call->created;
+    $changed = $call->changed;
+    $author = user_load($call->uid);
+    $name = (($author->name != NULL or $author->name != "") ? $author->name : "admin");
+    if ($created < $changed) {
+        $res['count']++;
+        $res['msg'] .= "<p>" . $call->field_session_callid[0]['value'] . " last edited by " . $name . " on ". date("Y-m-d", $changed) . ".</p>";
+    }
+
+    //Flag for: if there is more allocated members than required for job call
+
+    //Find assigned crew members number for this call
+    $crew_members_assigned = db_result(db_query("SELECT COUNT(*) FROM {crew_call} WHERE cid = '%s'", $call->field_session_callid[0]['value']));
+    //Find required crew members number for this call
+    $crew_members_required = $call->field_job_session_crew[0]['value'];
+    //If there are more crew members assigned than required, add flag
+    if($crew_members_assigned > $crew_members_required) {
+        $res['count']++;
+        $res['msg'] .= "<p>Crew required was reduced to $crew_members_required</p>";
+    }
+    */
+    return $res;
+}
+
+/**
+ * return Count and Message which shows admin how much crew members should be added to current Call
+ * @param  integer $call_id
+ * @return array contains 2 items ['count'] - crew count, ['msg'] - message
+ */
+function get_flag_count($call_id) {
+    $res = array();
+    $call = node_load($call_id);
+    $supp = $call->field_call_supplements;
+    foreach ($supp as $s) {
+        $quoted_supplements[] = $s['nid'];
+    }
+    $query = "SELECT supplement_id FROM {crew_js_supplement} supplement WHERE jsid=" . $call->vid . " GROUP BY supplement_id";
+    $result = db_query($query);
+    $allocated_supplements = array();
+    while ($row = db_fetch_object($result)) {
+        $allocated_supplements[] = $row->supplement_id;
+    }
+    $diff = array_diff($quoted_supplements, $allocated_supplements);
+    if ($diff[0] != NULL  && $diff[0] && count($diff) > 0) {
+        $res['count']++;
+        $res['msg'] .= "<p>";
+        $c = 0;
+        foreach ($diff as $s) {
+            $n = node_load($s);
+            $res['msg'] .= $n->title;
+            if (++$c < count($diff))  $res['msg'] .= ", ";
+        }
+        if ($diff[0] != NULL && count($diff) > 0) {
+            if (count($diff) > 1) $res['msg'] .= " are";
+            else $res['msg'] .= " is";
+            $res['msg'] .= " not allocated!</p>";
+        }
+
+    }
+    $quoted_crew_number = $call->field_job_session_crew[0]['value'];
+    $query = "SELECT uid FROM {crew_call} crew_call WHERE jsid=" . $call->vid;
+    $result = db_query($query);
+    while ($row = db_fetch_object($result)) {
+        $allocated_crew[] = $row->uid;
+    }
+    $diff1 = $quoted_crew_number - count($allocated_crew);
+    if ($diff1 > 0) {
+        $res['count']++;
+        $res['msg'] .= "<p>You must still allocate $diff1 crew member";
+        if ($diff1 > 1) $res['msg'] .= "s.</p>";
+        else $res['msg'] .= ".</p>";
+    }
+    $created = $call->created;
+    $changed = $call->changed;
+    $author = user_load($call->uid);
+    $name = (($author->name != NULL or $author->name != "") ? $author->name : "admin");
+    if ($created < $changed) {
+        $res['count']++;
+        $res['msg'] .= "<p>" . $call->field_session_callid[0]['value'] . " last edited by " . $name . " on ". date("Y-m-d", $changed) . ".</p>";
+    }
+
+    //Flag for: if there is more allocated members than required for job call
+
+    //Find assigned crew members number for this call
+    $crew_members_assigned = db_result(db_query("SELECT COUNT(*) FROM {crew_call} WHERE cid = '%s'", $call->field_session_callid[0]['value']));
+    //Find required crew members number for this call
+    $crew_members_required = $call->field_job_session_crew[0]['value'];
+    //If there are more crew members assigned than required, add flag
+    if($crew_members_assigned > $crew_members_required) {
+        $res['count']++;
+        $res['msg'] .= "<p>Crew required was reduced to $crew_members_required</p>";
+    }
+
+    return $res;
+}
+
+/**
+ * Add fines by Job id through AJAX
+ * @param  [type] $job_id
+ * @return json
+ */
+function acecrew_addfines_ajax($job_id) {
+    //get job
+    $job = _acecrew_get_job_node_by_id($job_id);
+    if (empty($job)){
+        $data = array(
+            'venue_id' => '0',
+            'client_id' => '0',
+            'staff_ids' => array(),
+        );
+
+        drupal_json($data);
+        return;
+    }
+
+    $crews = array();
+    $sessions = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+    while ($session_row = db_fetch_object($sessions)) {
+        $session = node_load(array('nid' => $session_row->nid));
+        $field_job_session_crews = $session->field_job_session_crews;
+        foreach($field_job_session_crews as $crew){
+            $crews[] = $crew['value']['field_crew_job_session_name'][0]['value'];
+        }
+    }
+
+    $crews = array_unique($crews);
+    $null_user_key = array_search('', $crews);
+    if (false !== $null_user_key){
+        unset($crews[$null_user_key]);
+    }
+    $crews = implode("', '", $crews);
+    $crews = "'" . $crews . "'";
+
+    $crews_list = array();
+    $result = db_query(db_rewrite_sql("SELECT `uid`, `name` FROM {users} WHERE uid IN ($crews) ORDER BY `name` ASC"));
+    while ($item = db_fetch_object($result)) {
+        $crews_list[$item->uid] = $item->name;
+    }
+
+    $data = array(
+        'venue_id' => $job->field_job_venue[0]['value'],
+        'client_id' => $job->field_job_client_name[0]['value'],
+        'staff_ids' => $crews_list,
+    );
+
+    drupal_json($data);
+}
+
+/**
+ * AJAX. Get client contacts by client name.
+ * @param  string $client_name
+ * @return json
+ */
+function acecrew_ajax_client_contacts($client_name = '') {
+    //get client by name
+    $client_name = urldecode($client_name);
+    $client = acecrew_get_client_by_name($client_name);
+    // get client contacts
+    $contacts = array();
+    // If Default Contact is set - add it as first option to the list;
+    // 0 (zero) is an index of Default Contact
+    if (!empty($client->field_client_company_contact[0]['value'])) {
+        $contacts[0] = $client->field_client_company_contact[0]['value'];
+    }
+    foreach($client->field_client_contact as $contact) {
+        $contacts[$contact['item_id']] = $contact['value']['field_client_contact_name']['0']['value'];
+    }
+    unset($contacts['']);
+    //json
+    drupal_json($contacts);
+}
+
+/**
+ * AJAX. Get user report + additional links
+ * @param  [type] $startDate
+ * @param  [type] $endDate
+ * @param  [type] $user
+ * @return json
+ */
+function acecrew_report_date_ajax($startDate, $endDate, $user) {
+    $report = acecrew_get_user_report($startDate, $endDate, $user, true);
+    $additional_links = '<br /><span id="acecrew_report_add_links">' . l(t('Page for print'), "acecrew/report/print/$startDate/$endDate/$user", array('attributes' => array('target' => '_blank'))) . ' ' . l(t('Export to CSV'), "acecrew/report/csv/$startDate/$endDate/$user", array('attributes' => array('target' => '_blank'))) . '</div>';
+    $report .= $additional_links;
+    drupal_json(array('html' => $report));
+}
+
+/**
+ * PRINT. Get user report.
+ * @param  [type] $startDate
+ * @param  [type] $endDate
+ * @param  [type] $user
+ * @return print
+ */
+function acecrew_report_date_print($startDate, $endDate, $user) {
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-report-print.css', 'module', 'all', false);
+
+    $user_profile = user_load($user);
+    $user_name = $user_profile->name;
+    $output = "<p>$user_name $startDate - $endDate</p>";
+
+    $output .= acecrew_get_user_report($startDate, $endDate, $user, true);
+    return($output);
+}
+
+/**
+ * Download CSV user report.
+ * @param  [type] $startDate
+ * @param  [type] $endDate
+ * @param  [type] $user
+ * @return file
+ */
+function acecrew_report_date_csv($startDate, $endDate, $user){
+    $user_profile = user_load($user);
+    $user_name = $user_profile->name;
+
+    $filename = $user_name . '_' . $startDate . '_' . $endDate . '.csv';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/' . $filename;
+    $report = acecrew_get_user_report($startDate, $endDate, $user, false);
+    $total = 0;
+
+    $fp = fopen($filepath, 'w+');
+    fputcsv($fp, array(t('Charge'), t('Value')));
+    foreach($report as $section){
+        foreach($section as $charge){
+            fputcsv($fp, array($charge['name'], $charge['value']));
+            $total += $charge['value'];
+        }
+    }
+    fputcsv($fp, array(t('Total'), $total));
+    fclose($fp);
+    $csv = file_get_contents($filepath);
+    unlink($filepath);
+
+    drupal_set_header('Content-Type: text/csv');
+    drupal_set_header('Content-Disposition: attachment; filename=' . $filename);
+
+    echo $csv;
+}
+
+function acecrew_session_sms($session_id)
+{
+    //load session
+    $session = node_load(array('nid' => $session_id));
+    if(empty($session)){
+        drupal_set_message(t('Can\'t send sms'));
+        return;
+    }
+
+    //load job
+    $job = $session->field_session_job_nid[0]['value'];
+    $job = node_load(array('nid' => $job));
+
+    //get job serian no
+    $job_number = $job->field_job_number[0]['value'];
+
+    //load venue and get venue addr
+    $venue = $job->field_job_venue[0]['value'];
+    $venue = acecrew_get_venue_by_id($venue);
+    $addr = $venue->field_venue_address[0]['value'];
+
+    //selecting comments
+    $comments = array();
+
+    //get job comments
+    foreach($job->field_job_comments as $comment){
+        if(!empty($comment['value'])){
+            $comments[] = $comment['value'];
+        }
+    }
+
+    //get session comments
+    foreach($session->field_job_session_comment as $comment){
+        if(!empty($comment['value'])){
+            $comments[] = $comment['value'];
+        }
+    }
+
+    //get client data
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    $client_name = $client->field_client_name[0]['value'];
+    $client_contact = $client->field_client_company_contact[0]['value'];
+
+    //unset job
+    unset($job);
+
+    //get main admin mobile number
+    $main_admin = user_load(array('uid' => 130));
+    $number = $main_admin->profile_crew_mobile;
+
+    //calc count of crews by hours
+    $hours = array();
+    foreach($session->field_job_session_crews as $crew_arr_id => $crew){
+        $user = user_load($crew['value']['field_crew_job_session_name'][0]['value']);
+        $session->field_job_session_crews[$crew_arr_id]['value']['field_crew_job_session_status'][0]['value'] = 'sms';
+        $hours[] = $crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+    }
+
+    foreach($hours as $key => $val){
+        if(empty($val)){
+            unset($hours[$key]);
+        }
+    }
+
+    $hours = array_count_values($hours);
+
+    $hours_text = array();
+    foreach($hours as $hour => $count_crews){
+        $hours_text[] = $count_crews . ' ' .t('crew') . ' @ ' . $hour . ' ' . t('hours');
+    }
+
+    //calc session date/time
+    $sess_time = $session->field_job_session_date_time[0]['value'];
+    $sess_time = strtotime($sess_time);
+    $sess_time = date('l m/d G:i', $sess_time);
+
+    //variables for message
+    //$job_number
+    //$sess_time
+    //$hours_text
+    //$client_name
+    //$addr = '';
+    //$comments = array();
+    //$client_contact = '';
+
+    //compose message
+    $newline = '
+';
+    $message = 'J' . $job_number . $newline . $sess_time . $newline . implode('; ', $hours_text) . $newline . $client_name . $newline . $addr . $newline . implode('; ', $comments) . $newline . $client_contact;
+
+    //if number start from '0' then it is nuber without country code;
+    if( substr($number, 0, 1) === '0' ) {
+
+        $number = ltrim($number, '0');
+        //UK countre phone code
+        $number = '44' . $number;
+    }
+
+    $sms_status = sms_send($number, $message);
+
+    //set message according to status
+    if($sms_status == false){
+        drupal_set_message(t('Error when sending message to ') . $main_admin->profile_crew_mobile, 'error');
+    } else {
+
+        //save changed crew status
+        node_save($session);
+        drupal_set_message(t('Messages were sent.'));
+    }
+
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_set_crew_session_status($nid, $uid, $status)
+{
+    $session = node_load(array('nid' => $nid));
+    foreach($session->field_job_session_crews as $crew_id => $crew){
+        if($crew['value']['field_crew_job_session_name'][0]['value'] == $uid){
+            $session->field_job_session_crews[$crew_id]['value']['field_crew_job_session_status'][0]['value'] = $status;
+        }
+    }
+    node_save($session);
+    drupal_json(array('status' => 'ok'));
+}
+
+function acecrew_del_crew_from_session($nid, $item_id)
+{
+    $session = node_load(array('nid' => $nid));
+    foreach($session->field_job_session_crews as $crew_id => $crew){
+        if($crew['item_id'] == $item_id){
+            unset ($session->field_job_session_crews[$crew_id]);
+        }
+    }
+    node_save($session);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_calendar_form(){
+    $form['date'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Diary Page'),
+        '#tree' => TRUE,
+    );
+
+    $form['date']['timer'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attributes' => array('id' => 'acecrew_calendar_date'),
+    );
+
+    $form['date']['forward_days'] = array(
+        '#type' => 'select',
+        '#title' => t('Froward Days'),
+        '#options' => array(
+            0=>0,
+            1=>1, 2=>2, 3=>3, 4=>4, 5=>5, 6=>6, 7=>7, 8=>8, 9=>9, 10=>10,
+            11=>11, 12=>12, 13=>13, 14=>14, 15=>15, 16=>16, 17=>17, 18=>18, 19=>19, 20=>20,
+            21=>21, 22=>22, 23=>23, 24=>24, 25=>25, 26=>26, 27=>27, 28=>28, 29=>29, 30=>30,
+            31=>31
+        ),
+        '#attributes' => array('id' => 'acecrew_calendar_forward_days'),
+    );
+
+    $form['date']['submit'] = array(
+        '#type' => 'button',
+        '#value' => t('Submit'),
+        '#attributes' => array('id' => 'acecrew_calendar_submit'),
+    );
+
+    return $form;
+}
+
+function acecrew_report_form(){
+    $form['timer'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select start date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attribute' => array('id' => 'acecrew_reports_startdate'),
+    );
+    $form['timer1'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select end date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attribute' => array('id' => 'acecrew_reports_enddate'),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Generate'),
+        '#attribute' => array('id' => 'acecrew_reports_submit'),
+    );
+    return $form;
+}
+
+function _arr_filter_callback($arg){
+    if ( is_numeric($arg))
+        return true;
+    return false;
+
+}
+//?? sasya
+function __ref_func_inline(&$val){
+
+    $valArr = explode("\r\n", $val);
+    $valArr = array_filter($valArr, _arr_filter_callback);
+    $valArr = array_unique($valArr);
+    asort($valArr);
+    $val = implode("\r\n", $valArr);
+}
+/**
+ *
+ */
+function acecrew_nodeapi(&$node, $op, $teaser, $page) {
+
+    if($node->type == 'job'){
+        $acecrewmodule = acecrewmodule::getInstance();
+        $acecrewmodule->setCurrentJobId($node->nid);
+
+        $client_nid = _acecrew_get_client_nid_by_job_nid($node->nid);
+        $acecrewmodule->setCurrentClientId($client_nid);
+
+
+        $query = "SELECT j.field_job_number_value FROM drupal_content_type_job j
+                WHERE j.nid = '%d'";
+        $query_result =  db_query($query, $node->nid);
+        $row = db_fetch_array($query_result);
+
+        $jbNum = $row['field_job_number_value'];
+        $jbSessionCount = 0;
+
+        $query = "SELECT count(*) + 1 cc, max(CONVERT(SUBSTRING_INDEX(field_session_callid_value,'-',-1),UNSIGNED INTEGER)) mx FROM drupal_content_type_job_session s
+              WHERE s.field_session_job_nid_value = '%d'";
+
+        $query_result =  db_query($query, $node->nid);
+        $row = db_fetch_array($query_result);
+        $jbSessionCount = $row['cc'];
+        if ( $jbSessionCount != 0){
+            $jbSessionCount = explode("-", $row['mx']);
+            $jbSessionCount = $jbSessionCount[0] + 1 ;
+        }
+
+        $acecrewmodule->setNextJobCallId("$jbNum-$jbSessionCount");
+
+        $query = "SELECT * FROM {content_type_admin_settings}";
+        $result = db_query($query);
+        $row = db_fetch_object($result);
+        $mileage = $row->field_admins_milerate_value;
+        $vat_rate = $row->field_admins_vatrate_value;
+        $boundary_charge = $row->field_boundary_charge_default_value;
+
+        $acecrewmodule->setMileAge($mileage);
+        $acecrewmodule->setVatRate($vat_rate);
+        $acecrewmodule->setBoundaryCharge($boundary_charge);
+    }
+
+    if($node->type ==  'job' && ($op == 'prepare' || $op == 'validate')){
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-create.js');
+    }
+    //?? saf
+    if($node->type ==  'admin_settings' && $op == 'presave' ){
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        /*$refFunc = function (&$val){
+
+        $valArr = explode("\r\n", $val);
+        $valArr = array_filter($valArr, function($arg){
+                    if ( is_numeric($arg)) return true;
+                    return false;
+                    });
+        $valArr = array_unique($valArr);
+        asort($valArr);
+        $val = implode("\r\n", $valArr);
+
+        };*/
+
+        __ref_func_inline($node->field_admins_clientrates[0]['value']);
+        __ref_func_inline($node->field_admins_crewrates[0]['value']);
+        //__ref_func_inline($node->field_admins_vatrate[0]['value']);
+    }
+
+    if($node->type == 'job' && $op == 'load'){
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-sessions.css', 'module', 'all', false);
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew_session_crew_statused_name_colours.css', 'module', 'all', false);
+        module_load_include('inc', 'node', 'node.pages');
+        $nodeType = 'job_session';
+
+        // create a string of the $form_id
+        $form_id = $nodeType . '_node_form';
+        $add_new_form = drupal_get_form($form_id, array('type' => $nodeType));
+        $assigned_sessions = _acecrew_get_assigned_job_sessions($node->nid);
+        $assigned_docs = _acecrew_get_assigned_job_docs($node->nid);
+        return array(
+            'acecrew_customform' => $add_new_form,
+            'acecrew_assigned_sessions' => $assigned_sessions,
+            'acecrew_assigned_docs' => $assigned_docs);
+    }
+
+    if($node->type == 'job' && $op == 'delete'){
+        $ses_nids = array_keys($node->acecrew_assigned_sessions);
+        foreach($ses_nids as $ses_nid){
+            node_delete($ses_nid);
+        }
+    }
+
+    if($node->type == 'job_session' && $op == 'presave' ) {
+        //Checking before the content type job_session is saved. If certain fields are to be edited
+        //than we should update crew members status (to text_not_sent) for that job call.
+
+        //Check if node is about to be edited (new nodes do not have nid set)
+        if($node->nid) {
+            $node_db = node_load($node->nid);
+            //Check if there is crew members allocated for this call
+            $cid = $node->field_session_callid[0]['value'];
+            $result = db_query("SELECT * FROM {crew_call} WHERE cid = '%s'", $cid);
+            if(db_affected_rows($result) > 0) {
+                //Compare new values with the one in database (time, crew num, hours)
+                if(
+                    $node->field_job_session_date_time[0]['value'] != $node_db->field_job_session_date_time[0]['value'] ||
+                    $node->field_job_session_crew[0]['value'] != $node_db->field_job_session_crew[0]['value'] ||
+                    $node->field_job_session_hours[0]['value'] != $node_db->field_job_session_hours[0]['value']
+                ) {
+                    //Update crew members status to text_not_sent
+                    db_query("UPDATE {crew_call} SET supplements = 'text_not_sent' WHERE cid = '%s'", $cid);
+                }
+            }
+        }
+
+    }
+
+    if($node->type == 'job' && $op == 'presave') {
+        //If content type job fields "venue", "date", are edited, update crew members status to
+        //"text_not_sent" for all calls for that job, that have date > edit date
+
+        //Check if node is about to be edited (new nodes do not have nid set)
+        if($node->nid) {
+            $node_db = node_load($node->nid);
+            //Check if fields are changed
+            if(
+                $node->field_job_venue[0]['value'] != $node_db->field_job_venue[0]['value'] ||
+                $node->field_job_date[0]['value'] != $node_db->field_job_date[0]['value']
+            ) {
+                //Check if there are calls for this job
+                $result = db_query("SELECT nid FROM {content_type_job_session} WHERE field_session_job_nid_value = '%d'", $node->nid);
+                if(db_affected_rows($result) > 0) {
+                    //Foreach call, check if call date is less than edit date (now)
+                    while($row = db_fetch_object($result)) {
+                        $call_node = node_load($row->nid);
+                        $call_date = strtotime($call_node->field_job_session_date_time[0]['value']);
+                        if($call_date < time()) {
+                            //Update crew members status to "text_not_sent"
+                            $cid = $call_node->field_session_callid[0]['value'];
+                            db_query("UPDATE {crew_call} SET supplements = 'text_not_sent' WHERE cid = '%s'", $cid);
+                        }
+                    }
+                }
+            }
+        } else {
+            //If node is about to be saved for the first time
+            //fill the field_job_created_by with username of current user (user who is creating the job)
+            global $user;
+            $node->field_job_created_by[0]['value'] = $user->name;
+
+
+        }
+    }
+
+    //?? sasya
+    if($node->type == 'job_session' && $op == 'load'){
+        $query = "SELECT field_session_job_nid_value jnid FROM {content_type_job_session}
+              WHERE nid = '%d'";
+        $query_result =  db_query($query, $node->nid);
+        $row = db_fetch_array($query_result);
+        $client_nid = _acecrew_get_client_nid_by_job_nid($row['jnid']);
+        acecrewmodule::getInstance()->setCurrentClientId($client_nid);
+    }
+    if($node->type == 'job_session' && $op == 'view'){
+        $totals = array(
+            'total_hours_worked' => 0,
+            'total_hours_worked_pounds' => 0,
+            'total_hours_quoted' => 0,
+            'total_hours_quoted_pounds' => 0,
+            'total_crews' => 0);
+        if (isset($node->field_job_session_crews)) {
+            foreach ($node->field_job_session_crews as $crew) {
+                if(!empty($crew['value']['field_crew_job_session_hours_wor'][0]['value'])){
+                    $totals['total_hours_worked'] += $crew['value']['field_crew_job_session_hours_wor'][0]['value'];
+                }
+
+                if(!empty($crew['value']['field_crew_job_session_hours_quo'][0]['value'])){
+                    $totals['total_hours_quoted'] += $crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+                }
+
+                //if(!empty($crew['value']['field_crew_job_session_name'][0]['value'])){
+                $totals['total_crews'] += 1;
+                //}
+            }
+        }
+
+        $hour_rate = $node->field_job_session_client_rate[0]['value'];
+        $totals['total_hours_worked_pounds'] = $totals['total_hours_worked'] * $hour_rate;
+        $totals['total_hours_quoted_pounds'] = $totals['total_hours_quoted'] * $hour_rate;
+
+        if (!empty($totals)){
+            $node->content['acecrew_session_totals'] = array(
+                '#value' => theme('acecrew_session_totals', $totals),
+                '#weight' => 50,
+            );
+        }
+    }
+
+    if ($node->type == 'job_session' && $op == 'validate') {
+
+        //store id of seeeion crews to check duplicates
+        $session_crews_ids = array();
+
+
+    }
+
+    if ($node->type == 'job_session' && (($op == 'update') || ($op == 'insert'))) {
+        $i = 1;
+        foreach($node->field_job_session_crews as $session_crew_id => $session_crew){
+            if(is_array($session_crew)){
+                $crew_not_valid = false;
+                $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+                $crew_hours_quo = $session_crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+                $crew_suppl = $session_crew['value']['field_call_supplements'][0]['value'];
+
+                if (empty($crew_name) && empty($crew_hours_quo) && empty($crew_suppl) && ($i != 1)){
+                    unset($node->field_job_session_crews[$session_crew_id]);
+                }
+                $i += 1;
+            }
+        }
+        $j = 0;
+        foreach ($node->field_call_supplements as $supp) {
+            if ($supp['nid'] == NULL) continue;
+            $fields = $supp['fields'];
+            $tmp = explode("\"", $supp['fields']);
+            $quantity = $tmp[3];
+            if ($quantity == "") {
+                $node->field_call_supplements[$j] = array('nid'=>$supp['nid'], 'fields'=>"{\"quantity\":\"1\"}");
+            }
+            $j++;
+        }
+    }
+
+    if ($node->type == 'job_session' && ($op == 'insert' || $op == 'update')) {
+        if (isset($node->field_job_session_crews)) {
+            $session_id = $node->nid;
+            $crews = array();
+            foreach($node->field_job_session_crews as $session_crew) {
+                $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+                if(!empty($crew_name)){
+                    $crews[] = $crew_name;
+                }
+            }
+
+            $crews = array_unique($crews);
+            _acecrew_save_session_crews_relate($crews, $session_id);
+        }
+    }
+
+    if ($node->type == 'job_session' && $op == 'delete'){
+        $session_id = $node->nid;
+        _acecrew_save_session_crews_relate(array(), $session_id);
+    }
+
+
+
+    if($node->type == 'job' && $op == 'view'){
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        $clientEmails = _acecrew_get_client_emails($node->field_job_client_name[0]['value']);
+
+        $node->content['acecrew_assigned_sessions'] = array(
+            '#value' => theme('acecrew_assigned_sessions', $node->acecrew_assigned_sessions),
+            '#weight' => 100,
+        );
+
+        $node->content['acecrew_customform'] = array(
+            '#value' => theme('acecrew_customform', $node->acecrew_customform),
+            '#weight' => 101,
+        );
+
+        $node->content['acecrew_assigned_docs'] = array(
+            '#value' => theme('acecrew_assigned_docs', $node->acecrew_assigned_docs, $clientEmails),
+            '#weight' => 102,
+        );
+    }
+
+    if($node->type == 'client' && $op == 'view'){
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-client-contact.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-client-contact.css', 'module', 'all', false);
+    }
+
+    if ($node->type == 'fines' && $op == 'prepare') {
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.css', 'module', 'all', false);
+    }
+
+    if ($node->type == 'fines' && $op == 'validate') {
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.css', 'module', 'all', false);
+
+        $job = _acecrew_get_job_node_by_id($node->field_fine_job_number[0]['value']);
+
+        if($job->field_job_client_name[0]['value'] != $node->field_fine_client_id[0]['value']){
+            form_set_error('field_fine_client_id', t('Job and client doesn\'t match.'));
+        }
+
+        if($job->field_job_venue[0]['value'] != $node->field_fine_venue_id[0]['value']){
+            form_set_error('field_fine_venue_id', t('Job and venue doesn\'t match.'));
+        }
+
+        $query_result = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+
+        $is_crew = false;
+        while ($row = db_fetch_object($query_result)) {
+            $session = node_load(array('nid' => $row->nid));
+            foreach ($session->field_job_session_crews as $crew){
+                if ($crew['value']['field_crew_job_session_name'][0]['value'] == $node->field_fine_staff_id[0]['value']){
+                    $is_crew = true;
+                    break 2;
+                }
+            }
+        }
+
+        if (!$is_crew) {
+            form_set_error('field_fine_staff_id', t('Job and staff doesn\'t match.'));
+        }
+    }
+
+    if ($node->type == 'uniform' && $op == 'insert') {
+        $count_of_months = $node->field_unif_payment[0]['value'];
+
+        $current_month_i = 1;
+        $current_year = date('Y');
+        $current_month = date('m');
+
+        while($count_of_months >= $current_month_i){
+            $date = date('Y-m-d H:i:s', mktime(0,0,0,$current_month, 15, $current_year));
+
+            $query = "INSERT INTO {acecrew_uniform_pays}
+                (uid, uniform_nid, pay_month) VALUES
+                ('%d','%d','%s')";
+            $query_result = db_query($query, $node->field_unif_staff[0]['value'], $node->nid, $date);
+
+            $current_month_i++;
+            $current_month++;
+        }
+    }
+
+    if ($node->type == 'uniform' && $op == 'delete') {
+        db_query("DELETE FROM {acecrew_uniform_pays} WHERE uid=%d AND uniform_nid=%d", $node->field_unif_staff[0]['value'], $node->nid);
+    }
+}
+
+function theme_acecrew_customform($acecrew_customform) {
+    $output =
+        '
+  <div class="acecrew_session_add_block clear-block">
+      <div id="acecrew_session_add_form">
+
+        ' . $acecrew_customform . '
+      </div>
+      <div id ="acecrew_job_lock_message" style="display: none;">
+        <p>Access Denied by job locking.</p>
+      </div>
+      <div id="acecrew_session_add_buttons">
+        <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
+      </div>
+  </div>';
+    return $output;
+}
+
+function theme_acecrew_assigned_sessions($acecrew_assigned_sessions) {
+    $base_path = base_path();
+    $output = '';
+    $is_sms = user_access('acecrew access sms');
+    foreach($acecrew_assigned_sessions as $ses_id => $session):
+        if ($is_sms){
+            $sms_output = '';
+        } else {
+            $sms_output = '';
+        }
+        $output .=
+            '<div class="acecrew_sessions_container">' .
+                "<div class=\"acecrew_session_content\" id=\"acecrew_session_content_$ses_id\"> " . $session['content'] . ' </div>' .
+                "<div class=\"acecrew_session_form\" id=\"acecrew_session_form_$ses_id\"> " . $session['form'] . ' </div>' .
+                "<div class=\"acecrew_session_buttons\" id=\"acecrew_session_buttons_$ses_id\">
+                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_edit('$ses_id')\" class=\"acecrew_session_edit_button\" id=\"acecrew_session_edit_button_$ses_id\">Edit</a>
+                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_del('$ses_id')\" class=\"acecrew_session_del_button\" id=\"acecrew_session_del_button_$ses_id\">Delete</a>
+                $sms_output
+            </div>" .
+                '</div>';
+    endforeach;
+    return $output;
+}
+
+function theme_acecrew_assigned_docs($docs, $clientEmails) {
+    modalframe_parent_js();
+
+    $base_path = base_path();
+
+    $clientEmailsSelectbox = '';
+    foreach($clientEmails as $clientEmail){
+        $clientEmailsSelectbox .= '<option value="' . $clientEmail['email'] . '"> ' . $clientEmail['name'] . ' &lt;' . $clientEmail['email'] . '&gt; </option>';
+    }
+    $clientEmailsSelectbox = '<select class="client_emails" name="client_emails">' . $clientEmailsSelectbox . '</select>';
+
+    $invoices_html = '';
+    foreach($docs['invoices'] as $invoice_id => $invoice){
+        $invoices_html .= "<li><a href=\"$base_path" . "acecrew/invoice/pdf/$invoice_id\">PDF</a> <a href=\"$base_path" . "acecrew/invoice/rtf/$invoice_id\">RTF</a> <a href=\"$base_path" . "acecrew/delinvoice/$invoice_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$invoice_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailinvoice/$invoice_id\" class=\"client_emails_form\" id=\"client_emails_form_$invoice_id\"> $clientEmailsSelectbox </form> </li>";
+    }
+    if(!empty($invoices_html)){
+        $invoices_html = '<ul>' . $invoices_html . '</ul>';
+    }
+
+    $quotes_html = '';
+    foreach($docs['quotes'] as $quote_id => $quote){
+        $quotes_html .= "<li><a href=\"$base_path" . "acecrew/quote/pdf/$quote_id\">PDF</a> <a href=\"$base_path" . "acecrew/quote/rtf/$quote_id\">RTF</a> <a href=\"$base_path" . "acecrew/delquote/$quote_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$quote_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailquote/$quote_id\" class=\"client_emails_form\" id=\"client_emails_form_$quote_id\"> $clientEmailsSelectbox </form> </li>";
+    }
+    if(!empty($quotes_html)){
+        $quotes_html = '<ul>' . $quotes_html . '</ul>';
+    }
+
+    $output = '<div class="acecrew_job_docs">';
+	$output .= '<h2>Ace Crew Documents</h2>
+	<div class="document-wrapper invoice-wrapper">
+        <h3>Invoices</h3>
+        ' . $invoices_html . '
+        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_invoice">Generate Invoice</a></div>
+        <div class="document-wrapper">
+		<h3>Quotes</h3>
+        ' . $quotes_html . '
+        <a href="' .$base_path .  'acecrew/generatequote/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_quote">Generate Quote</a></div>';
+    $has_crews = acecrew_get_crews_by_job($docs['job_nid']);
+    if ($has_crews) {
+    $output .= '<div class="document-wrapper">
+        <h3>Review</h3>
+        ' .
+'<a id="acecrew_job_button_quote" class="acecrew_job_button" href="javascript:void(0)"
+
+onclick="Drupal.modalFrame.open({url: \'/acecrew/send_review/'.$docs['job_nid'].'\', onSubmit: function() {console.log(\'subm\');}, width: 700,
+
+height: 500})">Send Review</a>' . '
+        </div>';
+    }
+    $output .= '</div>';
+
+    return $output;
+}
+
+function theme_acecrew_session_totals($totals){
+    $output = '';
+    $output .= '<span class="acecrew_session_totals_title acecrew_session_total_hours_title">' . t('Total hours worked') . ': </span>
+        <span class="acecrew_session_totals_value acecrew_session_total_hours_value">' . $totals['total_hours_worked'] . ' (' . number_format($totals['total_hours_worked_pounds'], 2) . ' GBP)</span>
+        <br />
+
+        <span class="acecrew_session_totals_title acecrew_session_total_hours_title">' . t('Total hours quoted') . ': </span>
+        <span class="acecrew_session_totals_value acecrew_session_total_hours_value">' . $totals['total_hours_quoted'] . ' (' . number_format($totals['total_hours_quoted_pounds'], 2) . ' GBP)</span>
+        <br />
+
+        <span class="acecrew_session_totals_title acecrew_session_total_crews_title">' . t('Total crews') . ': </span>
+        <span class="acecrew_session_totals_value acecrew_session_total_crews_value">' . $totals['total_crews'] . '</span>';
+
+
+}
+
+function getDateFormat($date) {
+    $dd = explode('-', $date);
+    $d = date("d", mktime(0, 0, 0, $dd[1], $dd[2], $dd[0]));
+    $m = date("F", mktime(0, 0, 0, $dd[1], $dd[2], $dd[0]));
+    $w = date("l", mktime(0, 0, 0, $dd[1], $dd[2], $dd[0]));
+
+    return $d . 'th ' . $m . ' - ' . $w;
+}
+
+function theme_acecrew_calendar_scheduler($scheduler, $date)
+{
+    $output = '';
+    global $base_url;
+    global $language_url;
+    global $theme_path;
+    global $user;
+
+    if(empty($scheduler)){
+        return '<div class="item-list">
+                    <h3><span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">0 calls</span></h3>
+                    <span class="acecrew_calendar_no_events">' . t('There are no items to display') . '</span>
+                </div>';
+    }
+
+    $title = '<span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">' . count($scheduler) . ' calls</span>';
+    $items = array();
+    $index = 0;
+    // 'to be confirmed' short name
+    $tbc_short = 'TBC';
+    foreach ($scheduler as $event) {
+        $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
+
+        $call_status_text = ($event['call_time_tbc'] || $event['call_crew_tbc'] || $event['call_hours_tbc'] || $event['call_contract_tbc']) ? t('To be confirmed') : $event['job_status'];
+        $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
+        $call_crew_amount = !$event['call_crew_tbc'] ? $event['ses_count_crews'] . ' crew' : $tbc_short;
+        $call_hours       = !$event['call_hours_tbc'] ? $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '') : $tbc_short;
+        $call_contact     = !$event['call_contract_tbc'] ? $call_contact : array($tbc_short);
+
+        $crew_placeholder = '';
+
+        //Here we check for assigned crew members number and required crew members number for this call
+        //If assigned crew members number is larger than required crew members, we use listing based on
+        //that number, else the listing is based on required crew members number
+        $assigned_crew_members = count($event['crews']);
+        $crew_members_required = (int) $event['ses_count_crews'];
+        $listing_number = $assigned_crew_members > $crew_members_required ? $assigned_crew_members : $crew_members_required;
+
+        for($i = 0; $i < $listing_number; $i++) {
+            if(!$event['crews'][$i]) {
+                $crew_placeholder .= '<span class="crew-names to-be-allocated"></span>';
+            } else {
+
+                //Sort crew by names
+                usort($event['crews'], "cmp_crew_name");
+
+                //Get crew member fine/no_show status
+                $member_allocated_skills = $event['crews'][$i][3];
+                $member_fine = $event['crews'][$i][4] ? "FINE" : "";
+                $member_no_show = $event['crews'][$i][5] ? "NO SHOW" : "";
+                if($member_allocated_skills || $member_fine || $member_no_show) {
+                    $member_name_suffix = implode(", ", array_filter(array($member_allocated_skills, $member_fine, $member_no_show)));
+                } else {
+                    $member_name_suffix = "";
+                }
+
+                //Append to the list of crew members allocated skills and fine/no_show status
+                $crew_placeholder .= '<span class="crew-names ' . ($event['crews'][$i][2] ? $event['crews'][$i][2] : "text_not_sent") . '" id="uid-' . $event['job_session_id'] . '-' . $event['crews'][$i][1] . '">';
+                $crew_placeholder .= $event['crews'][$i][0];
+                //If crew member have supplements or fine/no_show
+                if($member_name_suffix) {
+                    $crew_placeholder .= '<span class=\"allocated-skills\">(' . $member_name_suffix . ')</span>';
+                }
+                $crew_placeholder .= '</span>';
+                $crew_placeholder .= '<input type="hidden" name="jsid-' . $event['job_session_id'] . '-' . $event['crews'][$i][1] . '" id="jsid-' . $event['job_session_id'] . '-' . $event['crews'][$i][1] . '" class="jsid" value="' . $event['crews'][$i][2] . '" />';
+            }
+        }
+        $data = '
+                <input type="hidden" name="job-session-id-' . $event['job_session_id'] . '" id="job-session-id-' . $event['job_session_id'] . '" value="' . $event['job_session_id'] . '" />
+                <div class="call-first-row">
+                        <div class="call-id">' . $event['call_id'] . '</div>
+                        <div class="call-time">' .  $call_time . '</div>
+                        <div class="call-crew-count">' .  $call_crew_amount . '</div>
+                        <div class="call-hours">' . $call_hours . '</div>';
+        if (intval($event['ses_number_vehicles']) != 0) {
+            $data .= '<div class="call-vehicle">&nbsp;</div>';
+        }
+        else {
+            $data .= '<div class="call-vehicle1">&nbsp;</div>';
+        }
+        if (intval($event['flag']) > 0) $data .= '<div class="call-flag">' .  $event['flag']['count'] . '</div>';
+
+        $data .= '</div>
+                <div class="flag-msg">' . $event['flag']['msg'] . '</div>
+                <div class="call-second-row">
+                    <span class="call-status">
+                        <strong>Call Status:</strong> ' . $call_status_text . '
+                    </span>
+                    <span class="call-client"><strong>Client:</strong> ' .  $event['client'] . '</span>
+                    <span class="call-venue"><strong>Venue:</strong> ' .  (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']) . '</span>
+                    <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
+                </div>
+                <div class="call-third-row"><strong>Skills Required:</strong>'. $event['supplement'] . '</div>
+                <div class="call-fourth-row"><strong>Crew Names:</strong> ' . $crew_placeholder . '</div>
+                <div class="call-buttons">
+                    <a href="#" class="loadbtn" id="'.$event['job_session_id'].'">Load Call</a>
+                    <!-- a href="/supplement/allocation/'.$event['job_session_id'].'">Allocate Skills</a -->
+
+                    <a href="javascript:void(0)" onclick="Drupal.modalFrame.open({url: \'/supplement/allocation/'.$event['job_session_id']. '\', onSubmit: onSubmitCallbackSkills, width: ($(window).width() * 0.8) });onClickCallbackSkills($(this))">Allocate Skills</a>
+
+                    <a href="#" class="smsbtn" onclick="calendar_popup_sms_click('."'$base_url' ,'${event['nodeid']}'". ')">Generate SMS Content</a>
+                </div>';
+        if ($event['job_status'] == 'Awaiting PO') {
+            $items[] = array(
+                'data' => $data,
+                'class' => 'call-listing-item call-wrapper awaiting-po',
+                'id' => 'call-listing-item-' . $event['job_session_id'],
+            );
+        } else {
+            $items[] = array(
+                'data' => $data,
+                'class' => 'call-listing-item',
+                'id' => 'call-listing-item-' . $event['job_session_id'],
+            );
+        }
+    }
+
+    $dummyhtml = '<div class="block-content clear-block prose"><span class="icon-info"></span><p>Click on the load call button at the bottom of each call, to load more information</p></div>';
+    $output = theme('item_list', $items, $title, 'ul', array('class' => 'call-listing'));
+
+    $output = $output . '
+        <script>
+            function onClickCallbackSkills(elem) {
+                $("ul.call-listing li").removeClass("active-load-call");
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+                $("#block-block-2").fadeOut(1000);
+                $("#block-block-2", window.parent.document).html("<div class=\"block-content clear-block prose\"><span class=\"icon-info\"></span><p>Click on the load call button at the bottom of each call, to load more information</p></div>");
+                $("#block-block-2").fadeIn(1000);
+            }
+
+            function onSubmitCallbackSkills() {
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+
+                $("#acecrew_calendar_output", window.parent.document).html(\'<img class="loading-gif" src="/sites/all/modules/acecrew/theme/ajax-loader.gif" />\');
+                forward = $(\'#acecrew_calendar_forward_days\', window.parent.document).val();
+
+                $.get(Drupal.settings.basePath + "js/acecrew/calendar/" + $(\'#edit-date-timer-datepicker-popup-0\', window.parent.document).val() + "/" + forward, function(data){
+                    var result = Drupal.parseJson(data);
+                    $("#acecrew_calendar_output", window.parent.document).html(result.html);
+                    window.close();
+                });
+            }
+
+            function onSubmitCallback() {
+                var li_id = $("#block-block-2 #job-session-id").val();
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+
+                $("#block-block-2").fadeOut(1000, function() {
+
+                    $("#acecrew_calendar_output", window.parent.document).html(\'<img class="loading-gif" src="/sites/all/modules/acecrew/theme/ajax-loader.gif" />\');
+                    forward = $(\'#acecrew_calendar_forward_days\', window.parent.document).val();
+
+                    $.get(Drupal.settings.basePath + "js/acecrew/calendar/" + $(\'#edit-date-timer-datepicker-popup-0\', window.parent.document).val() + "/" + forward, function(data){
+                        var result = Drupal.parseJson(data);
+                        $("#acecrew_calendar_output", window.parent.document).html(result.html);
+                        $("ul.call-listing li input[value=\"" + li_id + "\"]").parent().addClass("active-load-call");
+                        $("ul.call-listing li input[value=\"" + li_id + "\"]").parent().find(".loadbtn").click();
+                        window.close();
+                        $("html, body").animate({
+                             scrollTop: $("#call-listing-item-"+li_id).offset().top
+                        }, 1000);
+                    });
+
+                });
+            }
+            $(".loadbtn").click(function() {
+                $("ul.call-listing li").removeClass("active-load-call");
+                $(this).closest("li.call-listing-item").addClass("active-load-call");
+                var id = $(this).attr("id");
+                var item = $(this).parent().parent();
+                var call_id = item.find(".call-id").text();
+                var call_time = item.find(".call-time").text();
+                var call_crew_count = item.find(".call-crew-count").text();
+                var call_hours = item.find(".call-hours").text();
+                var call_status = item.find(".call-status").text();
+                var call_client = item.find(".call-client").text();
+                var call_venue = item.find(".call-venue").text();
+                var crews = {};
+                var supps = {};
+                crews = item.find(".crew-names");
+                supps = item.find(".call-supp");
+
+                var sidebar_widget = "<div id=\"sidebar_widget\">";
+                sidebar_widget += "<input type=\"hidden\" name=\"job-session-id\" id=\"job-session-id\" value=\"" + id + "\">";
+                sidebar_widget += "<div id=\"call-info1\">";
+                sidebar_widget += "<span>" + call_id + " / </span>";
+                sidebar_widget += "<span>" + call_time + " / </span>";
+                sidebar_widget += "<span>" + call_crew_count + " / </span>";
+                sidebar_widget += "<span>" + call_hours + "</span>";
+                sidebar_widget += "</div>";
+                sidebar_widget += "<div id=\"call-info2\">";
+                sidebar_widget += "<span>" + call_venue + "</span><br>";
+                sidebar_widget += "<span>" + call_client + "</span><br>";
+                sidebar_widget += "<span>" + call_status + "</span><br>";
+                sidebar_widget += "</div>";
+                sidebar_widget += "<div id=\"supplements\">";
+                sidebar_widget += "</div>";
+
+                var crew_box_count = crews.length;
+                if(crew_box_count > 5) {
+                    sidebar_widget += "<div id=\"members-wrapper\"><div class=\"scrollbar\"><div class=\"track\"><div class=\"thumb\"><div class=\"end\"></div></div></div></div><div class=\"viewport\"><div class=\"overview\">";
+                }
+
+                sidebar_widget += "<div id=\"crews-status-set-box\">";
+                sidebar_widget += "</div>";
+
+                if(crew_box_count > 5) {
+                    sidebar_widget += "</div></div></div>";
+                }
+
+                sidebar_widget += "<div class=\"call-buttons\">";
+                sidebar_widget += "<a href=\"javascript:void(0)\" onclick=\"Drupal.modalFrame.open({url: \'/crew-allocation/" + id + "/" + call_id + "/0/All\', onSubmit: onSubmitCallback, width: 700, height: 500})\">";
+                sidebar_widget += "Allocate Crew";
+                sidebar_widget += "</a>";
+                sidebar_widget += "<a href=\"#\" onclick=\"udpate_status_onclick()\">";
+                sidebar_widget += "Update Status";
+                sidebar_widget += "</a>";
+                sidebar_widget += "</div>";
+                sidebar_widget += "</div>";
+                $("#block-block-2").hide();
+                $("#block-block-2").html(sidebar_widget);
+                $("#crews-status-set-box").html("");
+
+                crews.each(function() {
+                    var tmp = $(this).attr("id").split("-");
+                    var jsid = "#jsid-" + tmp[1] + "-" + tmp[2];
+                    var supplements = $(jsid).val();
+                    sub_content = "<div class=\"each-crew\">";
+                    if(tmp.length > 1) {
+                        sub_content += "<span class=\"" + supplements + "\">" + $(this).html() + "</span>";
+                        sub_content += "<select class=\"supplements-type\" id=\"" + $(this).attr("id") + "\">";
+                        sub_content += "<option value=\"text_not_sent\"" + (supplements == "text_not_sent" ? " selected=\"selected\"" : "") + ">Text Not Sent</option>";
+                        sub_content += "<option value=\"text_sent\"" + (supplements == "text_sent" ? " selected=\"selected\"" : "") + ">Text Sent</option>";
+                        sub_content += "<option value=\"confirmed\"" + (supplements == "confirmed" ? " selected=\"selected\"" : "") + ">Confirmed</option>";
+                        sub_content += "<option value=\"delete\">Delete</option>";
+                        sub_content += "</select>";
+                    } else {
+                        sub_content += "<span class=\"to-be-allocated\"></span>";
+                    }
+                    sub_content += "</div>";
+                    content = $("#crews-status-set-box").html();
+                    $("#crews-status-set-box").html(content + sub_content);
+                });
+
+
+                supps.each(function() {
+                  content = $("#supplements").html();
+                  var html = $("#supplements").html(content + "<span>" + $(this).html() + "</span>");
+                });
+                //for(var i=0; i<crews.length; i++) {
+                    //sidebar_widget += "<span id=\"" + crews.get(i).innerHTML + "\">" + crews.get(i).innerHTML + "</span>";
+                //}
+                $("#block-block-2").fadeIn(1000);
+
+                if(crew_box_count > 5) {
+                var oScrollbar = $("#members-wrapper");
+                    oScrollbar.tinyscrollbar();
+                    oScrollbar.tinyscrollbar_update();
+                }
+
+                return false;
+            });
+            $("div.call-flag").mouseover(function() {
+              $(this).parent().parent().find(".flag-msg").css("display", "block");
+            });
+            $("div.call-flag").mouseout(function() {
+              $(this).parent().parent().parent().find(".flag-msg").css("display", "none");
+            });
+
+        </script>';
+
+    return $output;
+}
+
+
+/*
+ * added by Anton
+ */
+
+function acecrew_calendar_set_supplements_status($args) {
+    $arg_arr = explode(":", $args);
+    $jsid = $arg_arr[0];
+    $uid_status_arr = array();
+    for ($i = 1; $i < count($arg_arr);) {
+        $tmp = explode("-", $arg_arr[$i]);
+        $uid = $tmp[2];
+        $i++;
+        $supplements = $arg_arr[$i];
+        $i++;
+        if ($supplements != 'delete') {
+            $query = "UPDATE {crew_call} SET `supplements` = '$supplements' WHERE `uid`='$uid'";
+            $query .= " AND `jsid`='$jsid'";
+        } else {
+            $query = "DELETE FROM {crew_call} WHERE `uid`='$uid'";
+            $query .= " AND `jsid`='$jsid'";
+        }
+        $res = db_query($query);
+    }
+}
+
+function theme_acecrew_report_table($report)
+{
+    $output = '';
+    $summ = 0;
+
+    $header = array(t('Charge'), t('Value'));
+    $charges = array();
+    foreach($report['hours'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    foreach($report['clothing'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    foreach($report['fines'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    if(empty($summ)){
+        return '<span class="acecrew_report_no_events">' . t('There are no items to display') . '</span>';
+    }
+    $charges[] = array(t('Total'), $summ);
+    $output = theme_table($header, $charges);
+    return $output;
+}
+
+function acecrew_quote_view_pdf($quote_id) {
+    $job_number = acecrew_get_job_by_quote_id($quote_id);
+    _quote_dompdf_include_lib();
+    $html = _acecrew_quote_get_html($quote_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $dompdf->stream("Ace-Quote-". $job_number .".pdf", array('Attachment' => 1));
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_invoice_view_pdf($invoice_id) {
+    $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
+    _quote_dompdf_include_lib();
+    $html = _acecrew_invoice_get_html($invoice_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $dompdf->stream("Ace-Invoice-" . $invoice_number . ".pdf", array('Attachment' => 1));
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_email_quote($quote_id){
+    $path = drupal_get_path('module', 'acecrew');
+    require_once($path . '/dompdf/dompdf_config.inc.php');
+    $html = _acecrew_quote_get_html($quote_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $pdf = $dompdf->output();
+
+    $filename = 'quote.pdf';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
+    file_put_contents  ($filepath . $filename, $pdf);
+
+    if(empty($_POST['client_emails'])){
+        $client = acecrew_get_client_by_quote_id($invoice_id);
+        $client_email = $client->field_client_company_email[0]['email'];
+    } else {
+        $client_email = $_POST['client_emails'];
+    }
+
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From     = "from@example.com";
+    $mail->AddAddress($client_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Quote');
+    $mail->Body = t('This is your quote. Please see that attached file.');
+    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+
+    if(!$mail->Send()) {
+        drupal_set_message(t('Can\'t send email'));
+    } else {
+        drupal_set_message(t('Email has been sent'));
+    }
+
+    unlink($filepath . $filename);
+
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_invoice_view_rtf($invoice_id) {
+    $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
+    require_once('rtf/PHPRtfLite.php');
+    global $base_url;
+    $html = _acecrew_invoice_rtf_get_html($invoice_id);
+    //$file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/invoice.rtf';
+    //"Ace-Invoice-" . $invoice_id
+    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-Invoice-'.$invoice_number.'.rtf';
+
+    drupal_goto($file);
+}
+
+/*
+function acecrew_quote_view_rtf($quote_id) {
+    require_once('rtf/rtf.class.php');
+    $rtf = new rtf();
+    $rtf->setPaperSize(5);
+    $rtf->setPaperOrientation(1);
+    $rtf->setDefaultFontFace(1);
+    $rtf->setDefaultFontSize(24);
+    $rtf->setAuthor("Biblio");
+    $rtf->setOperator("");
+    $rtf->setTitle("Biblio RTF Export");
+    $rtf->addColour("#000000");
+    $rtf->addText();
+    $rtf->getDocument();
+}
+*/
+
+function acecrew_quote_view_rtf($quote_id) {
+    /*
+    require_once('rtf/PHPRtfLite.php');
+    global $base_url;
+
+    $html = _acecrew_quote_rtf_get_html($quote_id);
+    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/sample.rtf';
+
+    //$file = file_get_contents($file);
+
+
+    drupal_goto($file);
+    */
+    $job_number = acecrew_get_job_by_quote_id($quote_id);
+    require_once('rtf/PHPRtfLite.php');
+    global $base_url;
+
+    $html = _acecrew_quote_rtf_get_html($quote_id);
+    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-Quote-' . $job_number . '.rtf';
+
+    drupal_goto($file);
+
+}
+
+
+drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-list.css', 'module', 'all', false);
+
+//Using hook_menu_alter to remove Locked documents page
+function acecrew_menu_alter(&$items) {
+    $items['user/%/content_lock']['type'] = MENU_CALLBACK;
+}
+
+//Include js files on specific pages
+function acecrew_preprocess_page(&$vars, $hook) {
+    if('user' === arg(0)) {
+        drupal_add_js(path_to_theme().'/js/general-func.js');
+        drupal_add_js(path_to_theme().'/js/user-page-func.js');
+    }
+
+    $vars['scripts'] = drupal_get_js();
+}
+
+//Helper function to sort crew members array by names
+function cmp_crew_name($a, $b) {
+    return strcasecmp($a[0], $b[0]);
+}
+
+//Helper function to sort crew members array by names
+function cmp_crew_name2($a, $b) {
+    return strcasecmp($a->name, $b->name);
+}
+
+//Return allocated skill to crew member
+function acecrew_get_allocated_supplements($user_id, $jsid) {
+    $query = "SELECT supplement_id FROM {crew_js_supplement} WHERE uid='%s' AND jsid='%s'";
+    $result = db_query($query, $user_id, $jsid);
+
+    $allocated_skills = array();
+
+    if(db_affected_rows($result) > 0) {
+        while ($row = db_fetch_object($result)) {
+            $allocated_skills[] = acecrew_get_supplement_shortname_by_id($row->supplement_id);
+        }
+    }
+
+    return $allocated_skills;
+}
+
+//Return skill shortname
+function acecrew_get_supplement_shortname_by_id($id) {
+    $query = "SELECT field_supplement_short_value FROM {content_type_supplements} WHERE nid='%d'";
+    $result = db_query($query, $id);
+
+    if(db_affected_rows($result) > 0) {
+        $row = db_fetch_object($result);
+        return $row->field_supplement_short_value;
+    }
+}
+
+//Get job Venue id using job id
+function acecrew_get_job_venue_id_job_id($id) {
+    $query = "SELECT field_venue_id_value FROM {content_type_venue} WHERE field_venue_id_value = (
+        SELECT field_job_venue_value FROM {content_type_job} WHERE nid  = '%d'
+        )";
+    $result = db_query($query, $id);
+
+    if(db_affected_rows($result) > 0) {
+        $venue = db_fetch_array($result);
+        return $venue['field_venue_id_value'];
+    }
+}
+
+//Get call Venue name using call id (session id)
+function acecrew_get_call_venue_by_call_id($id) {
+    $query = "SELECT field_venue_name_value FROM {content_type_venue} WHERE field_venue_id_value = (
+        SELECT field_job_session_venue_value FROM {content_type_job_session} WHERE nid  = '%d'
+        )";
+    $result = db_query($query, $id);
+
+    if(db_affected_rows($result) > 0) {
+        $venue = db_fetch_array($result);
+        return $venue['field_venue_name_value'];
+    }
+}
+
+//Get call Venue address using call id (session id)
+function acecrew_get_call_venue_address_by_call_id($id) {
+    $query = "SELECT field_venue_address_value FROM {content_type_venue} WHERE field_venue_id_value = (
+        SELECT field_job_session_venue_value FROM {content_type_job_session} WHERE nid  = '%d'
+        )";
+    $result = db_query($query, $id);
+
+    if(db_affected_rows($result) > 0) {
+        $venue = db_fetch_array($result);
+        return $venue['field_venue_address_value'];
+    }
+}
+
+//Get call Venue postcode using call id (session id)
+function acecrew_get_call_venue_postcode_by_call_id($id) {
+    $query = "SELECT field_venue_post_code_value FROM {content_type_venue} WHERE field_venue_id_value = (
+        SELECT field_job_session_venue_value FROM {content_type_job_session} WHERE nid  = '%d'
+        )";
+    $result = db_query($query, $id);
+
+    if(db_affected_rows($result) > 0) {
+        $venue = db_fetch_array($result);
+        return $venue['field_venue_post_code_value'];
+    }
+}
+
+//Check if Job Call is plus call
+function acecrew_is_plus_call($nid) {
+    $result = db_query("SELECT field_job_session_plus_call_value FROM {content_type_job_session} WHERE nid = %d", $nid);
+    $result = db_fetch_object($result);
+    return !!$result->field_job_session_plus_call_value;
+}

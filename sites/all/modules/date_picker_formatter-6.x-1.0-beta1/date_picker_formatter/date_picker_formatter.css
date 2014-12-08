@@ -1,0 +1,41 @@
+/* $id$ */
+
+.date-picker-formatter-table-wrapper{
+  overflow:auto;
+}
+
+.date-picker-formatter-table td{
+  text-align:center;
+  vertical-align:middle;
+  border-right-width:1px;
+  border-right-style:solid;
+}
+
+.date-picker-formatter-table tr.header,
+.date-picker-formatter-table tr.even,
+.date-picker-formatter-table tr.odd{
+  background:transparent;
+}
+.date-picker-formatter-table tr.even td.answer{
+  background-color:#eee;
+}
+.date-picker-formatter-table tr.odd td.answer{
+  background-color:#ddd;
+}
+.date-picker-formatter-table tr.time{
+  border-bottom:3px solid;
+}
+
+.date-picker-formatter-yes, .date-picker-formatter-no{
+  font-weight:bolder;
+  text-transform:uppercase;
+}
+.date-picker-formatter-yes{
+  background-color:#E5F3B2;
+  border:1px solid;
+  color:#9CB34A;
+}
+.date-picker-formatter-no{
+  background-color:#FFF0E3;
+  color:#EE7204;
+}

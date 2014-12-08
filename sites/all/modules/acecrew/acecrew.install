@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function acecrew_install() 
+{
+    drupal_install_schema('acecrew');
+}
+
+
+/**
+ * Implementation of hook_schema()
+ *
+ * @return array
+ */
+function acecrew_schema() 
+{
+  $schema = array();
+
+  $schema['acecrew_job_quotes'] = array(
+    'fields' => array(
+      'acecrew_job_quote_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'job_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'quote_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0)
+    ),
+    'primary key'        => array('acecrew_job_quote_id'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'job_id' => array('job_id')
+    )
+  );
+  
+  $schema['acecrew_job_invoices'] = array(
+    'fields' => array(
+      'acecrew_job_invoice_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'job_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'invoice_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0)
+    ),
+    'primary key'        => array('acecrew_job_invoice_id'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'job_id' => array('job_id')
+    )
+  );
+  
+  $schema['acecrew_uniform_pays'] = array(
+    'fields' => array(
+      'acecrew_uniform_pay_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'uniform_nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'pay_month' => array('type' => 'datetime')
+    ),
+    'primary key'        => array('acecrew_uniform_pay_id'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'uid' => array('uid')
+    )
+  );
+  
+  $schema['acecrew_session_crews'] = array(
+    'fields' => array(
+      'acecrew_session_crew_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'session_nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key'        => array('acecrew_session_crew_id'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'uid' => array('uid')
+    )
+  );
+
+  return $schema;
+}

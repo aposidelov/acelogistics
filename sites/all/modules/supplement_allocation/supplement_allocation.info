@@ -1,0 +1,11 @@
+name = Supplement Allocation
+description = allocate supplement info followed by call.
+package = Ace Crew
+core = 6.x
+dependencies[] = acecrew
+dependencies[] = jquery_ui
+
+version = "6.x-1.7"
+core = "6.x"
+project = "supplement_allocation"
+datestamp = "1273809646"

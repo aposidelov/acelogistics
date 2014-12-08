@@ -1,0 +1,46 @@
+<?php
+// $Id: node_permissions_grid.module,v 1.1 2009/04/10 09:15:43 joachim Exp $
+
+/**
+ * @file
+ * TODO: Enter file description here.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function node_permissions_grid_help($path, $arg) {
+  switch ($path) {
+    case 'admin/user/node_permissions':
+      return t("This page is an alternative view of the user permissions relating to content types on your site. Permissions are shown below in a grid, with content types down the side and the possible actions such as 'create', 'edit own' along the top. So for example, the checkbox at the intersection of 'edit any' and 'page' is the user permission 'edit any page'.");
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function node_permissions_grid_theme($path, $arg) {
+  return array(
+    'node_permissions_grid_admin_content_perm' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'node_permissions_grid_admin_roles' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function node_permissions_grid_menu() {
+  $items['admin/user/node_permissions'] = array(
+    'title' => 'Node permissions',
+    'description' => 'Manage permissions for nodes.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('node_permissions_grid_admin_content_perm'),
+    'access arguments' => array('administer permissions'),
+    'file' => 'node_permissions_grid.admin.inc',
+  );
+  return $items;
+}

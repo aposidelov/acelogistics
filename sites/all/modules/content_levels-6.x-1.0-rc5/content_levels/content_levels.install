@@ -1,0 +1,115 @@
+<?php
+// $Id: content_levels.install,v 1.3 2009/11/24 06:38:20 darthsteven Exp $
+
+// Notify CCK when this module is enabled, disabled, installed, and uninstalled
+// so CCK can do any necessary preparation or cleanup.
+/**
+ * @file
+ * Implementation of hook_install().
+ */
+function content_levels_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'content_levels');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function content_levels_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'content_levels');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function content_levels_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'content_levels');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function content_levels_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'content_levels');
+}
+
+/**
+ * Implementation of hook_update().
+ *
+ * This update increments the IDs of the levels by one, this was becasue having
+ * a level 0 was causing problems with views, as it evaluated to FALSE.
+ */
+function content_levels_update_6101() {
+  $all_fields = content_fields();
+
+  // Check through all fields for content_level fields.
+  foreach ($all_fields as $name => $field) {
+    if ($field['type'] == 'content_levels') {
+
+      // Increment level IDs in series.
+      foreach ($field['content_series'] as $key => $level) {
+        $field['content_series'][$key]['id']++;
+      }
+
+      // Increment default level ID.
+      $field['default_level']++;
+
+      // Update level IDs.
+      $query = "UPDATE {content_node_field} SET global_settings='%s' WHERE field_name='%s'";
+      $settings = serialize(array('content_series' => $field['content_series'], 'default_level' => $field['default_level']));
+      db_query($query, $settings, $name);
+
+      // Get field visibility settings for the node type that this field is on.
+      $query = "SELECT type_name, widget_settings FROM {content_node_field_instance} WHERE field_name = '%s'";
+      $result = db_query($query, $name);
+
+      while ($row = db_fetch_object($result)) {
+        $serialised = $row->widget_settings;
+        $widget_settings = unserialize($serialised);
+
+        // Update level IDs in field visibility settings.
+        if (isset($widget_settings['visibility']) && !is_null($widget_settings['visibility'])) {
+          foreach ($widget_settings['visibility'] as $type_fieldname => $type_field) {
+            $widget_settings['visibility']['type_fieldname'] = _content_levels_update_visibility($type_field);
+          }
+          $widget_settings = serialize($widget_settings);
+          $query = "UPDATE {content_node_field_instance} SET widget_settings = '%s' WHERE field_name = '%s' AND type_name = '%s'";
+          db_query($query, $widget_settings, $name, $row->type_name);
+        }
+      }
+
+      // Update level IDs of nodes.
+      $db_info = content_database_info($field);
+      $query = "UPDATE {" . $db_info['table'] . "} " .
+               "SET " . $db_info['columns']['value']['column'] . " = " . $db_info['columns']['value']['column'] . " + 1";
+      db_query($query);
+    }
+  }
+
+  return array();
+}
+
+/**
+ * Increment content level IDs in a widget's field visibility settings array.
+ */
+function _content_levels_update_visibility($settings) {
+  $updated = array();
+
+  foreach ($settings as $key => $value) {
+    if (!is_numeric($key)) {
+      $updated[$key] = $value;
+    }
+    else {
+      $updated[$key+1] = $value;
+    }
+  }
+
+  return $updated;
+}

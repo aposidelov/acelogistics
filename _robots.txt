@@ -1,0 +1,77 @@
+# $Id: robots.txt,v 1.9 2007/06/27 22:37:44 goba Exp $
+#
+# robots.txt
+#
+# This file is to prevent the crawling and indexing of certain parts
+# of your site by web crawlers and spiders run by sites like Yahoo!
+# and Google. By telling these "robots" where not to go on your site,
+# you save bandwidth and server resources.
+#
+# This file will be ignored unless it is at the root of your host:
+# Used:    http://example.com/robots.txt
+# Ignored: http://example.com/site/robots.txt
+#
+# For more information about the robots.txt standard, see:
+# http://www.robotstxt.org/wc/robots.html
+#
+# For syntax checking, see:
+# http://www.sxw.org.uk/computing/robots/check.html
+
+# File identity - 
+# So that the contents of this file are copied only once to DocumentRoot/robots.txt  at
+# installation time the file must contain a unique string.  
+# The copy_robots_text.pl program looks for a line with a string of the form "hhh ddd vvv ooo"
+# where hhh is '#'
+#       ddd is 'Drupal'
+#       vvv is 'version'
+#       ooo is some other chars to make it unique. For instance, using the version and installation directory (see 3 lines down).
+# If copy_robots_text.pl finds that string in DocumentRoot/robots.txt it assumes that the data is already there and does not copy again.
+# DO NOT REMOVE THE NEXT LINE - it prevents copying to DocumentRoot more than once.
+# Drupal version 6.15 /rbell/
+
+
+User-agent: *
+Crawl-delay: 10
+# Directories
+Disallow: /rbell/database/
+Disallow: /rbell/includes/
+Disallow: /rbell/misc/
+Disallow: /rbell/modules/
+Disallow: /rbell/sites/
+Disallow: /rbell/themes/
+Disallow: /rbell/scripts/
+Disallow: /rbell/updates/
+Disallow: /rbell/profiles/
+Disallow: /rbell/_files/
+# Files
+Disallow: /rbell/xmlrpc.php
+Disallow: /rbell/cron.php
+Disallow: /rbell/update.php
+Disallow: /rbell/install.php
+Disallow: /rbell/_files/INSTALL.txt
+Disallow: /rbell/_files/INSTALL.mysql.txt
+Disallow: /rbell/_files/INSTALL.pgsql.txt
+Disallow: /rbell/_files/CHANGELOG.txt
+Disallow: /rbell/_files/MAINTAINERS.txt
+Disallow: /rbell/_files/LICENSE.txt
+Disallow: /rbell/_files/UPGRADE.txt
+# Paths (clean URLs)
+Disallow: /rbell/admin/
+Disallow: /rbell/comment/reply/
+Disallow: /rbell/contact/
+Disallow: /rbell/logout/
+Disallow: /rbell/node/add/
+Disallow: /rbell/search/
+Disallow: /rbell/user/register/
+Disallow: /rbell/user/password/
+Disallow: /rbell/user/login/
+# Paths (no clean URLs)
+Disallow: /rbell/?q=admin/
+Disallow: /rbell/?q=comment/reply/
+Disallow: /rbell/?q=contact/
+Disallow: /rbell/?q=logout/
+Disallow: /rbell/?q=node/add/
+Disallow: /rbell/?q=search/
+Disallow: /rbell/?q=user/password/
+Disallow: /rbell/?q=user/register/
+Disallow: /rbell/?q=user/login/

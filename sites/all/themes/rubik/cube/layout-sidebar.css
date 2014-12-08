@@ -1,0 +1,28 @@
+#content,
+#right { float:left; }
+
+#content { width:74.67%; }
+#right { width:26%; }
+
+.sidebar-right #content {width:72.67%; }
+.sidebar-right #right {float: right;}
+.each-crew span {display: inline-block; padding: 2px 8px !important; font-size: 12px; border-radius: 4px; -moz-border-radius: 4px;}
+.supplements-type {margin-right: 0px;float: right;padding:5px}
+/*#crews-status-set-box {margin-top: 10px;}*/
+
+
+
+@media (max-width:1040px){
+	
+.sidebar-right #content {width:62%; }
+#right { width:37.5%; }
+
+}
+
+
+@media (max-width:800px){
+	
+.sidebar-right #content {width:50%; }
+#right { width:49%; }
+
+}

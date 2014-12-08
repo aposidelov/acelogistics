@@ -1,0 +1,528 @@
+<?php
+// $id$
+
+/**
+ * @file The date_picker_formatter module allows registered users to pick dates to determine the
+ * best moment for a meeting (like doodle does)
+ */
+
+/**
+ * Implements hook_perm()
+ * @return array
+ */
+function date_picker_formatter_perm() {
+  return array(
+    'pick dates'
+  );
+}
+
+function date_picker_formatter_menu() {
+  $items = array();
+  $items['admin/content/date-picker-formatter'] = array(
+    'title' => t('Date picker formatter'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('date_picker_formatter_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  return $items;
+}
+
+function date_picker_formatter_admin_settings() {
+  // @todo move some of those settings within the display field settings for more flexibility
+  $form = array();
+  $form['date_picker_formatter_date_format'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Date format'),
+    '#default_value' => variable_get('date_picker_formatter_date_format', 'd/m/Y'),
+  );
+  $form['date_picker_formatter_time_format'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time format'),
+    '#default_value' => variable_get('date_picker_formatter_time_format', 'H:i'),
+  );
+  $form['date_picker_formatter_display_user_picture'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display user picture'),
+    '#default_value' => variable_get('date_picker_formatter_display_user_picture', 1),
+  );
+  $form['date_picker_formatter_vote_method'] = array(
+    '#type' => 'radios',
+    '#title' => t('Vote method'),
+    '#options' => array(
+      'checkbox' => t('Checkbox'),
+      'select' => t('Select'),
+      'radios' => t('Radios'),
+    ),
+    '#default_value' => variable_get('date_picker_formatter_vote_method', 'checkbox'),
+  );
+  $form['date_picker_formatter_vote_label'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Vote labels'),
+    '#default_value' => variable_get('date_picker_formatter_vote_label', "0|No\n100|Yes"),
+    '#description' => t('Use a value|Label formatting (one per line) where value is a numerical value between 0 and 100 and the Label a human readable string (the label is translated).') .'<br/>'. t('This setting only does not apply with the checkbox "Vote method".'),
+  );
+  return system_settings_form($form);
+}
+
+function _date_picker_formatter_get_vote_criteria($node) {
+  $criteria = array(
+    'content_type'  => 'date_picker_formatter',
+    'content_id'    => $node->nid,
+  );
+  return $criteria;
+}
+
+function _date_picker_formatter_vote_tag($item) {
+  $tag = date_format_date(date_make_date($item['value'], $item['timezone_db'], $item['date_type']), 'custom', 'U');
+  if (isset($item['value2']) && !empty($item['value2'])) {
+    $tag .= '_'. date_format_date(date_make_date($item['value2'], $item['timezone_db'], $item['date_type']), 'custom', 'U');
+  }
+  return $tag;
+}
+
+function date_picker_formatter_get_votes($node, $field) {
+  $criteria = _date_picker_formatter_get_vote_criteria($node);
+  $date_picker_formatter = array();
+  
+  foreach ($node->{$field['field_name']} as $item) {
+    $criteria['tag'] = _date_picker_formatter_vote_tag($item);
+    $votes = votingapi_select_votes($criteria);
+    foreach ($votes as $vote) {
+      $date_picker_formatter[$vote['uid']][$vote['tag']] = $vote;
+    }
+  }
+  return $date_picker_formatter;
+}
+
+function date_picker_formatter_add_votes($values, $node, $field, $account) {
+  
+  $base = _date_picker_formatter_get_vote_criteria($node);
+  $votes = array();
+  
+  foreach ($values as $key => $value) {
+    $vote = array_merge($base, array(
+      'tag'   => $key,
+      'value' => $value,
+      'uid'   => $account->uid,
+    ));
+//    zdpm($vote);
+    $votes[] = $vote;
+  }
+  votingapi_add_votes($votes);
+  return $votes;
+}
+
+function date_picker_formatter_format_label($node, $field, $item, $rendered = array()) {
+  $output = '';
+  $output .= $rendered['date'];
+  if ($rendered['date'] != $rendered['date2']) {
+    $output .= ($rendered['time'] ? ' '. $rendered['time'] : '');
+    if ($rendered['date2']) {
+      $output .=  ' - '. $rendered['date2'];
+      if ($rendered['time2']) {
+        $output .= ' '. $rendered['time2'];
+      }
+    }
+  }
+  else {
+    $output .= ($rendered['time'] ? ' '. $rendered['time'] : '');
+    $output .= ($rendered['time2'] ? ' - '. $rendered['time2'] : '');
+  }
+  return $output;
+}
+
+function _date_picker_formatter_options() {
+  static $options;
+  if (empty($options)) {
+    $labels = variable_get('date_picker_formatter_vote_label', "0|No\n100|Yes");
+    foreach (explode("\n", $labels) as $line) {
+      $parts = explode('|', $line);
+      $options[intval(trim($parts[0]))] = check_plain(t(trim($parts[1])));
+    }
+  }
+  return $options;
+}
+
+/**
+ * Function that generates the date_picker_formatter form available in the node view.
+ *
+ * @param array $form_state
+ * @param object $node
+ * @return array
+ *  A FAPI array
+ */
+function date_picker_formatter_form(&$form_state, $node, $field_name) {
+  global $user;
+  if (!$user->uid) {
+    $register = variable_get('user_register', 0) ? ' '.t('or') .' '. l('register', 'user/register') : '';
+    return array('#value' => t('You have to !login !register to choose convenient dates.', array(
+      '!login' => l(t('login'), 'user'),
+      '!register' => $register
+    )));
+  }
+  $date_format = variable_get('date_picker_formatter_date_format', 'd/m/Y');
+  $time_format = variable_get('date_picker_formatter_time_format', 'H:i');
+  $vote_method = variable_get('date_picker_formatter_vote_method', 'checkbox');
+  $vote_options = _date_picker_formatter_options();
+  
+  
+  
+  
+  $fields = content_types($node->type);
+  $field = $fields['fields'][$field_name];
+  $date_picker_formatter = date_picker_formatter_get_votes($node, $field);
+  
+//  zdpm($date_picker_formatter);
+  if (isset($field_name) && isset($node->{$field_name})) {
+    $date_picker_formatter = date_picker_formatter_get_votes($node, $field);
+    $field_values = $node->{$field_name};
+    
+    if (!isset($date_picker_formatter[$user->uid])) {
+      $button_label = t('Save');
+      $date_picker_formatter[$user->uid] = array();
+    }
+    else {
+      $button_label = t('Update');
+    }
+    
+    $form = array(
+      '#submit' => array('date_picker_formatter_form_submit'),
+      '#theme' => 'date_picker_formatter_form',
+      '#base' => 'date_picker_formatter_form',
+      '#node' => $node,
+      '#field' => $field,
+      '#date_picker_formatter' => $date_picker_formatter,
+      'dates' => array(
+        '#tree' => TRUE,
+      ),
+    );
+    
+    foreach ($date_picker_formatter as $uid => $votes) {
+      $form['dates'][$uid]['#tree'] = TRUE;
+      foreach ($field_values as $item) {
+        $key = _date_picker_formatter_vote_tag($item);
+        $form['dates'][$uid][$key]['#tree'] = TRUE;
+        $label = '';
+        
+        if (empty($form['dates']['#infos'][$key]['label'])) {
+          $date_obj = date_make_date($item['value'], $item['timezone_db'], $item['date_type']);
+          date_timezone_set($date_obj, timezone_open($item['timezone']));
+          $date = date_format_date($date_obj, 'custom', $date_format);
+          $time = date_format_date($date_obj, 'custom', $time_format);
+          
+          if (isset($item['value2']) && !empty($item['value2'])) {
+            $date_obj2 = date_make_date($item['value2'], $item['timezone_db'], $item['date_type']);
+            date_timezone_set($date_obj2, timezone_open($item['timezone']));
+            $date2 = date_format_date($date_obj2, 'custom', $date_format);
+            $time2 = date_format_date($date_obj2, 'custom', $time_format);
+          }
+          else {
+            $date2 = NULL;
+            $time2 = NULL;
+          }
+          
+          $rendered = array(
+            'date' => $date,
+            'time' => $time == '00:00' ? theme('date_all_day_label') : $time,
+            'date2' => $date2,
+            'time2' => $time2 == '00:00' ? theme('date_all_day_label') : $time2,
+          );
+          $label = date_picker_formatter_format_label($node, $field, $item, $rendered);
+          $form['dates']['#infos'][$key] = $rendered;
+          $form['dates']['#infos'][$key]['label'] = $label;
+          
+        }
+
+        if ($uid == $user->uid) {
+          if ($vote_method == 'checkbox') {
+            $form['dates'][$uid][$key] = array(
+              '#title' => $label,
+              '#type' => 'checkbox',
+              '#return_value' => 100,
+              '#default_value' => $date_picker_formatter[$uid][$key]['value']
+            );
+          }
+          else {
+            $form['dates'][$uid][$key] = array(
+              '#title' => $label,
+              '#type' => $vote_method,
+              '#options' => $vote_options,
+              '#default_value' => $date_picker_formatter[$uid][$key]['value']
+            );
+          }
+        }
+        else {
+          $form['dates'][$uid][$key] = array(
+            '#title' => $label,
+            '#value' => theme('date_picker_formatter_vote_cell', $date_picker_formatter[$uid][$key])
+          );
+        }
+        
+      }
+    }
+    
+//    $form['submit_'. $form['#node']->nid .'_'. $field_name]
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => $button_label,
+    );
+  }
+  
+  return $form;
+}
+
+/**
+ * Callback function for date_picker_formatter_form()
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function date_picker_formatter_form_submit($form, &$form_state) {
+  global $user;
+  $values = $form_state['values'];
+  foreach ($values['dates'] as $uid => $votes) {
+    date_picker_formatter_add_votes($votes, $form['#node'], $form['#field'], (object)array('uid' => $uid));
+  }
+}
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function date_picker_formatter_field_formatter_info() {
+  $formatters = array(
+    'date_picker_formatter' => array('label' => t('date_picker_formatter'),
+      'field types' => array(
+        'date',
+        'datestamp',
+        'datetime'
+      ),
+      'multiple values' => CONTENT_HANDLE_MODULE
+    ),
+  );
+  return $formatters;
+}
+
+
+/**
+ * Implements hook_theme()
+ *
+ * @param unknown_type $existing
+ * @param unknown_type $type
+ * @param unknown_type $theme
+ * @param unknown_type $path
+ * @return array
+ */
+function date_picker_formatter_theme($existing, $type, $theme, $path) {
+  return array(
+    'date_picker_formatter_form' => array(
+      'arguments' => array(
+        'form' => NULL
+      ),
+    ),
+    'date_picker_formatter_formatter_date_picker_formatter' => array(
+      'arguments' => array(
+        'element' => NULL
+      ),
+    ),
+    'date_picker_formatter_user_cell' => array(
+      'arguments' => array(
+        'uid' => NULL
+      ),
+    ),
+    'date_picker_formatter_vote_cell' => array(
+      'arguments' => array(
+        'vote' => NULL
+      ),
+    ),
+    'date_picker_formatter_date_cell' => array(
+      'arguments' => array(
+        'info' => NULL
+      ),
+    ),
+    'date_picker_formatter_time_cell' => array(
+      'arguments' => array(
+        'info' => NULL
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme function for  the date_picker_formatter form
+ * @param $form
+ * @return unknown_type
+ */
+function theme_date_picker_formatter_form($form) {
+  global $user;
+  $output = '';
+  drupal_add_css(drupal_get_path('module', 'date_picker_formatter') .'/date_picker_formatter.css');
+  
+  $rows = array();
+  $children = element_children($form['dates']);
+  $first_child = array_shift($children);
+  $header = $form['dates'][$first_child];
+  
+  
+  $first_row = array(
+    array(
+      'data' => '<!-- top left corner date -->',
+      'class' => 'header'
+    ),
+  );
+  $second_row = array(
+    array(
+      'data' => '<!-- top left corner time -->',
+      'class' => 'header'
+    ),
+  );
+  
+  $infos = $form['dates']['#infos'];
+  $prev_key = array_shift(array_keys($infos));
+  $prev_date = NULL;//$infos[$prev_key]['date'];
+  foreach ($infos as $key => $info) {
+    if ($info['date'] != $info['date2'] || $prev_date != $info['date']) {
+      $first_row[$key] = array(
+        'class' => 'time',
+        'data' => theme('date_picker_formatter_date_cell', $info),
+      );
+      $prev_key = $key;
+    }
+    else {
+      $first_row[$prev_key]['colspan'] = !$first_row[$prev_key]['colspan'] ? 1 : $first_row[$prev_key]['colspan'];
+      $first_row[$prev_key]['colspan']++;
+    }
+    $prev_date = $info['date'];
+    
+    $second_row[$key] = array(
+      'class' => 'time',
+      'data' => theme('date_picker_formatter_time_cell', $info),
+    );
+    
+  }
+  
+  $rows['dates'] = array('class' => 'date header', 'data' => $first_row);
+  $rows['times'] = array('class' => 'time header', 'data' => $second_row);
+  
+  foreach (element_children($form['dates']) as $uid) {
+    $row = array(
+      'user' => array(
+        'class' => 'user header',
+        'data' => theme('date_picker_formatter_user_cell', $uid),
+      )
+    );
+    foreach (element_children($form['dates'][$uid]) as $key) {
+      unset($form['dates'][$uid][$key]['#title']);
+      $row[$key] = array(
+        'class' => 'answer',
+        'data' => drupal_render($form['dates'][$uid][$key]),
+      );
+    }
+    $rows[$uid] = array('class' => 'result', 'data' => $row);
+  }
+  
+  if (isset($rows[$user->uid])) {
+    $rows['current_user'] = $rows[$user->uid];
+    unset($rows[$user->uid]);
+    $rows['current_user']['data']['user']['data'] .= ' '. drupal_render($form['submit']);
+  }
+  $output .= '<div class="date-picker-formatter-table-wrapper">'. theme('table', array(), $rows, array(
+    'id' => 'date-picker-formatter-table-'. $form['#node']->nid .'-'. str_replace('_', '-', $form['#field']['field_name']),
+    'class' => 'date-picker-formatter-table'
+  ), t('Pick a date')) .'</div>';
+  
+  return $output . drupal_render($form);
+}
+
+function theme_date_picker_formatter_formatter_date_picker_formatter($element) {
+  return drupal_get_form('date_picker_formatter_form_'. $element['#node']->nid .'_'. $element['#field_name'], $element['#node'], $element['#field_name']);
+}
+
+function date_picker_formatter_forms($form_id, $args) {
+//  zdpm($form_id, $args);
+  
+  if (strpos($form_id, 'date_picker_formatter_form') === 0) {
+    return array(
+      $form_id => array(
+        'callback' => 'date_picker_formatter_form'
+      )
+    );
+  }
+  
+}
+
+
+function theme_date_picker_formatter_date_cell($info) {
+  extract($info);
+  $output = '';
+  
+  if ($date != $date2) {
+    $output .= '<span class="date first">'. $date . ($time ? ' <span class="time">'. $time .'</span>' : '') .'</span> ';
+    $output .= '<span class="separator">-</span> ';
+    $output .= '<span class="date second">'. $date2 . ($time2 ? ' <span class="time">'. $time2 .'</span>' : '') .'</span>';
+  }
+  else {
+    $output .= '<span class="date">'. $date .'</span>';
+  }
+  
+  return $output;
+}
+
+function theme_date_picker_formatter_time_cell($info) {
+  extract($info);
+  $output = '';
+  
+  if ($date == $date2) {
+    if ($time != $time2) {
+      $output .= '<span class="time first">'. $time .'</span> ';
+      $output .= '<span class="separator">-</span> ';
+      $output .= '<span class="time second">'. $time2 .'</span>';
+    }
+    else {
+      $output .= '<span class="time">'. $time .'</span>';
+    }
+  }
+  
+  return $output;
+}
+
+function theme_date_picker_formatter_user_cell($uid) {
+  global $user;
+  $account = user_load($uid);
+  $output = '';
+  if (variable_get('date_picker_formatter_display_user_picture', 1)) {
+    $output .= theme('user_picture', $account);
+  }
+  if ($account->uid == $user->uid) {
+    $output .= l(t('You'), 'user/'. $uid);
+  }
+  elseif (user_access('access user profiles')) {
+    $output .= l(check_plain($account->name), 'user/'. $uid);
+  }
+  else {
+    $output .= check_plain($account->name);
+  }
+  return $output;
+}
+
+function theme_date_picker_formatter_vote_cell($vote) {
+  $path = drupal_get_path('module', 'date_picker_formatter') .'/images/';
+  if (empty($vote)) {
+    return theme('image', $path .'emblem-important.png', t('No record'), t('No record'));
+  }
+  
+  $vote_method = variable_get('date_picker_formatter_vote_method', 'checkbox');
+  
+  if ($vote_method == 'checkbox') {
+    if (!$vote['value']) {
+      return theme('image', $path .'emblem-unreadable.png', t('Can not'), t('Can not'));
+    }
+    else {
+      return theme('image', $path .'emblem-favorite.png', t('OK'), t('OK'));
+    }
+  }
+  
+  $vote_options = _date_picker_formatter_options();
+  
+  return $vote_options[$vote['value']];
+  
+}

@@ -1,0 +1,13 @@
+name = Nodereference Views Multifield
+description = Defines a CCK field for selecting multiple nodes from a view using checkboxes.  Also allows extra fields to be attached to each selected row.
+core = 6.x
+package = CCK
+dependencies[] = nodereference
+dependencies[] = views
+
+; Information added by drupal.org packaging script on 2012-03-05
+version = "6.x-1.11"
+core = "6.x"
+project = "nodereference_views_multifield"
+datestamp = "1330934146"
+

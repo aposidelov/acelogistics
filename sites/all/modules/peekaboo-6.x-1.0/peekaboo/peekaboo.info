@@ -1,0 +1,12 @@
+; $Id: peekaboo.info,v 1.1 2009/12/24 08:44:14 danielb Exp $
+name = Peekaboo
+description = "Provides a CCK field that can be used in nodes, node templates, and views to output the contents of another CCK field, from the same node, via Ajax."
+core = 6.x
+package = CCK
+dependencies[] = optionwidgets
+; Information added by drupal.org packaging script on 2010-02-08
+version = "6.x-1.0"
+core = "6.x"
+project = "peekaboo"
+datestamp = "1265590208"
+

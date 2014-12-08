@@ -1,0 +1,43 @@
+<?php
+// $Id: peekaboo.install,v 1.1 2009/12/24 08:44:14 danielb Exp $
+
+/**
+ * @file
+ * Peekaboo module install file.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function peekaboo_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'peekaboo');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function peekaboo_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'peekaboo');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function peekaboo_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'peekaboo');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function peekaboo_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'peekaboo');
+}

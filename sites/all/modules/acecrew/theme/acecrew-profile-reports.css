@@ -1,0 +1,8 @@
+#acecrew-report-form .container-inline-date {
+    float: left;
+    clear: none;
+}
+
+#acecrew-report-form #edit-submit {
+    margin: 20px 3px 0 3px;
+}

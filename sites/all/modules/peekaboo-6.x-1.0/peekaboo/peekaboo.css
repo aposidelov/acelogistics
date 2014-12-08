@@ -1,0 +1,12 @@
+/* $Id: peekaboo.css,v 1.1 2009/12/24 08:44:14 danielb Exp $ */
+
+.peekaboo-throbber {
+  background-image: url('peekaboo.gif');
+  background-repeat: no-repeat;
+  background-position: right center;
+  padding-right: 18px;
+}
+
+div.peekaboo-container > div.error {
+  margin: 1em 0;
+}
