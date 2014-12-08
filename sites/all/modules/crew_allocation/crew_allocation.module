@@ -1,0 +1,1160 @@
+<?php
+// $Id: crew_allocation.module,v 1.1.2.3 2009/06/17 12:55:55 markuspetrux Exp $
+// written by Andrey.
+
+/**
+ * @file
+ * Example for the Modal Frame module.
+ */
+
+/**
+ * Implements hook_update_N().
+ */
+function crew_allocation_update_6001() {
+  $ret = array();
+
+  db_add_field($ret, 'crew_call', 'pay_default_2h', array('type' => 'float', 'default' => 0));
+  db_add_field($ret, 'crew_call', 'pay_default_3h', array('type' => 'float', 'default' => 0));
+  $result = db_query('SELECT cc.uid, cc.jsid, ctjs.nid, ctjs.field_job_session_hours_value AS call_hours FROM `drupal_crew_call` cc INNER JOIN `drupal_content_type_job_session` ctjs ON cc.jsid = ctjs.vid');
+  while ($row = db_fetch_object($result)) {
+    if ($row->call_hours == 2) {
+      $crew = user_load($row->uid);
+      $hour_default_2h = !empty($crew->profile_2_hour_default) ? $crew->profile_2_hour_default : 0;
+      db_query('UPDATE {crew_call} SET pay_default_2h = %f WHERE uid = %d AND jsid = %d', $hour_default_2h, $row->uid, $row->jsid);
+    }
+    else if ($row->call_hours == 3) {
+      $crew = user_load($row->uid);
+      $hour_default_3h = !empty($crew->profile_3_hour_default) ? $crew->profile_3_hour_default : 0;
+      db_query('UPDATE {crew_call} SET pay_default_3h = %f WHERE uid = %d AND jsid = %d', $hour_default_3h, $row->uid, $row->jsid);
+    }
+  }
+
+  return $ret;
+}
+
+function crew_allocation_update_6002() {
+    $ret = array();
+    db_change_field($ret, 'crew_call', 'payrate', 'payrate',
+    array('type' => 'float', 'default' => 0));    
+
+    return $ret;
+}
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function crew_allocation_perm() {
+    return array('access crew allocation');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function crew_allocation_menu() {
+    $items = array();
+    // This is the parent window, from where all examples are available.
+    $items['crew-allocation'] = array(
+        'title' => 'Crew Allocation',
+        /*
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('crew_allocation_page'),
+        */
+        'page callback' => 'crew_allocation_page',
+        'access arguments' => array('access crew allocation'),
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+/**
+ * Menu callback; Generate the parent window, from where all examples are available.
+ */
+function crew_allocation_page($first, $second)
+{
+    return drupal_get_form('_crew_allocation_top_form', $first, $second);
+}
+
+
+function _crew_allocation_top_form(&$form_state) {
+    $_supplement_value = $_SESSION['supplement_value'] == NULL ? 0 : $_SESSION['supplement_value'];
+    $_emp_type_value = $_SESSION['emp_type_value'] == NULL ? 'All' : $_SESSION['emp_type_value'];
+
+    $form = array();
+    modalframe_child_js();
+    drupal_add_js(drupal_get_path('module', 'crew_allocation') .'/crew_allocation.js');
+
+    //print_r($_REQUEST);
+    $page_arguments = func_get_args();
+    $vid = $page_arguments[1];
+    $call_id = $page_arguments[2];
+
+
+    $form['crew_allocation'] = array('#type' => 'fieldset',
+        '#title' => t('Crew Allocation - You Must Select '._crew_allocation_get_allocated_number($vid, $call_id).' Crew Members'),
+        '#weight' => -10,
+    );
+
+    $form['field_sr_account'] = array(
+        '#type' => 'hidden',
+        '#value' => _crew_allocation_get_allocated_number($vid, $call_id),
+        '#id' => 'crew_number_hidden'
+    );
+
+    $form['crew_allocation']['supplements'] = array(
+        '#type' => 'select',
+        '#title' => t('Skills'),
+        '#options' => _crew_allocation_get_all_supplements(),
+        '#default_value' => $_supplement_value,// intval($_supplement_value),
+    );
+
+    $form['crew_allocation']['employment_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Employment Type'),
+        '#options' => _crew_allocation_get_all_employment_type(), //array(t('all'), t('Full Time'), t('Part Time')),
+        '#default_value' => $_emp_type_value,
+    );
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+    );
+
+    //List of booked off users
+    $booked_user_list = _crew_allocation_get_booked_off_user_list($call_id, $vid);
+
+    //Unavailable users
+    $unavailable_120_61 = crew_allocation_get_unavailable_crew_members($call_id, $vid, '120-61');
+
+    $unavailable_users = crew_allocation_get_unavailable_crew_members($call_id, $vid);
+
+    $unavailable_60_1 = crew_allocation_get_unavailable_crew_members($call_id, $vid, '60-1');
+    $unavailable_normal = crew_allocation_get_unavailable_crew_members($call_id, $vid, 'normal');
+
+    $unavailable_120_61 = array_diff($unavailable_120_61, $unavailable_60_1, $unavailable_normal);
+    $unavailable_60_1 = array_diff($unavailable_60_1, $unavailable_normal);
+
+    //Default crew allocation window (show all groupings)
+    if($_emp_type_value == NULL || $_emp_type_value == 'All' ) {
+
+        // then get all type.
+        $emp_types = _crew_allocation_get_all_employment_type();
+        array_shift($emp_types);
+
+
+        /**
+         * Full Time Available
+         */
+
+        //Create fieldset for full time available
+        $form['emp_type']['Full Time Available'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Full Time Available Crew'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Full Time Available",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            null,
+            $unavailable_users,
+            $unavailable_120_61
+        );
+
+        /**
+         * Part Time Available
+         */
+
+        //Create fieldset for full time available
+        $form['emp_type']['Part Time Available'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Part Time Available Crew'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Part Time Available",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            null,
+            $unavailable_users,
+            $unavailable_120_61
+        );
+
+
+
+        /**
+         * Full Time Unavailable
+         */
+
+        //Create fieldset for full time unavailable
+        $form['emp_type']['Full Time Unavailable'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Full Time Unavailable Crew'
+        );
+
+        //Create fieldset for full time unavailable (120-61)
+        $form['emp_type']['Full Time Unavailable']['120-61'] = array(
+            '#type' => 'fieldset',
+            '#title' => '120-61'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Full Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            '120-61',
+            $unavailable_120_61
+        );
+
+        //Create fieldset for full time unavailable (60-1)
+        $form['emp_type']['Full Time Unavailable']['60-1'] = array(
+            '#type' => 'fieldset',
+            '#title' => '60-1'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Full Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            '60-1',
+            $unavailable_60_1
+        );
+
+        //Create fieldset for full time unavailable (normal)
+        $form['emp_type']['Full Time Unavailable']['normal'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Normal'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Full Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            'normal',
+            $unavailable_normal
+        );
+
+        /**
+         * Part Time Unavailable
+         */
+
+        //Create fieldset for part time unavailable
+        $form['emp_type']['Part Time Unavailable'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Part Time Unavailable Crew'
+        );
+
+        //Create fieldset for part time unavailable (120-61)
+        $form['emp_type']['Part Time Unavailable']['120-61'] = array(
+            '#type' => 'fieldset',
+            '#title' => '120-61'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Part Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            '120-61',
+            $unavailable_120_61
+        );
+
+        //Create fieldset for part time unavailable (60-1)
+        $form['emp_type']['Part Time Unavailable']['60-1'] = array(
+            '#type' => 'fieldset',
+            '#title' => '60-1'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Part Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            '60-1',
+            $unavailable_60_1
+        );
+
+        //Create fieldset for part time unavailable (normal)
+        $form['emp_type']['Part Time Unavailable']['normal'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'Normal'
+        );
+
+        crew_allocation_list_crew_members(
+            $form,
+            $form_state,
+            intval($_supplement_value),
+            "Part Time Unavailable",
+            $call_id,
+            $vid,
+            $booked_user_list,
+            'normal',
+            $unavailable_normal
+        );
+
+
+        /**
+         * Booked off
+         */
+
+        $form['bookedoff'] = array(
+            '#type' => 'fieldset',
+            '#title' => t('Booked off Crew'),
+        );
+
+        foreach($booked_user_list as $key => $name) {
+
+            $form['bookedoff'][$name] = array(
+                '#type' => 'item',
+                '#id' => t('crew-'.$key),
+                '#value' => t($name),
+            );
+
+        }
+    } else {
+
+        if($_emp_type_value == "Full Time Available") {
+
+            /**
+             * Full Time Available
+             */
+
+            //Create fieldset for full time available
+            $form['emp_type']['Full Time Available'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Full Time Available Crew'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Full Time Available",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                null,
+                $unavailable_users,
+                $unavailable_120_61
+            );
+
+        } else if ($_emp_type_value == "Part Time Available") {
+
+            /**
+             * Part Time Available
+             */
+
+            //Create fieldset for full time available
+            $form['emp_type']['Part Time Available'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Part Time Available Crew'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Part Time Available",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                null,
+                $unavailable_users,
+                $unavailable_120_61
+            );
+
+        } else if ($_emp_type_value == "Full Time Unavailable") {
+
+            /**
+             * Full Time Unavailable
+             */
+
+            //Create fieldset for full time unavailable
+            $form['emp_type']['Full Time Unavailable'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Full Time Unavailable Crew'
+            );
+
+            //Create fieldset for full time unavailable (120-61)
+            $form['emp_type']['Full Time Unavailable']['120-61'] = array(
+                '#type' => 'fieldset',
+                '#title' => '120-61'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Full Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                '120-61',
+                $unavailable_120_61
+            );
+
+            //Create fieldset for full time unavailable (60-1)
+            $form['emp_type']['Full Time Unavailable']['60-1'] = array(
+                '#type' => 'fieldset',
+                '#title' => '60-1'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Full Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                '60-1',
+                $unavailable_60_1
+            );
+
+            //Create fieldset for full time unavailable (normal)
+            $form['emp_type']['Full Time Unavailable']['normal'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Normal'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Full Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                'normal',
+                $unavailable_normal
+            );
+
+
+        } else if ($_emp_type_value == "Part Time Unavailable") {
+
+            /**
+             * Part Time Unavailable
+             */
+
+            //Create fieldset for part time unavailable
+            $form['emp_type']['Part Time Unavailable'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Part Time Unavailable Crew'
+            );
+
+            //Create fieldset for part time unavailable (120-61)
+            $form['emp_type']['Part Time Unavailable']['120-61'] = array(
+                '#type' => 'fieldset',
+                '#title' => '120-61'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Part Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                '120-61',
+                $unavailable_120_61
+            );
+
+            //Create fieldset for part time unavailable (60-1)
+            $form['emp_type']['Part Time Unavailable']['60-1'] = array(
+                '#type' => 'fieldset',
+                '#title' => '60-1'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Part Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                '60-1',
+                $unavailable_60_1
+            );
+
+            //Create fieldset for part time unavailable (normal)
+            $form['emp_type']['Part Time Unavailable']['normal'] = array(
+                '#type' => 'fieldset',
+                '#title' => 'Normal'
+            );
+
+            crew_allocation_list_crew_members(
+                $form,
+                $form_state,
+                intval($_supplement_value),
+                "Part Time Unavailable",
+                $call_id,
+                $vid,
+                $booked_user_list,
+                'normal',
+                $unavailable_normal
+            );
+
+        }
+
+
+
+    }
+
+    $form['update'] = array(
+        '#type' => 'submit',
+        '#value' => t('Update'),
+    );
+
+    return $form;
+}
+
+
+/**
+ * Get the allocation list of crew members
+ */
+
+function crew_allocation_get_unavailable_crew_members($call_id, $js_id, $status = null) {
+
+    //Get Job Call for which we need to allocate crew members
+    $current_call = crew_allocation_get_current_call($js_id, $call_id);
+
+    //Check if current call is plus call
+    $plus_call = $current_call->field_job_session_plus_call_value;
+
+    //Get start and end time of current call
+    $start = date('Y-m-d H:i:s', strtotime($current_call->field_job_session_date_time_value));
+
+    //If $status is set than we are calculating $end for Unavailable else for Available crew members
+    if($status) {
+
+        //End time is calculated using start + hours + 1 hour (if plus call)
+        $end = date('Y-m-d H:i:s', strtotime($current_call->field_job_session_date_time_value) + 3600 * (
+            ($plus_call ? 1 : 0) + $current_call->field_job_session_hours_value));
+
+    } else {
+
+        //End time is calculated using start + hours + 2/1
+        $end = date('Y-m-d H:i:s', strtotime($current_call->field_job_session_date_time_value) + 3600 * (
+            ($plus_call ? 2 : 1) + $current_call->field_job_session_hours_value));
+
+    }
+
+    //Get list of unavailable crew members (users)
+    $unavailable_users = crew_allocation_get_unavailable_users($start, $end, $js_id, $status);
+
+    return $unavailable_users;
+}
+
+function crew_allocation_list_crew_members(&$form, &$form_state, $supplement, $emp_type, $call_id, $js_id, $booked_user_array, $status = null, $unavailable_users, $unavailable_120_61 = null) {
+
+    //Remove "Available" from employment type (Full Time Available or Part Time Available)
+    $pure_emp_type = substr($emp_type, 0, strrpos($emp_type, ' '));
+
+    //Check if any supplement is selected using supplement filter
+    $supplement = $supplement == 0 ? '' : $supplement;
+
+    //Get all crew members (users) that have assigned supplement and employment type
+    $users = crew_allocation_get_all_users($supplement, $pure_emp_type);
+
+    //Sort by name
+    usort($users, "cmp_crew_name2");
+
+    //Render users(checkbox) on form under Available Crew (full time or part time)
+    crew_allocation_list_available(
+        $form,
+        $form_state,
+        $users,
+        $booked_user_array,
+        $unavailable_users,
+        $emp_type,
+        $call_id,
+        $js_id,
+        $status,
+        $unavailable_120_61
+    );
+}
+
+
+/**
+ * Get the current Job Call (or call in question) for which we need to allocate crew members
+ */
+function crew_allocation_get_current_call($js_id, $call_id) {
+    $sql = "SELECT * FROM {content_type_job_session} WHERE vid = $js_id AND field_session_callid_value = '$call_id'";
+    $result = db_query($sql);
+    return db_fetch_object($result);
+}
+
+
+/**
+ * Get Job Calls
+ * From these Job Calls we will eventually get crew members, and mark them as unavailable
+ *
+ * Select only Job Calls that end after the selected Call starts($start)
+ * and start before the selected Call ends($end)
+ *
+ * To determine when Job Call ends we use starting time and add hours(how many hours job last)
+ * and if the call is "plus call" we add 2 more extra hours else 1 more hour
+ *
+ * $start is equal to selected Job Call starting time
+ * $end is calculated using $start + hours + 1/2 extra hours (if plus call use 2, else 1)
+ */
+function crew_allocation_get_job_calls($start, $end, $js_id, $status = null) {
+
+    if($status == "normal") {
+        //If current call start time is less than (start + hours + 1h(only if plus call))
+        //and end of current call is larger or equal than starting of job call
+        $sql = "
+            SELECT vid, field_session_callid_value AS cid
+            FROM {content_type_job_session}
+            WHERE
+              '$start' <= DATE_ADD(field_job_session_date_time_value, INTERVAL (IF(field_job_session_plus_call_value = 1, 1, 0) + field_job_session_hours_value) HOUR)
+            AND
+              '$end' >= field_job_session_date_time_value
+            AND vid != $js_id
+        ";
+
+    } else if($status == "120-61") {
+
+        $sql = "
+            SELECT vid, field_session_callid_value AS cid
+            FROM {content_type_job_session}
+            WHERE (
+
+              DATE_ADD(field_job_session_date_time_value, INTERVAL (IF(field_job_session_plus_call_value = 1, 1, 0) + field_job_session_hours_value) HOUR)
+                >= DATE_SUB('$start', INTERVAL 2 HOUR)
+
+              AND
+
+              DATE_ADD(field_job_session_date_time_value, INTERVAL (IF(field_job_session_plus_call_value = 1, 1, 0) + field_job_session_hours_value) HOUR)
+                < DATE_SUB('$start', INTERVAL 1 HOUR)
+
+              OR
+
+              field_job_session_date_time_value  <= DATE_ADD('$end', INTERVAL 2 HOUR)
+
+              AND
+
+              field_job_session_date_time_value  > DATE_ADD('$end', INTERVAL 1 HOUR)
+
+            )
+            AND vid != $js_id";
+
+    } else if($status == "60-1") {
+
+        /*
+         * Select Job Calls that ends in 1hour range before the current call starts,
+         * And Job Calls that start in 1hour range after the current Call ends
+         */
+
+
+        $sql = "
+            SELECT vid, field_session_callid_value AS cid
+            FROM {content_type_job_session}
+            WHERE (
+
+              DATE_ADD(field_job_session_date_time_value, INTERVAL (IF(field_job_session_plus_call_value = 1, 1, 0) + field_job_session_hours_value) HOUR)
+                >= DATE_SUB('$start', INTERVAL 1 HOUR)
+
+              AND
+
+              DATE_ADD(field_job_session_date_time_value, INTERVAL (IF(field_job_session_plus_call_value = 1, 1, 0) + field_job_session_hours_value) HOUR)
+                < '$start'
+
+              OR
+
+              field_job_session_date_time_value  <= DATE_ADD('$end', INTERVAL 1 HOUR)
+
+              AND
+
+              field_job_session_date_time_value  > '$end'
+
+            )
+            AND vid != $js_id";
+
+
+
+    } else {
+
+        /**
+         * Used for Full/Part Time Available
+         *
+         * Select only Job Calls that end after the selected Call starts($start)
+         * and start before the selected Call ends($end)
+         *
+         * To determine when Job Call ends we use starting time and add hours(how many hours job last)
+         * and add either 2/1 hours, depending if call is plus call or regular call
+         *
+         * $start is equal to selected Job Call starting time
+         * $end is calculated using $start + hours + 1/2 extra hours (if plus call use 2, else 1)
+         */
+
+        $sql = "SELECT vid, field_session_callid_value AS cid FROM {content_type_job_session}
+            WHERE
+              '$start' <= DATE_ADD(field_job_session_date_time_value, INTERVAL (
+                        IF(field_job_session_plus_call_value = 1, 2, 1) + field_job_session_hours_value) HOUR)
+            AND
+              '$end' >= field_job_session_date_time_value
+            ";
+
+        $sql .= " AND vid != $js_id";
+
+    }
+
+    return db_query($sql);
+
+}
+
+/**
+ * For specified Job Call, get all crew members(users) that are unavailable/occupied
+ */
+function crew_allocation_get_unavailable_users($start, $end, $js_id, $status = null) {
+
+    $js_user_array = array();
+
+    //Select only Job Calls that end after the current Call starts and start before the current Call ends
+    $job_calls = crew_allocation_get_job_calls($start, $end, $js_id, $status);
+
+    while($row = db_fetch_object($job_calls)) {
+        /* get the user list from crew_call */
+        $tql = db_query("SELECT * FROM {crew_call} WHERE jsid = $row->vid");
+        while($tow = db_fetch_object($tql)) {
+            /* add uid to array*/
+            // $js_user_array[$vid][] = $tow->uid;
+            $js_user_array[$tow->uid] = $tow->uid; //Booked users
+        }
+    }
+
+    return $js_user_array;
+}
+
+/**
+ * Get all crew members(users) that have assigned supplement and employment type
+ */
+function crew_allocation_get_all_users($supplement, $emp_type) {
+
+    $users = array();
+
+    $sql = db_query("
+        SELECT uid FROM {profile_values}
+        WHERE fid=41
+        AND value LIKE '%$supplement%'
+        AND uid IN (
+            SELECT uid FROM {profile_values} WHERE fid=39 AND value='$emp_type'
+        );");
+
+    while($row = db_fetch_object($sql)) {
+        $res = db_fetch_object(db_query(
+            "SELECT * FROM {profile_values} WHERE uid = $row->uid AND value = '$emp_type'"
+        ));
+        if($res == NULL) continue;
+        $users[] = db_fetch_object(db_query("SELECT * FROM {users} WHERE uid = $row->uid"));
+    }
+
+    $res = db_query("SELECT uid FROM {users_roles} WHERE rid = (SELECT rid FROM {role} WHERE name = 'Crew')");
+    while($row = db_fetch_object($res)) {
+        $crew_usrs[] = $row->uid;
+    }
+
+    foreach($users as $user) {
+        if(in_array($user->uid, $crew_usrs)) {
+            $filtered_users[] = $user;
+        }
+    }
+
+    return $filtered_users;
+
+
+    return $users;
+}
+
+/**
+ * Create crew members list on crew allocation form, for
+ * Available crew members(full time or part time)
+ */
+function crew_allocation_list_available(&$form, &$form_state, $users, $booked_user_array, $unavailable_users, $emp_type, $call_id, $js_id, $status = null, $unavailable_120_61 = null) {
+    // bug fixing: array_key_exists() expects parameter 2 to be array, null given in... on line 818
+    if ($unavailable_120_61 == null) {
+        $unavailable_120_61 = array();
+    }
+    $blocked_users = crew_allocation_get_blocked_users();
+    foreach($users as $user) {
+        if (array_key_exists($user->uid, $booked_user_array)) {
+            //If crew member(user) is booked off
+        } else if (in_array($user->uid, $blocked_users)) {
+            //If user is blocked
+        } else {
+            //If user is available add it to the form list
+            if(array_key_exists($user->uid, $unavailable_users) && (strpos($emp_type, 'Unavailable') != FALSE)) {
+                //If the user is checked
+                $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();
+
+                //Add different class to unavailable groups based on status
+                $class = "";
+                if($status == "120-61") {
+                    $class = "unavailable-two";
+                } else if($status == "60-1") {
+                    $class = "unavailable-one";
+                } else if($status == "normal") {
+                    $class = "unavailable-normal";
+                }
+
+                //Create the form field, $emp_type is form fieldsed(ex: Full Time Unavailable) and status is
+                //unavailable grouping type(120-61/60-1/normal)
+                $form['emp_type'][$emp_type][$status][$user->name] = array(
+                    '#type' => 'checkbox',
+                    '#id' => t('crew-'.$user->uid),
+                    '#title' => t($user->name),
+                    '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
+                    '#attributes' => $checked,
+
+                    '#prefix' => '<div class="' . $class . '">',
+                    '#suffix' => '</div>'
+                );
+            }
+            //If user is available add it to the form list
+            if(!array_key_exists($user->uid, $unavailable_users) && !array_key_exists($user->uid, $unavailable_120_61) && (strpos($emp_type, 'Available') != FALSE)) {
+
+                $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();
+
+                $form['emp_type'][$emp_type][$user->name] = array(
+                    '#type' => 'checkbox',
+                    '#id' => t('crew-'.$user->uid),
+                    '#title' => t($user->name),
+                    '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
+                    '#attributes' => $checked
+                );
+
+
+            }
+        }
+
+    }
+}
+
+function _crew_allocation_top_form_submit($form, &$form_state) {
+    $_SESSION['supplement_value'] = $form['crew_allocation']['supplements']['#value'];
+    $_SESSION['emp_type_value'] = $form['crew_allocation']['employment_type']['#value'];
+
+    $unavailable_120_61 = $form['emp_type']['Full Time Unavailable']['120-61'];
+    $unavailable_60_1 = $form['emp_type']['Full Time Unavailable']['60-1'];
+    $unavailable_normal = $form['emp_type']['Full Time Unavailable']['normal'];
+
+    $form['emp_type']['120-61'] = $unavailable_120_61;
+    $form['emp_type']['60-1'] = $unavailable_60_1;
+    $form['emp_type']['normal'] = $unavailable_normal;
+
+
+    if ($form_state['values']['op'] == t('Update')) {
+        // save all data to db
+        // at first, check num of crew
+        $crew_num = 0;
+
+        //next db register
+        $vars = explode('/', $_REQUEST['q']);
+
+        foreach ($form['emp_type'] as $crew_list_by_emp_type) {
+            if (!is_array($crew_list_by_emp_type)) {
+                continue;
+            }
+            foreach ($crew_list_by_emp_type as $crew) {
+                if ($crew['#type'] != 'checkbox') {
+                    continue;
+                }
+                if ($crew['#value'] == 1) {
+                    $crew_num++;
+                }
+            }
+        }
+
+        foreach($form['bookedoff'] as $item_of_bookedoff) {
+            if ($item_of_bookedoff['#type'] == 'item') {
+                db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", substr($item_of_bookedoff['#id'], 5) , $vars[2], $vars[1]);
+                continue;
+            }
+        }
+        foreach ($form['emp_type'] as $crew_list_by_emp_type) {
+            if (!is_array($crew_list_by_emp_type)) {
+                continue;
+            }
+            foreach ($crew_list_by_emp_type as $crew) {
+                $crew_uid = substr($crew['#id'], 5);
+                if ($crew['#type'] == 'item') {
+                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $vars[2], $vars[1]);
+                    continue;
+                }
+                if ($crew['#type'] != 'checkbox') {
+                    continue;
+                }
+
+                if ($crew['#value'] == 1) {
+                    if (_crew_allocation_is_crew_allocated($crew_uid, $vars[2], $vars[1]) == false) {
+                        $result = db_query("SELECT * FROM {content_type_job_session} WHERE vid=" . $vars[1]);
+                        $row = db_fetch_object($result);
+                        $hours = 0;//$row->field_job_session_hours_value;
+                        /*
+                        first, let's get the payrate for uid user.
+                        */
+                        $option = acecrew_get_ads('field_admins_crewrates');
+                        $default_crew_rate = intval(substr(reset($option), 0,1));
+
+
+                        $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $crew_uid);
+                        $row8 = db_fetch_object($result8);
+                        // if $row8 is false, then use default payrate for crew.
+                        if ($row8 == FALSE) {
+                            $crew_payrate = $default_crew_rate;
+                        }
+                        else {
+                            $crew_payrate = $row8->value;
+                        }
+
+                        $crew_user = user_load($crew_uid);
+                        $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
+                        $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
+
+                        db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+                    }
+                }
+                else {
+                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $vars[2], $vars[1]);
+                }
+            }
+
+            if ($crew_list_by_emp_type['#title'] == "Part Time Unavailable Crew") {
+                foreach ($crew_list_by_emp_type['normal'] as $item) {
+                    $crew_uid = substr($item['#id'], 5);
+                    if ($item['#type'] == 'checkbox' && $item['#value'] == 1) {
+                        if (_crew_allocation_is_crew_allocated($crew_uid, $vars[2], $vars[1]) == false) {
+                            $result = db_query("SELECT * FROM {content_type_job_session} WHERE vid=" . $vars[1]);
+                            $row = db_fetch_object($result);
+                            $hours = 0;//$row->field_job_session_hours_value;
+                            /*
+                            first, let's get the payrate for uid user.
+                            */
+                            $option = acecrew_get_ads('field_admins_crewrates');
+                            $default_crew_rate = intval(substr(reset($option), 0,1));
+
+                            $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $crew_uid);
+                            $row8 = db_fetch_object($result8);
+                            // if $row8 is false, then use default payrate for crew.
+                            if ($row8 == FALSE) {
+                                $crew_payrate = $default_crew_rate;
+                            }
+                            else {
+                                $crew_payrate = $row8->value;
+                            }
+
+                            $crew_user = user_load($crew_uid);
+                            $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
+                            $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
+
+                            db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+                        }
+                    }
+                }
+            }
+
+            if ($crew_list_by_emp_type['#title'] == "Part Time Unavailable Crew") {
+                foreach ($crew_list_by_emp_type['120-61'] as $item) {
+                    $crew_uid = substr($item['#id'], 5);
+                    if ($item['#type'] == 'checkbox' && $item['#value'] == 1) {
+                        if (_crew_allocation_is_crew_allocated($crew_uid, $vars[2], $vars[1]) == false) {
+                            $result = db_query("SELECT * FROM {content_type_job_session} WHERE vid=" . $vars[1]);
+                            $row = db_fetch_object($result);
+                            $hours = 0;//$row->field_job_session_hours_value;
+                            /*
+                            first, let's get the payrate for uid user.
+                            */
+                            $option = acecrew_get_ads('field_admins_crewrates');
+                            $default_crew_rate = intval(substr(reset($option), 0,1));
+
+                            $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $crew_uid);
+                            $row8 = db_fetch_object($result8);
+                            // if $row8 is false, then use default payrate for crew.
+                            if ($row8 == FALSE) {
+                                $crew_payrate = $default_crew_rate;
+                            }
+                            else {
+                                $crew_payrate = $row8->value;
+                            }
+
+                            $crew_user = user_load($crew_uid);
+                            $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
+                            $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
+
+                            db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+                        }
+                    }
+                }
+            }
+
+            if ($crew_list_by_emp_type['#title'] == "Part Time Unavailable Crew") {
+                foreach ($crew_list_by_emp_type['60-1'] as $item) {
+                    $crew_uid = substr($item['#id'], 5);
+                    if ($item['#type'] == 'checkbox' && $item['#value'] == 1) {
+                        if (_crew_allocation_is_crew_allocated($crew_uid, $vars[2], $vars[1]) == false) {
+                            $result = db_query("SELECT * FROM {content_type_job_session} WHERE vid=" . $vars[1]);
+                            $row = db_fetch_object($result);
+                            $hours = 0;//$row->field_job_session_hours_value;
+                            /*
+                            first, let's get the payrate for uid user.
+                            */
+                            $option = acecrew_get_ads('field_admins_crewrates');
+                            $default_crew_rate = intval(substr(reset($option), 0,1));
+
+                            $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $crew_uid);
+                            $row8 = db_fetch_object($result8);
+                            // if $row8 is false, then use default payrate for crew.
+                            if ($row8 == FALSE) {
+                                $crew_payrate = $default_crew_rate;
+                            }
+                            else {
+                                $crew_payrate = $row8->value;
+                            }
+
+                            $crew_user = user_load($crew_uid);
+                            $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
+                            $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
+
+                            db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+                        }
+                    }
+                }
+            }
+
+        }
+        // Tell the parent window to close the modal frame dialog.
+        modalframe_close_dialog(array(
+            'message' => t('Hey!'),
+        ));
+    }
+}
+
+function crew_allocation_form_alter(&$form, $form_state, $form_id) {
+    // Look for a node edit form.
+    if ($_SESSION['warning_message'] == NULL)
+    {
+        $form['warning'] = NULL;
+        return;
+    }
+
+    $form['warning'] = array(
+        '#type' => 'textfield',
+        '#title' => '',
+        '#default_value' => $_SESSION['warning_message'],
+        '#maxlength' => 128,
+        '#size' => 25,
+    );
+    $_SESSION['warning_message'] = NULL;
+}
+
+//Get all blocked users
+function crew_allocation_get_blocked_users() {
+    $result = db_query("SELECT uid FROM {users} WHERE status = 0");
+    $blocked_users = array();
+    while($row = db_fetch_object($result)) {
+        $blocked_users[] = $row->uid;
+    }
+    return $blocked_users;
+}
+
+// get all supplements
+function _crew_allocation_get_all_supplements()
+{
+    static $supplements = array();
+    $supplements[0] = 'All';
+    $get_supplements = db_query("SELECT * FROM {node} WHERE type ='supplements'");
+    while($row = db_fetch_object($get_supplements))
+    {
+        // here let's get supplement's name
+        $supplements[$row->nid] = $row->title;
+    }
+    return $supplements;
+}
+
+function _crew_allocation_get_all_employment_type()
+{
+    static $emp_types = array();
+    $emp_types['All'] = 'All';
+    $get_emp_types = db_query("SELECT * FROM {profile_fields} WHERE category='Employment Type' and type='selection'");
+    $row = db_fetch_object($get_emp_types);
+    $temp = explode("\r\n", $row->options);
+    foreach($temp as $emp_type)
+    {
+        $emp_types[$emp_type." Available"] = $emp_type." Available";
+        $emp_types[$emp_type." Unavailable"] = $emp_type." Unavailable";
+    }
+    return $emp_types;
+}
+
+function _crew_allocation_get_allocated_number($vid, $field_session_callid_value)
+{
+    $sql = db_query("SELECT * FROM {content_type_job_session} WHERE vid = $vid AND field_session_callid_value = '$field_session_callid_value'");
+    $row = db_fetch_object($sql);
+    return isset($row->field_job_session_crew_value)?$row->field_job_session_crew_value:0;
+}
+
+function _crew_allocation_get_booked_off_user_list($call_id, $js_id )
+{
+    $user_list = array();
+    $sql = db_query("SELECT * FROM {content_type_job_session} WHERE vid = $js_id AND field_session_callid_value = '$call_id'");
+    $current_call = db_fetch_object($sql);
+    $session_node = node_load(array("vid" => $js_id));
+//    $start = date('Y-m-d H:i:s', strtotime($row->field_job_session_date_time_value) - 3600);
+//    $end = date('Y-m-d H:i:s', strtotime($row->field_job_session_date_time_value) + 3600 * (1 + $session_node->field_job_session_hours[0]['value']));
+
+    //Check if current call is plus call
+    $plus_call = $current_call->field_job_session_plus_call_value;
+
+    //Get start and end time of current call
+    $start = date('Y-m-d H:i:s', strtotime($current_call->field_job_session_date_time_value));
+
+    //End time is calculated using start + hours + 2/1
+    $end = date('Y-m-d H:i:s', strtotime($current_call->field_job_session_date_time_value) + 3600 * (
+        ($plus_call ? 2 : 1) + $current_call->field_job_session_hours_value));
+
+    // first let's get the bookoffed' user
+    $sql = db_query("SELECT DISTINCT field_ub_owner_uid as uid FROM {content_type_user_bookedoff} WHERE NOT(field_ub_date_start_value > '$end' OR field_ub_date_end_value < '$start' )");
+    while($row = db_fetch_object($sql))
+    {
+        $user = db_fetch_object(db_query("SELECT * FROM {users} WHERE uid = $row->uid"));
+        $user_list[$user->uid] = $user->name;
+    }
+    return $user_list;
+}
+
+function _crew_allocation_is_crew_allocated($uid, $call_id, $jsid)
+{
+    if(db_fetch_object(db_query("SELECT * FROM {crew_call} WHERE uid = $uid AND cid = '$call_id' AND jsid = $jsid")) == NULL)
+        return false;
+    return true;
+}

@@ -1,0 +1,13 @@
+; $Id: button_field.info,v 1.1 2009/11/21 01:52:11 bassistjimmyjam Exp $
+name = Button Field
+description = Adds a button field type to CCK
+package = CCK
+core = 6.x
+dependencies[] = content
+dependencies[] = rules
+; Information added by drupal.org packaging script on 2010-02-26
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "button_field"
+datestamp = "1267185736"
+

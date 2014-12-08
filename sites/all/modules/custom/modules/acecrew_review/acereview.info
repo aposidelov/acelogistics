@@ -1,0 +1,5 @@
+; $Id$
+name = Ace Crew Review
+description = A module that handles review of Ace Crew workers
+core = 6.x
+package = "Ace Crew"

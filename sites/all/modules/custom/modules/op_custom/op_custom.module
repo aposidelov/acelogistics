@@ -1,0 +1,935 @@
+<?php
+
+/**
+ * Implements hook_init().
+ */
+function op_custom_init() {
+  if (arg(0) == 'user' && arg(2) == 'edit' && arg(3) == 'Supplement') {
+    $a0 = arg(0);
+    $a1 = arg(1);
+    $a2 = arg(2);
+    drupal_goto($a0.'/'.$a1.'/'.$a2.'/CrewSupplement');
+  }
+  
+}
+
+/**
+ * Implements hook_menu().
+ */
+function op_custom_menu() {
+  $items = array();
+  $items['jobs/venue/autocomplete/%'] = array(
+    'page callback' => 'op_jobs_venue_autocomplete',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['jobs/venue/form'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_jobs_venue_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/admin-settings/cck-add'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_admin_settins_cck_form'),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'op_custom.admin_settings.inc',
+    'title' => 'Add crew rate',
+  );
+
+  $items['admin/invoice-update'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_invoice_update_form'),
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,    
+    'title' => 'Invoice update',
+  );
+
+
+  $items['admin/settings/allocate_skills'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_allocate_skills_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+ 
+  /*
+  $items['pdf_test'] = array(
+    'page callback' => 'pdf_test_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );*/
+
+  return $items;
+}
+
+/**
+ * Implements hook_rules_action_info().
+ */
+function op_custom_rules_action_info() {
+  $actions = array();
+
+  $actions['acercrew_rule_call_crews_status_revert'] = array(
+    'label' => t('Acecrew: revert statuses of Call crews'),
+    'arguments' => array(
+      'call' => array(
+        'type' => 'node',
+        'label' => 'Call',
+      ),
+    ),
+    'module' => 'Acecrew Custom'
+  );
+
+  $actions['acercrew_rule_job_crews_status_revert'] = array(
+    'label' => t('Acecrew: revert statuses of Job crews'),
+    'arguments' => array(
+      'job' => array(
+        'type' => 'node',
+        'label' => 'Job',
+      ),
+    ),
+    'module' => 'Acecrew Custom'
+  );
+
+  return $actions;
+}
+
+/**
+ * Action: Executes after Call has been saved
+ */
+function acercrew_rule_call_crews_status_revert($call) {
+  $call_nid = $call->nid;
+  //watchdog('call-crews-rev', '<pre>'.print_r($call_nid, TRUE).'</pre>');
+  acecrew_set_crews_status_by_call($call_nid);
+}
+
+/**
+ * Action: Executes after Job has been saved
+ */
+function acercrew_rule_job_crews_status_revert($job) {
+  $job_nid = $job->nid;
+  //watchdog('job-crews-rev', '<pre>'.print_r($job_nid, TRUE).'</pre>');
+  $calls = acecrew_get_calls_by_job($job_nid);
+  foreach ($calls as $call_nid) {
+    acecrew_set_crews_status_by_call($call_nid);
+  }
+}
+
+function acecrew_set_crews_status_by_call($call_nid, $status = "text_not_sent") {
+  $result = db_query('SELECT cc.uid, cc.jsid FROM `drupal_crew_call` cc INNER JOIN `drupal_node` c ON cc.jsid = c.vid WHERE c.nid = %d', $call_nid);
+  if (db_affected_rows($result) > 0) {
+    while ($row = db_fetch_object($result)) {
+        db_query('UPDATE `drupal_crew_call` SET supplements = "%s" WHERE uid = %d AND jsid = %d', $status, $row->uid, $row->jsid);
+    }
+  }
+}
+
+function acecrew_set_crew_call_status($uid, $call_id, $status = "text_not_sent") {
+  db_query('UPDATE `drupal_crew_call` SET supplements = "%s" WHERE uid = %d AND jsid = %d', $status, $uid, $call_id);
+}
+
+function acecrew_get_calls_by_job($job_nid) {
+  $result = db_query('SELECT nid FROM `drupal_content_type_job_session` WHERE field_session_job_nid_value = %d', $job_nid);
+  $data = array();
+  while ($row = db_fetch_object($result)) {
+    $data[] = $row->nid;
+  }
+
+  return $data;
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function op_custom_views_query_alter(&$view, &$query) {
+  //dsm($view->name);
+  if ($view->name == 'job_view') {
+    //watchdog('wwd', '<pre>'.print_r($query, TRUE).'</pre>');
+    $query->table_queue = array();
+    $query->table_queue['node'] = array(
+      'alias' => 'node',
+      'table' => 'node',
+      'relationship' => 'node',
+      'join' => '',
+    );
+
+    $query->table_queue['job'] = array(
+      'alias' => 'job',
+      'table' => 'job',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['job']['join']->definition['table'] = 'content_type_job';
+    $query->table_queue['job']['join']->definition['left_table'] = 'node';
+    $query->table_queue['job']['join']->definition['field'] = 'nid';
+    $query->table_queue['job']['join']->definition['left_field'] = 'nid';
+    $query->table_queue['job']['join']->extra_type = 'AND';
+    $query->table_queue['job']['join']->table = 'content_type_job';
+    $query->table_queue['job']['join']->left_table = 'node';
+    $query->table_queue['job']['join']->left_field = 'nid';
+    $query->table_queue['job']['join']->field = 'nid';
+    $query->table_queue['job']['join']->type = 'INNER';
+    $query->table_queue['job']['join']->adjusted = 1;
+    /*
+    $query->table_queue['node_revisions'] = array(
+      'alias' => 'node_revisions',
+      'table' => 'node_revisions',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['node_revisions']['join']->definition['table'] = 'node_revisions';
+    $query->table_queue['node_revisions']['join']->definition['left_table'] = 'node';
+    $query->table_queue['node_revisions']['join']->definition['field'] = 'vid';
+    $query->table_queue['node_revisions']['join']->definition['left_field'] = 'vid';
+    $query->table_queue['node_revisions']['join']->extra_type = 'AND';
+    $query->table_queue['node_revisions']['join']->table = 'node_revisions';
+    $query->table_queue['node_revisions']['join']->left_table = 'node';
+    $query->table_queue['node_revisions']['join']->left_field = 'vid';
+    $query->table_queue['node_revisions']['join']->field = 'vid';
+    $query->table_queue['node_revisions']['join']->type = 'INNER';
+    $query->table_queue['node_revisions']['join']->adjusted = 1;
+    */
+    $query->table_queue['aji'] = array(
+      'alias' => 'aji',
+      'table' => 'aji',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['aji']['join']->definition['table']      = 'acecrew_job_invoices';
+    $query->table_queue['aji']['join']->definition['left_table'] = 'content_type_job';
+    $query->table_queue['aji']['join']->definition['field']      = 'job_id';
+    $query->table_queue['aji']['join']->definition['left_field'] = 'field_job_number_value';
+    $query->table_queue['aji']['join']->extra_type               = 'AND';
+    $query->table_queue['aji']['join']->table                    = 'acecrew_job_invoices';
+    $query->table_queue['aji']['join']->left_table               = 'job';
+    $query->table_queue['aji']['join']->left_field               = 'field_job_number_value';
+    $query->table_queue['aji']['join']->field                    = 'job_id';
+    $query->table_queue['aji']['join']->type                     = 'LEFT';
+    $query->table_queue['aji']['join']->adjusted                 = 1;
+
+    $query->tables['node'] = array(
+      'node' => array(
+        'count' => 1,
+        'alias' => 'node',
+      ),
+      'job' => array(
+        'count' => 1,
+        'alias' => 'job',
+      ),
+      /*'node_revisions' => array(
+        'count' => 1,
+        'alias' => 'node_revisions',
+      ),*/
+      'aji' => array(
+        'count' => 1,
+        'alias' => 'aji',
+      ),
+    );
+
+    $query->fields = array();
+    $query->fields['nid'] = array(
+      'field' => 'nid',
+      'table' => 'node',
+      'alias' => 'nid',
+    );
+    $query->fields['job_field_job_number_value'] = array(
+      'field' => 'field_job_number_value',
+      'table' => 'job',
+      'alias' => 'job_field_job_number_value',
+    );
+    $query->fields['node_type'] = array(
+      'field' => 'type',
+      'table' => 'node',
+      'alias' => 'node_type',
+    );
+    $query->fields['node_vid'] = array(
+      'field' => 'vid',
+      'table' => 'node',
+      'alias' => 'node_vid',
+    );
+    $query->fields['job_field_job_status_value'] = array(
+      'field' => 'field_job_status_value',
+      'table' => 'job',
+      'alias' => 'job_field_job_status_value',
+    );
+    $query->fields['job_field_job_venue_value'] = array(
+      'field' => 'field_job_venue_value',
+      'table' => 'job',
+      'alias' => 'job_field_job_venue_value',
+    );
+    $query->fields['job_field_job_date_value'] = array(
+      'field' => 'field_job_date_value',
+      'table' => 'job',
+      'alias' => 'job_field_job_date_value',
+    );
+    $query->fields['job_field_job_client_name_value'] = array(
+      'field' => 'field_job_client_name_value',
+      'table' => 'job',
+      'alias' => 'job_field_job_client_name_value',
+    );
+    $query->fields['node_uid'] = array(
+      'field' => 'uid',
+      'table' => 'node',
+      'alias' => 'node_uid',
+    );
+    /*$query->fields['node_revisions_format'] = array(
+      'field' => 'format',
+      'table' => 'node_revisions',
+      'alias' => 'node_revisions_format',
+    );*/
+
+    $query->where = array();
+    $query->where[0]['clauses'][0] = "node.type in ('%s')";
+    $query->where[0]['args'][0] = 'job';
+    $query->where[0]['type'] = "AND";
+
+    // Date picker
+    if (isset($_GET['date_filter'])) {
+      $min = isset($_GET['date_filter']['min']['date']) ? $_GET['date_filter']['min']['date'] : '';
+      $max = isset($_GET['date_filter']['max']['date']) ? $_GET['date_filter']['max']['date'] : '';
+      if (!empty($min) && !empty($max)) {
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min' AND DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
+      } elseif (!empty($min) && empty($max)) { // ONLY MIN DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min'";
+      } elseif (!empty($max) && empty($min)) {  // ONLY MAX DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
+      }
+      if (!empty($min) || !empty($max)) {
+        $query->where['date']['args'] = array();
+        $query->where['date']['type'] = 'AND';
+      }
+    }
+    // Status (job) (select list)
+    if (isset($_GET['field_job_status_value_many_to_one']) &&
+      $_GET['field_job_status_value_many_to_one'] != 'All') {
+      // To be invoiced
+      if ($_GET['field_job_status_value_many_to_one'] == 'tbi') {
+        $query->where[0]['clauses'][] = 'job.field_job_status_value = 1 OR job.field_job_status_value = 3';
+        $query->where[0]['args'][] = '';
+      }
+      /*// To be confirmed
+      elseif ($_GET['field_job_status_value_many_to_one'] == 'tbc') {
+        $query->where[0]['clauses'][] = 'node_data_field_job_session_date_time.field_call_time_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_hours_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_contract_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_crew_tbc_value = 1';
+        $query->where[0]['args'][] = '';
+      }*/
+      // else statuses
+      else {
+        $query->where[0]['clauses'][] = 'job.field_job_status_value = %d';
+        $query->where[0]['args'][] = $_GET['field_job_status_value_many_to_one'];
+      }
+    }
+    // Job number (job) (textfield)
+    if (isset($_GET['field_job_number_value']) && !empty($_GET['field_job_number_value'])) {
+      $query->where[0]['clauses'][] = 'job.field_job_number_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_number_value'];
+    }
+    // Client name (job) (select list)
+    if (isset($_GET['field_job_client_name_value_many_to_one']) &&
+      $_GET['field_job_client_name_value_many_to_one'] != 'All') {
+      $query->where[0]['clauses'][] = 'job.field_job_client_name_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_client_name_value_many_to_one'];
+    }
+    // Venue (call) (select list)
+    if (isset($_GET['field_job_venue_value_many_to_one']) &&
+      $_GET['field_job_venue_value_many_to_one'] != 'All') {
+      $query->where[0]['clauses'][] = 'job.field_job_venue_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_venue_value_many_to_one'];
+    }
+    // PO number (job) (textfield)
+    if (isset($_GET['field_job_po_number_value']) && !empty($_GET['field_job_po_number_value'])) {
+      $query->where[0]['clauses'][] = "job.field_job_po_number_value = '%s'";
+      $query->where[0]['args'][] = $_GET['field_job_po_number_value'];
+    }
+    // Invoice number (custom table) (textfield)
+    if (isset($_GET['field_invoice_number_value']) && !empty($_GET['field_invoice_number_value'])) {
+      $query->where[0]['clauses'][] = "aji.invoice_number = '%s'";
+      $query->where[0]['args'][] = $_GET['field_invoice_number_value'];
+    }
+
+    $query->orderby = array();
+    if (isset($_GET['order'])) {
+      // Order by Job Number
+      if ($_GET['order'] == 'field_job_number_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'job_field_job_number_value ASC';
+        } else {
+          $query->orderby[] = 'job_field_job_number_value DESC';
+        }
+      }
+      // Job status
+      if ($_GET['order'] == 'field_job_status_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_status_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_status_value DESC';
+        }
+      }
+      //
+      if ($_GET['order'] == 'field_job_venue_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_venue_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_venue_value DESC';
+        }
+      }
+      //
+      if ($_GET['order'] == 'field_job_date_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_date_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_date_value DESC';
+        }
+      }
+      //
+      if ($_GET['order'] == 'field_job_client_name_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_client_name_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_client_name_value DESC';
+        }
+      }
+    }
+
+  }
+  elseif ($view->name == 'call_search') {
+    $query->table_queue = array();
+    $query->table_queue['node'] = array(
+      'alias' => 'node',
+      'table' => 'node',
+      'relationship' => 'node',
+      'join' => '',
+    );
+
+    $query->table_queue['node_data_field_job_session_date_time'] = array(
+      'alias' => 'node_data_field_job_session_date_time',
+      'table' => 'node_data_field_job_session_date_time',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['table'] = 'content_type_job_session';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['left_table'] = 'node';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['field'] = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['left_field'] = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->extra_type = 'AND';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->table = 'content_type_job_session';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->left_table = 'node';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->left_field = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->field = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->type = 'LEFT';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->adjusted = 1;
+
+    $query->table_queue['node_data_field_job_number'] = array(
+      'alias' => 'node_data_field_job_number',
+      'table' => 'node_data_field_job_number',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['node_data_field_job_number']['join']->definition['table'] = 'content_type_job';
+    $query->table_queue['node_data_field_job_number']['join']->definition['left_table'] = 'content_type_job_session';
+    $query->table_queue['node_data_field_job_number']['join']->definition['field'] = 'nid';
+    $query->table_queue['node_data_field_job_number']['join']->definition['left_field'] = 'field_session_job_nid_value';
+    $query->table_queue['node_data_field_job_number']['join']->extra_type = 'AND';
+    $query->table_queue['node_data_field_job_number']['join']->table = 'content_type_job';
+    $query->table_queue['node_data_field_job_number']['join']->left_table = 'node_data_field_job_session_date_time';
+    $query->table_queue['node_data_field_job_number']['join']->left_field = 'field_session_job_nid_value';
+    $query->table_queue['node_data_field_job_number']['join']->field = 'nid';
+    $query->table_queue['node_data_field_job_number']['join']->type = 'LEFT';
+    $query->table_queue['node_data_field_job_number']['join']->adjusted = 1;
+
+    $query->table_queue['aji'] = array(
+      'alias' => 'aji',
+      'table' => 'aji',
+      'relationship' => 'node',
+      'num' => 1,
+      'join' => new views_join(),
+    );
+    $query->table_queue['aji']['join']->definition['table']      = 'acecrew_job_invoices';
+    $query->table_queue['aji']['join']->definition['left_table'] = 'content_type_job';
+    $query->table_queue['aji']['join']->definition['field']      = 'job_id';
+    $query->table_queue['aji']['join']->definition['left_field'] = 'field_job_number_value';
+    $query->table_queue['aji']['join']->extra_type               = 'AND';
+    $query->table_queue['aji']['join']->table                    = 'acecrew_job_invoices';
+    $query->table_queue['aji']['join']->left_table               = 'node_data_field_job_number';
+    $query->table_queue['aji']['join']->left_field               = 'field_job_number_value';
+    $query->table_queue['aji']['join']->field                    = 'job_id';
+    $query->table_queue['aji']['join']->type                     = 'LEFT';
+    $query->table_queue['aji']['join']->adjusted                 = 1;
+
+    $query->tables['node'] = array(
+      'node' => array(
+        'count' => 1,
+        'alias' => 'node',
+      ),
+      'node_data_field_job_number' => array(
+        'count' => 1,
+        'alias' => 'node_data_field_job_number',
+      ),
+      'node_data_field_job_session_date_time' => array(
+        'count' => 1,
+        'alias' => 'node_data_field_job_session_date_time',
+      ),
+      'aji' => array(
+        'count' => 1,
+        'alias' => 'aji',
+      ),
+    );
+
+    $query->fields = array();
+    $query->fields['nid'] = array(
+      'table' => 'node',
+      'field' => 'nid',
+      'alias' => 'nid',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_session_callid_value'] = array(
+      'field' => 'field_session_callid_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_session_callid_value',
+    );
+
+    $query->fields['node_type'] = array(
+      'field' => 'type',
+      'table' => 'node',
+      'alias' => 'node_type',
+    );
+    $query->fields['node_vid'] = array(
+      'field' => 'vid',
+      'table' => 'node',
+      'alias' => 'node_vid',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_session_job_nid_value'] = array(
+      'field' => 'field_session_job_nid_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_session_job_nid_value',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_session_job_nid_value'] = array(
+      'field' => 'field_session_job_nid_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_session_job_nid_value',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_job_session_crew_value'] = array(
+      'field' => 'field_job_session_crew_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_job_session_crew_value',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_job_session_hours_value'] = array(
+      'field' => 'field_job_session_hours_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_job_session_hours_value',
+    );
+
+    $query->fields['node_data_field_job_session_date_time_field_call_crew_tbc_value'] = array(
+      'field' => 'field_call_crew_tbc_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_call_crew_tbc_value',
+    );
+    $query->fields['node_data_field_job_session_date_time_field_call_hours_tbc_value'] = array(
+      'field' => 'field_call_hours_tbc_value',
+      'table' => 'node_data_field_job_session_date_time',
+      'alias' => 'node_data_field_job_session_date_time_field_call_hours_tbc_value',
+    );
+
+
+
+    $query->where = array();
+    $query->where[0]['clauses'][0] = "node.type in ('%s')";
+    $query->where[0]['args'][0] = 'job_session';
+    $query->where[0]['type'] = "AND";
+
+    // Date picker
+    if (isset($_GET['date_filter'])) {
+      $min = isset($_GET['date_filter']['min']['date']) ? $_GET['date_filter']['min']['date'] : '';
+      $max = isset($_GET['date_filter']['max']['date']) ? $_GET['date_filter']['max']['date'] : '';
+      if (!empty($min) && !empty($max)) {
+        $query->where['date']['clauses'][] = "DATE_FORMAT(node_data_field_job_session_date_time.field_job_session_date_time_value, '%Y-%m-%%d') >= '$min' AND DATE_FORMAT(node_data_field_job_session_date_time.field_job_session_date_time_value, '%Y-%m-%%d') <= '$max'";
+      } elseif (!empty($min) && empty($max)) { // ONLY MIN DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(node_data_field_job_session_date_time.field_job_session_date_time_value, '%Y-%m-%%d') >= '$min'";
+      } elseif (!empty($max) && empty($min)) {  // ONLY MAX DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(node_data_field_job_session_date_time.field_job_session_date_time_value, '%Y-%m-%%d') <= '$max'";
+      }
+      if (!empty($min) || !empty($max)) {
+        $query->where['date']['args'] = array();
+        $query->where['date']['type'] = 'AND';
+      }
+    }
+    // Job number (job) (textfield)
+    if (isset($_GET['field_job_number_value']) && !empty($_GET['field_job_number_value'])) {
+      $query->where[0]['clauses'][] = 'node_data_field_job_number.field_job_number_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_number_value'];
+    }
+    // Client name (job) (select list)
+    if (isset($_GET['field_job_client_name_value_many_to_one']) &&
+      $_GET['field_job_client_name_value_many_to_one'] != 'All') {
+      $query->where[0]['clauses'][] = 'node_data_field_job_number.field_job_client_name_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_client_name_value_many_to_one'];
+    }
+    // Venue (call) (select list)
+    if (isset($_GET['field_job_session_venue_value_many_to_one']) &&
+      $_GET['field_job_session_venue_value_many_to_one'] != 'All') {
+      $query->where[0]['clauses'][] = 'node_data_field_job_session_date_time.field_job_session_venue_value = %d';
+      $query->where[0]['args'][] = $_GET['field_job_session_venue_value_many_to_one'];
+    }
+    // Status (job) (select list)
+    if (isset($_GET['field_job_status_value_many_to_one']) &&
+      $_GET['field_job_status_value_many_to_one'] != 'All') {
+      // To be invoiced
+      if ($_GET['field_job_status_value_many_to_one'] == 'tbi') {
+        $query->where[0]['clauses'][] = 'node_data_field_job_number.field_job_status_value = 1 OR node_data_field_job_number.field_job_status_value = 3';
+        $query->where[0]['args'][] = '';
+      }
+      // To be confirmed
+      elseif ($_GET['field_job_status_value_many_to_one'] == 'tbc') {
+        $query->where[0]['clauses'][] = 'node_data_field_job_session_date_time.field_call_time_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_hours_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_contract_tbc_value = 1 OR node_data_field_job_session_date_time.field_call_crew_tbc_value = 1';
+        $query->where[0]['args'][] = '';
+      }
+      // else statuses
+      else {
+        $query->where[0]['clauses'][] = 'node_data_field_job_number.field_job_status_value = %d';
+        $query->where[0]['args'][] = $_GET['field_job_status_value_many_to_one'];
+      }
+    }
+    // PO number (job) (textfield)
+    if (isset($_GET['field_job_po_number_value']) && !empty($_GET['field_job_po_number_value'])) {
+      $query->where[0]['clauses'][] = "node_data_field_job_number.field_job_po_number_value = '%s'";
+      $query->where[0]['args'][] = $_GET['field_job_po_number_value'];
+    }
+    // Invoice number (custom table) (textfield)
+    if (isset($_GET['field_invoice_number_value']) && !empty($_GET['field_invoice_number_value'])) {
+      $query->where[0]['clauses'][] = "aji.invoice_number = '%s'";
+      $query->where[0]['args'][] = $_GET['field_invoice_number_value'];
+    }
+
+    $query->orderby = array();
+    if (isset($_GET['order'])) {
+      // Order by Job Number
+      if ($_GET['order'] == 'field_session_callid_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_session_callid_value ASC';
+        } else {
+          $query->orderby[] = 'field_session_callid_value DESC';
+        }
+      }
+      // Job status
+      if ($_GET['order'] == 'field_session_job_nid_value_1') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'node_data_field_job_number.field_job_client_name_value ASC';
+        } else {
+          $query->orderby[] = 'node_data_field_job_number.field_job_client_name_value DESC';
+        }
+      }
+      //
+      if ($_GET['order'] == 'field_job_session_crew_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_session_crew_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_session_crew_value DESC';
+        }
+      }
+      //
+      if ($_GET['order'] == 'field_job_session_hours_value') {
+        if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
+          $query->orderby[] = 'field_job_session_hours_value ASC';
+        } else {
+          $query->orderby[] = 'field_job_session_hours_value DESC';
+        }
+      }
+    }
+
+    /*
+    // Change : LEFT JOIN drupal_content_type_job_session node_data_field_job_session_date_time
+    //          ON node_data_field_job_number.vid = node_data_field_job_session_date_time.field_session_job_nid_value
+    // To:      LEFT JOIN drupal_content_type_job_session node_data_field_job_session_date_time
+    //          ON node.nid = node_data_field_job_session_date_time.nid
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['left_field'] = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->definition['field'] = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->left_field = 'nid';
+    $query->table_queue['node_data_field_job_session_date_time']['join']->field = 'nid';
+
+    // Change : LEFT JOIN drupal_content_type_job node_data_field_job_number
+    //          ON node.vid = node_data_field_job_number.vid
+    // To :     LEFT JOIN drupal_content_type_job node_data_field_job_number
+    //          ON node_data_field_job_session_date_time.field_session_job_nid_value = node_data_field_job_number.nid
+    $query->table_queue['node_data_field_job_number']['join']->definition['left_table'] = 'content_type_job_session';
+    $query->table_queue['node_data_field_job_number']['join']->left_table = 'node_data_field_job_session_date_time';
+    $query->table_queue['node_data_field_job_number']['join']->definition['left_field'] = 'field_session_job_nid_value';
+    $query->table_queue['node_data_field_job_number']['join']->left_field = 'field_session_job_nid_value';
+    $query->table_queue['node_data_field_job_number']['join']->definition['field'] = 'nid';
+    $query->table_queue['node_data_field_job_number']['join']->field = 'nid';
+    //$query->table_queue['node_data_field_job_number']['relationship'] = 'node_data_field_job_session_date_time';
+
+    $call_data = array_pop($query->table_queue);
+    $job_data = array_pop($query->table_queue);
+    $query->table_queue['node_data_field_job_session_date_time'] = $call_data;
+    $query->table_queue['node_data_field_job_number'] = $job_data;
+
+    $call_data = array_pop($query->tables['node']);
+    $job_data = array_pop($query->tables['node']);
+    $query->tables['node']['node_data_field_job_session_date_time'] = $call_data;
+    $query->tables['node']['node_data_field_job_number'] = $job_data;
+    */
+  }
+
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function op_custom_form_alter(&$form, &$form_state, $form_id) {
+  //watchdog('v_n', '<pre>'.print_r($form_state['view']->name, TRUE).'</pre>');
+  if ($form_id == 'views_exposed_form' && isset($form_state['view'])) {
+    if ($form_state['view']->name == 'call_search') {
+      // add extra statuses
+      $form['field_job_status_value_many_to_one']['#options']['tbi'] = t('To be invoiced');
+      $form['field_job_status_value_many_to_one']['#options']['tbc'] = t('To be confirmed');
+    } elseif ($form_state['view']->name == 'job_view') {
+      // add extra statuses
+      $form['field_job_status_value_many_to_one']['#options']['tbi'] = t('To be invoiced');
+    }
+  } elseif ($form_id == 'client_node_form') {    
+    $form['buttons']['submit']['#submit'][0] = 'op_custom_client_before_submit';
+    $form['buttons']['submit']['#submit'][1] = 'node_form_submit';
+    $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';
+    //watchdog('fff', '<pre>'.print_r($form, TRUE).'</pre>');
+  }
+}
+
+function op_custom_client_before_submit($form, &$form_state) {
+  //watchdog('cl_bef', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  
+  $nid = $form_state['values']['nid'];
+  $before_items = acecrew_client_contracts_getItems($nid);
+  //watchdog('it', '<pre>'.print_r($before_items, TRUE).'</pre>');
+  $_SESSION['contact_before_items'] = $before_items;  
+}
+
+function op_custom_client_after_submit($form, &$form_state) {
+  //watchdog('c_i', '<pre>'.print_r($_SESSION['contact_items'], TRUE).'</pre>');
+  //watchdog('cl_aft', '<pre>'.print_r('yes', TRUE).'</pre>');
+
+  $nid = $form_state['values']['nid'];
+  //
+  $before_items = $_SESSION['contact_before_items'];
+  $after_items  = acecrew_client_contracts_getItems($nid);  
+  $result_items = array();
+  foreach ($after_items as $after_item) {
+    foreach ($before_items as $before_item) {
+      if ( (!empty($before_item['name']) && !empty($after_item['name']) && $after_item['name'] == $before_item['name']) ||
+      ( !empty($before_item['mobile']) && !empty($after_item['mobile']) && $after_item['mobile'] == $before_item['mobile']) ||
+      ( !empty($before_item['email']) && !empty($after_item['email']) && $after_item['email'] == $before_item['email']) ) {
+        $result_items[$before_item['item_id']] = $after_item['item_id'];
+        break;
+      }
+    }
+  }
+  //watchdog('b_i', '<pre>'.print_r($before_items, TRUE).'</pre>');
+  //watchdog('a_i', '<pre>'.print_r($after_items, TRUE).'</pre>');
+  //watchdog('r_i', '<pre>'.print_r($result_items, TRUE).'</pre>');
+  //
+  //return;
+  foreach ($result_items as $old_item_id => $new_item_id) {
+    db_query('UPDATE {content_type_job} SET field_job_client_contact_value = %d WHERE field_job_client_contact_value = %d', $new_item_id, $old_item_id);
+    db_query('UPDATE {content_type_job_session} SET field_call_contact_value = %d WHERE field_call_contact_value = %d', $new_item_id, $old_item_id);
+  }
+  //
+  unset($_SESSION['contact_items']);
+  drupal_flush_all_caches();
+  drupal_set_message('cache flushed.');
+}
+
+function acecrew_client_contracts_getItems($nid) {
+  $result = db_query('SELECT field_client_contact_value, field_client_contact_item_id FROM {content_field_client_contact} WHERE nid = %d AND field_client_contact_type = "client_contact"', $nid);
+
+  $items = array();
+  while ($data = db_fetch_array($result)) {
+    $item = array();
+    $item['item_id']  = $data['field_client_contact_item_id'];
+    $details          = unserialize($data['field_client_contact_value']);
+    $item['name']     = $details['field_client_contact_name'][0]['value'];
+    $item['email']    = $details['field_client_contact_email'][0]['email'];
+    $item['mobile']   = $details['field_client_contact_mobile'][0]['value'];
+    $items[]    = $item;
+  }
+
+  return $items;
+}
+
+function op_custom_nodeapi(&$node, $op, $teaser, $page) {
+  if ($node->type == 'client') {
+    if ($op == 'presave') {
+      //watchdog('pr_n', '<pre>'.print_r($node, TRUE).'</pre>');
+    } elseif (op == 'update') {
+      //watchdog('up_n', '<pre>'.print_r($node, TRUE).'</pre>');
+    }
+  }
+}
+
+function op_custom_allocate_skills_form($form_state) {
+  drupal_set_title('Allocate skills');
+  $form = array();
+
+  $form['create_columns'] = array(
+    '#type' => 'submit',
+    '#value' => 'Create columns',
+  );
+  $form['remove_columns'] = array(
+    '#type' => 'submit',
+    '#value' => 'Remove columns',
+  );
+  $form['fill_columns'] = array(
+    '#type' => 'submit',
+    '#value' => 'Fill columns',
+  );
+
+  return $form;
+}
+
+function op_custom_allocate_skills_form_submit($form, &$form_state) {
+  $button_type = &$form_state['clicked_button']['#parents'][0];
+  $ret = array();
+  if ($button_type == 'create_columns') {
+    drupal_set_message('create_columns');
+    db_add_field($ret, 'crew_call', 'pay_default_2h', array('type' => 'float', 'default' => 0));
+    db_add_field($ret, 'crew_call', 'pay_default_3h', array('type' => 'float', 'default' => 0));
+    drupal_set_message(t("'pay_default_2h' and 'pay_default_3h' have been created for 'crew_call' table"));
+    //drupal_set_message($ret);
+  }
+  elseif ($button_type == 'remove_columns') {
+    drupal_set_message('remove_columns');
+    db_drop_field($ret, 'crew_call', 'pay_default_2h');
+    db_drop_field($ret, 'crew_call', 'pay_default_3h');
+    drupal_set_message(t("'pay_default_2h' and 'pay_default_3h' have been removed from 'crew_call' table"));
+    //drupal_set_message($ret);
+  }
+  elseif ($button_type == 'fill_columns') {
+    drupal_set_message('fill_columns');
+    $result = db_query('SELECT cc.uid, cc.jsid, ctjs.nid, ctjs.field_job_session_hours_value AS call_hours FROM `drupal_crew_call` cc INNER JOIN `drupal_content_type_job_session` ctjs ON cc.jsid = ctjs.vid WHERE cc.uid IN (240)');
+    while ($row = db_fetch_object($result)) {
+      drupal_set_message('nid:'.$row->nid.', c_hours:'.$row->call_hours);
+      if ($row->call_hours == 2) {
+        $crew = user_load($row->uid);
+        $hour_default_2h = $crew->profile_2_hour_default;
+        db_query('UPDATE {crew_call} SET pay_default_2h = %f WHERE uid = %d AND jsid = %d', $hour_default_2h, $row->uid, $row->jsid);
+      }
+      else if ($row->call_hours == 3) {
+        $crew = user_load($row->uid);
+        $hour_default_3h = $crew->profile_3_hour_default;
+        db_query('UPDATE {crew_call} SET pay_default_3h = %f WHERE uid = %d AND jsid = %d', $hour_default_3h, $row->uid, $row->jsid);
+      }
+
+      //$3_hour_default = $crew->profile_3_hour_default;
+      //watchdog('crew', '<pre>'.print_r($crew, TRUE).'</pre>');
+    }
+  }
+}
+
+function op_custom_invoice_update_form(&$form_state) {
+  drupal_set_title('Invoice update');
+  //drupal_set_message('<pre>'.print_r($form_state, TRUE).'</pre>');
+  $form = array();
+
+  $form['job_number'] = array(
+    '#type' => 'textfield',
+    '#default_value' => isset($form_state['post']['job_number']) ? $form_state['post']['job_number'] : '',
+    '#required' => TRUE,
+    '#title' => t('Job Number'),    
+  );
+  $form['invoice_number'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#required' => FALSE,
+    '#title' => t('Invoice Number'),
+    '#description' => t('update Invoice Number by Job Number'),    
+  );
+
+  $form['check'] = array(
+    '#type' => 'submit',
+    '#value' => 'Check',
+  );
+  $form['update'] = array(
+    '#type' => 'submit',
+    '#value' => 'Update',    
+  );
+
+  $form['#validate'][] = 'op_custom_invoice_update_form_validate';
+
+  return $form;
+}
+
+function op_custom_invoice_update_form_validate($form, &$form_state) {
+  $button_type = &$form_state['clicked_button']['#parents'][0]; 
+  if ($button_type == 'update') {
+  
+  }
+}
+
+function op_custom_invoice_update_form_submit($form, &$form_state) {  
+  $job_number     = $form_state['values']['job_number'];
+  $invoice_number = $form_state['values']['invoice_number'];
+  
+  $button_type = &$form_state['clicked_button']['#parents'][0];  
+  if ($button_type == 'check') {
+    $invoice = db_result(db_query('SELECT invoice_number FROM {acecrew_job_invoices} WHERE job_id = "%s"', $job_number));
+    drupal_set_message('Invoice Number: '. $invoice);
+  } elseif ($button_type == 'update') {    
+    db_query('UPDATE {acecrew_job_invoices} SET invoice_number = %d WHERE job_id = "%s"', $invoice_number, $job_number);
+    drupal_set_message('Invoice Number has been updated');
+  }
+
+}
+
+function op_custom_jobs_venue_form($form_state) {
+  $form = array();
+  $form['nid'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#title' => t('Title'),
+    '#description' => t(''),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save',
+  );
+
+  return $form;
+}
+
+function op_custom_jobs_venue_form_submit($form, &$form_state) {
+  /*$row = new stdClass();
+  $row->src = 'node/6534/edit';
+  $row->dst = acecrew_generate_random_string(5);
+  $row->language = '';
+
+  drupal_write_record('url_alias', $row);
+
+  watchdog('cu_Alias', '<pre>'.print_r($row, TRUE).'</pre>');
+  */
+  // node/6534/edit
+  //drupal_set_message('submit: ' . $form_state['values']['nid']);
+  //
+
+}
+
+function op_jobs_venue_autocomplete($input) {
+  $results = array();
+/*
+  $results['1'] = 'hello1:'.$input;
+  $results['2'] = 'hello2:'.$input;
+  $results['3'] = 'hello3:'.$input;
+*/
+
+  $resource = db_query_range("SELECT nid, title FROM {node} WHERE title LIKE '%s%%'", $input, 0, 10);
+
+  while ($node = db_fetch_object($resource)) {
+    $key = sprintf('%s [nid: %d]', $node->title, $node->nid);
+    $results[$key] = $node->title;
+  }
+
+  print json_encode($results);
+  exit();
+}

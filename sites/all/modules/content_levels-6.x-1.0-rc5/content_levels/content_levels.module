@@ -1,0 +1,454 @@
+<?php
+// $Id: content_levels.module,v 1.9 2010/02/17 00:08:42 jamsilver Exp $
+
+/**
+ * @file
+ * The content_levels cck field type, widget and formatter.
+ * Allows nodes to be associated with a content level in a
+ * given series of content levels. The visibility and
+ * editability of each field can then be modified based
+ * on what content level it has.
+ */
+
+module_load_include('inc', 'content_levels', 'content_levels_cck');
+
+/**
+ * Implementation of hook_perm().
+ */
+function content_levels_perm() {
+  return array(
+    // Always be able to edit a content_level field regardless of its
+    // visibility setting:
+    'edit content levels always',
+
+    // Always be able to view and edit all fields regardless of visibility
+    // settings
+    'access hidden fields',
+
+  );
+}
+
+
+/**
+ * Implementation of hook_field_info().
+ */
+function content_levels_field_info() {
+  return array(
+    'content_levels' => array(
+      'label' => t('Content Level'),
+      'description' => t('The content level of this node in a content series.'),
+    ),
+  );
+}
+
+
+/**
+ * Implementation of hook_theme().
+ */
+function content_levels_theme() {
+
+  $theme_file = 'content_levels_theme.inc';
+
+  return array(
+
+    // Themes for the formatters:
+    'content_levels_formatter_default' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'content_levels_formatter_plain' => array(
+      'arguments' => array('element' => NULL),
+    ),
+
+    // Theme for the field settings form fragments:
+    'content_levels_series' => array(
+      'arguments' => array('element' => NULL),
+      'file' => $theme_file,
+    ),
+    // Theme for the field settings form fragments:
+    'content_levels_visibility_matrix' => array(
+      'arguments' => array('element' => NULL),
+      'file' => $theme_file,
+    ),
+
+  );
+}
+
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Hide the fields on node edit forms that we have set to be uneditable.
+ */
+function content_levels_form_alter(&$form, $form_state, $form_id) {
+	
+  // Modify all node edit forms to remove the fields we do not allow
+  // We don't need to do this if the user has the permission to access anyway.
+  if (!user_access('access hidden fields')) {
+    if (isset($form['#id']) && ($form['#id'] == 'node-form')) {
+
+      $cck_fields = isset($form['#field_info']) ? $form['#field_info'] : array();
+      $extra_fields = isset($form['#content_extra_fields']) ? $form['#content_extra_fields'] : array();
+      $all_fields = array_merge($cck_fields, $extra_fields);
+
+      // Search all fields for one of ours
+      $content_level_field;
+      foreach ($cck_fields as $field_name => $field) {
+        if ($field['type'] == 'content_levels') {
+          $content_level_field = $field;
+          break;
+        }
+      }
+
+      // This is one of our nodes
+      if (isset($content_level_field)) {
+
+        // Grab the visibility settings for this content series:
+        $visibility = $content_level_field['widget']['visibility'];
+
+        // Grab the content level of this node:
+        $content_level = $form[$field['field_name']][0]['value']['#default_value'];
+
+        // Default to default:
+        if (!isset($content_level)) {
+          $content_level = $content_level_field['default_level'];
+        }
+
+        // Apply visibilities:
+        foreach ($all_fields as $field_name => $field) {
+          // If the user has permission to edit content levels
+          // always allow access to the content_level_field:
+          if ($field_name == $content_level_field['field_name']
+              && user_access('edit content levels always')) {
+            $form[$field_name]['#access'] = TRUE;
+          }
+
+          elseif (isset($visibility[$field_name][$content_level]['editable'])
+                  && ($visibility[$field_name][$content_level]['editable'] == FALSE)) {
+            $form[$field_name]['#access'] = FALSE;
+          }
+
+        }
+      }
+    }
+  }
+
+  switch ($form_id) {
+
+    // We alter the widget settings form here, rather than in the place cck
+    // expects us to (hook_widget_settings:'form' operation).
+    // Add visibility matrix and degradeability checkbox.
+    // See note in content_levels_widget_settings 'form' operation for more info
+    case 'content_field_edit_form':
+      if ($form['#field']['type'] == 'content_levels') {
+
+
+        $field_name = $form['#field']['field_name'];
+        $type_name = $form['#field']['type_name'];
+        $widget = $form['#field']['widget'];
+
+        $form_widget = array();
+
+        $form_widget['visibility'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Content Level field visibility'),
+          '#theme' => 'content_levels_visibility_matrix',
+          '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+          '#tree' => TRUE,
+          '#weight' => -2,
+          // TODO: Write this validation function:
+          '#element_validate' => array('_content_levels_widget_settings_visibility_matrix_validate'),
+        );
+
+        if (isset($field_name)) {
+
+          // Get the content series for this field
+          $field_info = content_fields($field_name);
+          $content_series = $field_info['content_series'];
+          if (empty($content_series)) {
+            $content_series = array();
+          }
+
+          // Get all fields for all node-types that have this field
+          $type_info = content_types($type_name);
+
+          // Sort content levels by weight
+          _content_levels_sort_by_weight($content_series);
+
+          // Do not generate visibility matrix if there are no content levels defined
+          if (empty($content_series)) {
+            $form_widget['visibility'] = array(
+              '#type' => 'markup',
+              '#value' => t('A content series must be defined below before visibility settings can be set. Please add the series and then return to this page to configure your visibility settings.'),
+              '#weight' => -2,
+            );
+          }
+          else {
+            // Pass column headings on to theme function
+            $headings = array();
+            foreach ($content_series as $level) {
+              $is_default = ($level['id'] == $field_info['default_level']);
+              $headings[] = $is_default ? theme('placeholder', $level['title']) : $level['title'];
+            }
+            array_unshift($headings, $type_info['name']);
+            $form_widget['visibility']['#headings'] = $headings;
+
+            // Get all fields for this node-type
+            $fields = $type_info['fields']; // CCK Fields
+            $extra = $type_info['extra'];   // Non CCK Fields that have been registered with CCK
+            $all_fields = array_merge($fields, $extra);
+
+            // Sort fields by weight
+            _content_levels_sort_by_weight($all_fields);
+
+            foreach ($all_fields as $field_name => $field) {
+
+              // Extra fields don't have the field_name attribute, so we set it
+              // explicitly for consistancy:
+              $field['field_name'] = $field_name;
+
+              $form_widget['visibility'][$field['field_name']] = array(
+                'label' => array('#value' => $field['field_name']),
+                'type' => array('#type' => 'value', '#value' => $field_origin),
+              );
+
+              foreach ($content_series as $content_level) {
+
+                $is_default = ($content_level['id'] == $field_info['default_level']);
+
+                // Get the currently stored value for viewable and editable if there is one
+                if (isset($widget['visibility']) && isset($widget['visibility'][$field['field_name']])
+                    && isset($widget['visibility'][$field['field_name']][$content_level['id']])) {
+                  $viewable_default = $widget['visibility'][$field['field_name']][$content_level['id']]['viewable'];
+                  $editable_default = $widget['visibility'][$field['field_name']][$content_level['id']]['editable'];
+                }
+
+                $form_widget['visibility'][$field['field_name']][$content_level['id']]['viewable'] = array(
+                  '#type' => 'checkbox',
+                  '#title' => $is_default ? '<em>' . t('Viewable') . '</em>' : t('Viewable'),
+                  '#default_value' => isset($viewable_default) ? $viewable_default : 1,
+                );
+                $form_widget['visibility'][$field['field_name']][$content_level['id']]['editable'] = array(
+                  '#type' => 'checkbox',
+                  '#title' => $is_default ? '<em>' . t('Editable') . '</em>' : t('Editable'),
+                  '#default_value' => isset($editable_default) ? $editable_default : 1,
+                );
+              }
+            }
+          }
+
+          // Add allow scheduling form element
+          if (module_exists('date_api')) {
+              $form_widget['level_scheduling'] = array(
+                '#type' => 'checkbox',
+                '#title' => t('Allow content level degrading.'),
+                '#description' => t('To indicate that a content level should be removed (i.e. reset to default) after a certain time.'),
+                '#default_value' => isset($widget['level_scheduling']) ? $widget['level_scheduling'] : 0,
+                '#weight' => -1,
+              );
+          }
+          else {
+          	$form_widget['level_scheduling'] = array('#value' => FALSE);
+          	$form_widget['level_scheduling_msg'] = array (
+          	 '#value' => t('Install the <a href="@date_api_url">date_api</a> module to allow automatic, date-based content-level degrading.', array('@date_api_url' => url('http://drupal.org/project/date'))),
+          	 '#weight' => -1,
+          	);
+          }
+        }
+
+        $form['widget'] = array_merge($form['widget'], $form_widget);
+      }
+      break;
+  }
+}
+
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * Hide the fields on node view pages that we have set to be invisible
+ */
+function content_levels_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+
+  switch ($op) {
+    case 'view':
+
+      // Modify all node views to remove the fields we do not allow
+      // We don't need to do this if the user has the permission to access anyway
+      if (!user_access('access hidden fields')) {
+
+        $cck_fields = element_children($node->content);
+        $extra_fields = element_children($node->content['#content_extra_fields']);
+        $fields = array_merge($cck_fields, $extra_fields);
+        $field_infos = content_fields(NULL, $node->type);
+
+        //Search all fields for one of ours
+        $content_level_field_name;
+        foreach ($fields as $field_name) {
+          $field = $node->content[$field_name]['field'];
+          if (isset($field_infos[$field_name]) && ($field_infos[$field_name]['type'] == 'content_levels')) {
+            $content_level_field_name = $field_name;
+            break;
+          }
+        }
+
+        // This is one of our nodes
+        if (isset($content_level_field_name)) {
+
+          // Grab the visibility settings for this content series
+          $visibility = $field_infos[$content_level_field_name]['widget']['visibility'];
+
+          // Grab the content level of this node
+          $content_level = $node->{$content_level_field_name}[0]['value'];
+
+          //Default to default
+          if (!isset($content_level)) {
+            $content_level = $field_infos[$content_level_field_name]['default_level'];
+          }
+
+          foreach ($fields as $field_name) {
+
+            //Apply visibilities to extra fields that still exist in the content array
+            if (isset($node->content['#content_extra_fields'][$field_name]['view'])) {
+              $cck_name = $node->content['#content_extra_fields'][$field_name]['view'];
+              if (isset($visibility[$field_name][$content_level]['viewable'])
+                  && !$visibility[$field_name][$content_level]['viewable'] ) {
+                $node->content[$cck_name]['#access'] = FALSE;
+              }
+            }
+
+            //Apply visabilities to standard cck fields
+            elseif (in_array($field_name, $cck_fields)) {
+              if (isset($visibility[$field_name][$content_level]['viewable'])
+                  && !$visibility[$field_name][$content_level]['viewable'] ) {
+                $node->content[$field_name]['#access'] = FALSE;
+              }
+            }
+
+            //Apply visibilities to non-cck fields
+            else {
+              if (isset($visibility[$field_name][$content_level]['viewable'])
+                  && (!$visibility[$field_name][$content_level]['viewable']) ) {
+                unset($node->{$field_name});
+              }
+            }
+          }
+        }
+      }
+
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function content_levels_cron() {
+
+  // Iterates over every content_level field and downgrades
+  // nodes to the default if their degrade_on time has passed
+  _content_levels_degrade_nodes();
+}
+
+/**
+ * Checks every node on the site that has a content_levels field.
+ * If it's value is not the default for its series and it is marked
+ * for degradation, and its degradation time has passed then
+ * it changes the value of its content_levels field to the default.
+ *
+ * Runs a query for each content_level field on the site.
+ *
+ * Designed to be run on cron.
+ */
+function _content_levels_degrade_nodes() {
+
+  // Get all CCK fields
+  $fields = content_fields();
+
+  // Iterate only over content_levels fields
+  foreach ($fields as $field_name => $field) {
+    if ($field['type'] == 'content_levels') {
+
+      // Extract the db info we need
+      $db_info = content_database_info($field);
+      $table = $db_info['table'];
+      $column_value = $db_info['columns']['value']['column'];
+      $column_degrade = $db_info['columns']['degrade']['column'];
+      $column_degrade_on = $db_info['columns']['degrade_on']['column'];
+
+      // The level we may need to degrade to. If no default has been set
+      // we regard the lowest level in the content series as the default
+      $content_series = $field['content_series'];
+      _content_levels_sort_by_weight($content_series);
+      $default_default_level = end(array_keys($content_series));
+      $default_level = isset($field['default_level']) ? $field['default_level'] : $default_default_level;
+
+      //Update the content level of all fields on all nodes that have gone over their degrade time
+      $sql = "UPDATE {$table} SET $column_value = %d WHERE $column_degrade = 1 AND $column_degrade_on <= %d";
+      db_query($sql, $default_level, time());
+
+      //Clear CCK cache so that it reloads our changed values
+      cache_clear_all('*', content_cache_tablename(), TRUE);
+    }
+  }
+
+}
+
+/**
+ * Examines the global settings of a field to discover the weights
+ * of the content levels in its series and then modifies every field
+ * instance of this field across all relevant nodes to reflect the new
+ * weight values.
+ *
+ * If the ordering of a content series is changed after nodes have been
+ * assigned content levels from it, this function must be run in order for views
+ * that are sorted by content level to return correct results.
+ *
+ * Note, this function will run a database query for each content level
+ * of the series.
+ *
+ * @param $field_name
+ *   The name of the field whose weights have been changed.
+ * @param $content_series
+ *   The new content series setting for the field.
+ *
+ * @return
+ *   The number of field instances of this field, or FALSE on error.
+ */
+function _content_levels_propogate_series_weights($field_name, $content_series) {
+
+  // Extract the table name and column names we need to modify
+  $field = content_fields($field_name);
+  $db_info = content_database_info($field);
+  $table = $db_info['table'];
+  $column_value = $db_info['columns']['value']['column'];
+  $column_weight = $db_info['columns']['weight']['column'];
+
+  if ($table && $column_value && $column_weight) {
+
+    // Execute query
+    $affected_rows = 0;
+    foreach ($content_series as $id => $content_level) {
+
+      $level_id = $content_level['id'];
+      $new_weight = $content_level['weight'];
+
+      if (isset($level_id) && isset($new_weight)) {
+        $sql = "UPDATE {$table} SET $column_weight = %d WHERE $column_value = %d";
+        db_query($sql, $new_weight, $level_id);
+        $affected_rows += db_affected_rows();
+      }
+    }
+
+    //Clear CCK cache so that it reloads our changed values:
+    cache_clear_all('*', content_cache_tablename(), TRUE);
+
+    return $affected_rows;
+
+  }
+
+  else {
+    return FALSE;
+  }
+
+}

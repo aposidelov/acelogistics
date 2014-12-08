@@ -1,0 +1,17 @@
+name = Editablefields
+description = "Allows you to make some view fields editable"
+dependencies[] = ctools
+dependencies[] = content
+dependencies[] = ajax_load
+dependencies[] = jquery_update
+package = CCK
+version = "6.x-3.x-dev"
+
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-07-07
+version = "6.x-3.x-dev"
+core = "6.x"
+project = "editablefields"
+datestamp = "1310040436"
+

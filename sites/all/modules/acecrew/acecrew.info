@@ -1,0 +1,5 @@
+; $Id$
+name = Ace Crew  Module
+description = Manage Ace Crew corp.
+core = 6.x
+package = "Ace Crew"

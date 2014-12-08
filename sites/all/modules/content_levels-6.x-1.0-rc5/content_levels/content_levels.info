@@ -1,0 +1,13 @@
+; $Id: content_levels.info,v 1.3 2010/02/16 23:29:07 jamsilver Exp $
+name = Content Levels
+description = Defines a new field type for custom ranking of node content, and the visilibity/editability of fields can be set accordingly.
+package = CCK
+core = 6.x
+dependencies[] = content
+
+; Information added by drupal.org packaging script on 2010-02-17
+version = "6.x-1.0-rc5"
+core = "6.x"
+project = "content_levels"
+datestamp = "1266365706"
+

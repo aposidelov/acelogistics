@@ -1,0 +1,156 @@
+.crew_name {
+    float: left;
+    line-height: 50px;
+    vertical-align: middle;
+    width: 120px;
+}
+div.crew_name {
+    width: 120px;
+}
+.additional_charge{
+    width: 75px;
+    float: left;
+}
+.additional_crew_pay{
+    width: 75px;
+    float: left;
+}
+.comments
+{
+    line-height: 50px;
+    width: 150px;
+    float: left;
+}
+.total_crew
+{
+    float: left;
+    line-height: 50px;
+    width: 70px;
+}
+.total_client
+{
+    float: left;
+    line-height: 50px;
+    width: 70px;
+}
+.th-title
+{
+    height: 50px;
+    margin-top: 20px;
+}
+.ui-accordion-header{
+    height: 30px;
+    border: 1px solid #bbbbbb;
+    padding-top: 15px;
+    padding-left: 5px;
+    background-color: #EEEEEE;
+}
+.ui-accordion-header input, .ui-accordion-header label{
+    border: 1px solid #cccccc;
+    width: 90%;
+}
+.ui-accordion-header p
+{
+    line-height: normal !important;
+}
+.ui-state-default{
+   /* border: 1px solid #bbbbbb; */
+}
+.ui-state-active{
+    border-bottom: 0 none;
+}
+.ui-accordion .ui-accordion-content{
+    border: 1px solid #bbbbbb;
+    padding: 10px;
+    border-top: 0 none;
+    background-color: #EEEEEE;
+}
+.call-third-row{
+    border-bottom: 1px solid #D5D5D5;
+}
+.th_crew{
+    margin-left: 200px;
+}
+.th_crew, .th_client{
+    float: left;
+    width: 150px;
+}
+.th_comments{
+    width: 200px;
+    float: left;
+}
+.tr_contents{
+    clear: both;
+}
+.th_columns{
+    text-align: center;
+    border-top: 1px solid;
+}
+
+.tr_contents td{
+    border: 1px solid;
+}
+.tr_contents .tr_crew{
+    width: 200px;
+    border: 0 none;
+    float: left;
+}
+.tr_crew_ph, .tr_client_ph {
+    margin-left: 10px;
+}
+
+#accordion input{
+    background: white;
+}
+.crew_record {
+    border: 1px solid;
+    padding: 10px; 
+    margin-bottom: 5px; 
+    background: none repeat scroll 0 0 #AAAAAA;
+}
+.crew_record input{
+    border: 1px solid;
+    width: 65px;
+    background: white;
+}
+
+.tr_comments{
+    width: 250px !important;
+}
+
+.fine_desc{
+    width: 250px !important;
+}
+
+.no_show_desc{
+    width: 250px !important;
+}
+
+.ui-icon{
+    width: 13px;
+    height: 13px;
+    float: left;
+}
+.ui-state-active .ui-icon{
+    background: url("../image/arrow-top.gif") no-repeat;
+}
+
+.ui-state-default .ui-icon{
+    background: url("../image/arrow-bottom.gif") no-repeat;
+}
+.th-title .crew_name{
+    margin-left: 15px;
+}
+#accordion h3{
+    margin-top: 5px;
+}
+
+.additional_hours {
+    width: 100px;
+    float: left;
+    line-height: 50px;
+}
+.standard_crew {
+    float: left;
+    width: 120px;
+}

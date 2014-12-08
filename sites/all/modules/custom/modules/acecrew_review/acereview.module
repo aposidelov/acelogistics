@@ -1,0 +1,743 @@
+<?php
+
+/**
+ * @file
+ * Main module file for Ace Crew Review module
+ */
+
+//require_once dirname(__FILE__) .'/acereview_func.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function acereview_menu() {
+  $items['review_tx'] = array(
+    'title' => 'Thank you for help',
+    'page callback' => 'acereview_review_tx',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['review_expired'] = array(
+    'title' => 'The content has been expired',
+    'page callback' => 'acereview_review_exp',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/acereview'] = array(
+    'title' => 'Acecrew review settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acereview_settings_form'),
+    'access arguments' => array('admin content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['acecrew/send_review/%'] = array(
+    'title' => 'Send Review',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acereview_send_review_contract_popup_form', 2),
+    'access arguments' => array('admin content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/reports/review_spreadsheet'] = array(
+    'title' => 'Review spreadsheet',
+    'description' => "Review spreadsheet Reports.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_review_report_spreadsheet'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereview.report.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/reports/review_crewmonth_spreadsheet'] = array(
+    'title' => 'Crew of month spreadsheet',
+    'description' => "Crew of month review spreadsheet Reports.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_review_crewmonth_form'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereview.crewmonth.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/reports/review_spreadsheet/%'] = array(
+    'title' => 'Review spreadsheet',
+    'description' => "Review spreadsheet Reports.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_review_report_spreadsheet',3),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereview.report.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['review_spreadsheet/generate/csv'] = array(
+    'title' => 'Generate CSV',
+    'page callback' => 'acecrew_review_report_generate',
+    'access arguments' => array('generate each crews csv'),
+    'type' => MENU_CALLBACK,
+    'file' => 'acereview.report.inc'
+  );
+
+  return $items;
+}
+
+function acereview_send_review_contract_popup($js = NULL, $job_id) {
+  // Fall back if $js is not set.
+  modalframe_child_js();
+  return drupal_get_form('acereview_send_review_contract_popup_form', $job_id);
+}
+
+function acereview_send_review_contract_popup_form($form_state, $job_id) {
+  $form = array();
+  modalframe_child_js();
+
+  $job = node_load($job_id);
+  // get client object
+  $client = acecrew_get_client_by_job_id($job_id);
+  $contact_names = array();
+  $names = array();
+  foreach ($client->field_client_contact as $contact) {
+    if (!empty($contact['value']['field_client_contact_email'][0]['email'])) {
+      $names[$contact['value']['field_client_contact_email'][0]['email']] = $contact['value']['field_client_contact_name'][0]['value'] . ' - ' . $contact['value']['field_client_contact_email'][0]['email'] . ' - ' . $contact['value']['field_client_contact_mobile'][0]['value'];
+      $contact_names[$contact['value']['field_client_contact_email'][0]['email']] = $contact['value']['field_client_contact_name'][0]['value'];
+    }
+  }
+  // if default contact is part of contacts list.. don't dublicate it, otherwise - add default contact to the contacts list
+  $default_email        = $client->field_client_company_email[0]['email'];
+  $default_contact_name = $client->field_client_company_contact[0]['value'];
+  $default_mobile       = $client->field_default_contact_mobile[0]['value'];
+  // check if default email is not present in contact list
+  if (!in_array($default_email, array_keys($names)) && !empty($default_email)) {
+    $names[$default_email] = $default_contact_name . ' - ' . $default_email . ' - ' . $default_mobile . ' (default)';
+    $contact_names[$default_email] = $default_contact_name;
+  }
+  $form['job'] = array(
+    '#type' => 'value',
+    '#default_value' => $job,
+  );
+  $form['contact_names'] = array(
+    '#type' => 'value',
+    '#default_value' => $contact_names,
+  );
+
+  $form['contracts'] = array(
+    '#title' => 'Contracts',
+    '#type' => 'select',
+    '#options' => $names,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send review'),
+  );
+
+  return $form;
+}
+
+function acereview_send_review_contract_popup_form_submit($form, &$form_state) {
+  $job        = $form_state['values']['job'];
+  $review_id  = acecrew_create_review_by_job($job->nid);
+  $url        = acereview_get_link_by_review($review_id);
+  $job_details = acereview_get_job_details($job->nid);
+
+  $contract_email  = $form_state['values']['contracts'];
+  $contact_names  = $form_state['values']['contact_names'];
+  acereview_sent_email_to_client($contract_email, $url, $job->field_job_number[0]['value'], $contact_names[$contract_email], $job_details);
+
+  // Tell the parent window to close the modal frame dialog.
+  modalframe_close_dialog();
+}
+
+/**
+ * Return job details array: Client name, Venue name, Date Range (Call date range)
+ */
+function acereview_get_job_details($job_id) {
+  $result = array();
+  $job    = node_load($job_id);
+  $client = _get_client_by_job($job);
+  $venue  = _get_venue_by_job($job);
+  $calls  = _get_callings_by_job($job);
+
+  $result['client_name'] = $client->field_client_name_value;
+  $result['venue_name'] = $venue->field_venue_name_value;
+  foreach ($calls as $call) {
+    $result['call_dates'][] = substr($call['data']->field_job_session_date_time_value, 0, 10);  
+  }
+  $result['call_dates'] = implode(' - ', $result['call_dates']);
+  
+  return $result;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function acereview_theme($existing, $type, $theme, $path) {
+  return array(
+    'acecrew_review_node_form_crew_table' => array(
+      'template' => 'review-node-form-crew-table',
+      'arguments' => array (
+        'form' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function acereview_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'review_node_form') {
+    drupal_set_title('Review');
+    if (user_is_anonymous()) {
+      $form['title']['#access'] = 0;
+      $form['body_field']['#access'] = 0;
+      $form['author']['#access'] = 0;
+      $form['revision_information']['#access'] = 0;
+      $form['options']['#access'] = 0;
+      $form['buttons']['preview']['#access'] = 0;
+      $form['buttons']['delete']['#access'] = 0;
+      $form['#redirect'] = 'review_tx';
+
+      $created_time = $form['created']['#value'];
+      $current_time = time();
+      $expiration_time = variable_get('acereview_expired_duration', 1209600);
+      if ($current_time > $created_time + $expiration_time) {
+        drupal_goto('review_expired');
+      }
+    }
+    if (isset($form['field_job_id']) && (!empty($form['field_job_id'][0]['#default_value']['value']) || !empty($form['field_job_id']['#value'][0]['value']))) {
+      $job_id   = !empty($form['field_job_id'][0]['#default_value']['value']) ? $form['field_job_id'][0]['#default_value']['value'] : $form['field_job_id']['#value'][0]['value'];
+      $review_id = arg(1);
+      $form['crews'] = array(
+        '#type'  => 'fieldset',
+        '#title' => t('Crews'),
+        '#tree'  => TRUE,
+        '#theme' => 'acecrew_review_node_form_crew_table',
+      );
+            
+      $job_details = acereview_get_job_details($job_id);      
+
+      $form['crews']['client_name'] = array('#type' => 'markup', '#value' => $job_details['client_name']);
+      $form['crews']['venue_name'] = array('#type' => 'markup', '#value' => $job_details['venue_name']);
+      $form['crews']['call_dates'] = array('#type' => 'markup', '#value' => $job_details['call_dates']);
+
+
+      $crews = acecrew_get_crews_by_job($job_id);
+      foreach ($crews as $crew) {
+        $defaults = db_fetch_object(db_query('SELECT * FROM {content_type_user_review} WHERE field_related_review_id_value=%d AND field_user_review_user_id_value=%d LIMIT 1', $review_id, $crew->uid));
+        if (empty($defaults)) {
+          $defaults = new stdClass();
+          $defaults->field_user_review_time_keeping_value = 0;
+          $defaults->field_user_review_manner_value       = 0;
+          $defaults->field_user_review_work_ethic_value   = 0;
+          $defaults->field_user_review_work_ability_value = 0;
+          $defaults->field_user_review_com_skills_value   = 0;
+          $defaults->field_user_review_add_comments_value = '';
+        }
+        $form['crews']['rows'][$crew->uid]['username'] = array(
+          '#value' => $crew->name,
+          '#title' => 'Username',
+        );
+        $form['crews']['rows'][$crew->uid]['uid'] = array(
+          '#type' => 'hidden',
+          '#default_value' => $crew->uid,
+        );
+        $usr = user_load($crew->uid);
+        if (empty($usr->picture)) {
+          $default_image_path = drupal_get_path('theme', 'rubik').'/images/picture-9.gif';
+          $picture = theme('image', $default_image_path);
+        } else {
+          $picture = theme('image', $usr->picture);//theme('imagecache', 'user_picture', $usr->picture); //
+        }
+        $form['crews']['rows'][$crew->uid]['picture']               = array('#type' => 'markup', '#value' => $picture);
+        $form['crews']['rows'][$crew->uid]['timeKeeping']           = acereview_get_timeKeeping_element($defaults->field_user_review_time_keeping_value);
+        $form['crews']['rows'][$crew->uid]['manner']                = acereview_get_manner_element($defaults->field_user_review_manner_value);
+        $form['crews']['rows'][$crew->uid]['workEthic']             = acereview_get_workEthic_element($defaults->field_user_review_work_ethic_value);
+        $form['crews']['rows'][$crew->uid]['workAbility']           = acereview_get_workAbility_element($defaults->field_user_review_work_ability_value);
+        $form['crews']['rows'][$crew->uid]['communicationalSkills'] = acereview_get_communicationalSkills_element($defaults->field_user_review_com_skills_value);
+        $form['crews']['rows'][$crew->uid]['addComments']           = acereview_get_addComments_element($defaults->field_user_review_add_comments_value);
+      }
+
+      $form['#submit'][] = 'acecrew_review_node_form_submit';
+      $form['field_job_id']['#access'] = 0;
+
+      watchdog('ff', '<pre>'.print_r($form, TRUE).'</pre>');
+    }
+  }
+}
+
+/**
+ * Returns FALSE if job desn't have reivew bind
+ */
+function acecrew_get_review_by_job($job_nid) {
+  $review_nid = db_result(db_query('SELECT nid FROM {content_type_review} WHERE field_job_id_value=%d LIMIT 1', $job_nid));
+  if (empty($review_nid)) {
+    return FALSE;
+  }
+
+  return $review_nid;
+}
+
+function acereview_settings_form($form_state) {
+  $form = array();
+  $form['acereview_expired_duration'] = array(
+    '#type' => 'select',
+    '#default_value' => variable_get('acereview_expired_duration', 1209600),
+    '#title' => t('Expired duration'),
+    '#options' => array(
+      1209600 => '14 days',
+      604800  => '7 days',
+      172800  => '2 days',
+      86400 => '1 day',
+    ),
+  );
+
+  return system_settings_form($form);
+}
+
+function acecrew_review_node_form_submit($form, &$form_state) {
+  //watchdog('ace_r_sub', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  $review_id = $form_state['values']['nid'];
+  $review = node_load($review_id);
+  //watchdog('rr', '<pre>'.print_r($review, TRUE).'</pre>');
+  $crews = $form_state['values']['crews']['rows'];
+  //watchdog('c_id', '<pre>'.print_r($job_id, TRUE).'</pre>');
+  //watchdog('crws', '<pre>'.print_r($crews, TRUE).'</pre>');
+  foreach ($crews as $crew) {
+    $user_review_nid = db_result(db_query('SELECT nid FROM {content_type_user_review} WHERE field_related_review_id_value=%d AND field_user_review_user_id_value = %d LIMIT 1', $review_id, $crew['uid']));
+    if (!empty($user_review_nid)) {
+      $user_review = node_load($user_review_nid);
+      $user_review->field_user_review_time_keeping[0]['value'] = $crew['timeKeeping'];
+      $user_review->field_user_review_manner[0]['value']       = $crew['manner'];
+      $user_review->field_user_review_work_ethic[0]['value']   = $crew['workEthic'];
+      $user_review->field_user_review_work_ability[0]['value'] = $crew['workAbility'];
+      $user_review->field_user_review_com_skills[0]['value']   = $crew['communicationalSkills'];
+      $user_review->field_user_review_add_comments[0]['value'] = $crew['addComments'];
+      node_save($user_review);
+    } else {
+      $user_review                                             = new stdClass();
+      $user_review->type                                       = 'user_review';
+      $user_review->title                                      = 'Review user - uid:'.$crew['uid'].',rid:'.$review_id;
+      $user_review->field_related_review_id[0]['value']        = $review_id;
+      $user_review->field_user_review_user_id[0]['value']      = $crew['uid'];
+      $user_review->field_user_review_time_keeping[0]['value'] = $crew['timeKeeping'];
+      $user_review->field_user_review_manner[0]['value']       = $crew['manner'];
+      $user_review->field_user_review_work_ethic[0]['value']   = $crew['workEthic'];
+      $user_review->field_user_review_work_ability[0]['value'] = $crew['workAbility'];
+      $user_review->field_user_review_com_skills[0]['value']   = $crew['communicationalSkills'];
+      $user_review->field_user_review_add_comments[0]['value'] = $crew['addComments'];
+      node_save($user_review);
+    }
+    //
+    acereview_crew_local_bad($crew, $review->field_job_id[0]['value']);
+    //
+    acereview_crew_average_bad($crew, $review->field_job_id[0]['value']);
+  }
+}
+
+function acereview_crew_local_bad($crew, $jod_id) {
+  $bad_details = '';
+  if ($crew['timeKeeping'] > 0 && $crew['timeKeeping'] < 2) {
+    $bad_details .= 'Time Keeping : Late' . ";\n";
+  }
+  if ($crew['manner'] > 0 && $crew['manner'] < 7) {
+    $bad_details .= 'Manner : '.$crew['manner']. ";\n";
+  }
+  if ($crew['workEthic'] > 0 && $crew['workEthic'] < 7) {
+    $bad_details .= 'Work Ethic : '.$crew['workEthic']. ";\n";
+  }
+  if ($crew['workAbility'] > 0 && $crew['workAbility'] < 7) {
+    $bad_details .= 'Work Ability : '.$crew['workAbility']. ";\n";
+  }
+  if ($crew['communicationalSkills'] > 0 && $crew['communicationalSkills'] < 7) {
+    $bad_details .= 'Communicational Skills : '.$crew['communicationalSkills']. ";\n";
+  }
+
+  if (!empty($bad_details)) {
+    acereview_sent_email_crew_bad_thing($crew['uid'], $jod_id, $bad_details);
+  }
+}
+
+function acereview_crew_average_bad($crew, $jod_id) {
+  $sql = "SELECT AVG(ur.field_user_review_time_keeping_value) AS keeping,
+      AVG(ur.field_user_review_manner_value) AS manner,
+      AVG(ur.field_user_review_work_ethic_value) AS workEthic,
+      AVG(ur.field_user_review_work_ability_value) AS workAbility,
+      AVG(ur.field_user_review_com_skills_value) AS communicationalSkills,
+      j.field_job_number_value AS job_number,
+      crew.name AS crew_name,
+      j.nid AS job_nid
+    FROM `drupal_content_type_user_review` ur
+    INNER JOIN `drupal_content_type_review` r ON ur.field_related_review_id_value = r.nid
+    INNER JOIN `drupal_content_type_job` j ON r.field_job_id_value = j.nid
+    INNER JOIN `drupal_content_type_client` c ON c.field_client_id_value = j.field_job_client_name_value
+    INNER JOIN `drupal_content_type_venue` v ON v.field_venue_id_value = j.field_job_venue_value
+    INNER JOIN `drupal_users` crew ON crew.uid = ur.field_user_review_user_id_value
+    WHERE field_user_review_user_id_value = %d
+    GROUP BY field_user_review_user_id_value";
+  $user_data = db_fetch_array(db_query($sql, $crew['uid']));
+  $bad_details = '';
+  if ($user_data['keeping'] > 0 && $user_data['keeping'] < 2) {
+    $bad_details .= 'Average Time Keeping : ' .$user_data['keeping']. ";\n";
+  }
+  if ($user_data['manner'] > 0 && $user_data['manner'] < 7) {
+    $bad_details .= 'Average Manner : '.$user_data['manner']. ";\n";
+  }
+  if ($user_data['workEthic'] > 0 && $user_data['workEthic'] < 7) {
+    $bad_details .= 'Average Work Ethic : '.$user_data['workEthic']. ";\n";
+  }
+  if ($user_data['workAbility'] > 0 && $user_data['workAbility'] < 7) {
+    $bad_details .= 'Average Work Ability : '.$user_data['workAbility']. ";\n";
+  }
+  if ($user_data['communicationalSkills'] > 0 && $user_data['communicationalSkills'] < 7) {
+    $bad_details .= 'Average Communicational Skills : '.$user_data['communicationalSkills']. ";\n";
+  }
+
+  if (!empty($bad_details)) {
+    // send average bad email
+    acereview_sent_email_crew_bad_average($crew['uid'], $jod_id, $bad_details);
+  }
+}
+
+function acecrew_create_review_by_job($job_id) {
+  $review_id =  db_result(db_query('SELECT nid FROM {content_type_review} WHERE field_job_id_value = %d', $job_id));
+  if (!empty($review_id)) {
+    return $review_id;
+  }
+
+  //drupal_content_type_review
+  $review        = new stdClass();
+  $review->type  = 'review';
+  $review->title = 'Review-by-job_id:'.$job_id;
+  $review->field_job_id[0]['value'] = $job_id;
+  $review->field_review_status[0]['value'] = 1; // PENDING
+  node_save($review);
+  // create Review Form Alias
+  $url_alias_row = new stdClass();
+  $url_alias_row->src = 'node/'.$review->nid.'/edit';
+  $url_alias_row->dst = acecrew_generate_random_string(5);
+  $url_alias_row->language = '';
+  drupal_write_record('url_alias', $url_alias_row);
+
+  db_query('UPDATE {content_type_review} SET field_form_alias_id_value = %d WHERE nid = %d',$url_alias_row->pid, $review->nid);
+
+  //$review->field_form_alias_id[0]['value'] = $url_alias_row->pid;
+  //node_save($review);
+
+  return $review->nid;
+}
+
+function acecrew_get_crews_by_job($job_id, $count = FALSE) {
+  $rows = array();
+  $query = "SELECT u.name, u.uid FROM `drupal_users` u INNER JOIN `drupal_crew_call` cc ON u.uid = cc.uid INNER JOIN `drupal_node` n ON n.vid = cc.jsid INNER JOIN `drupal_content_type_job_session` js ON js.nid = n.nid WHERE js.field_session_job_nid_value=%d GROUP BY u.uid";
+  $result =  db_query($query, $job_id);
+  while ($row = db_fetch_object($result)) {
+    $rows[] = $row;
+  }
+  if ($count) {
+    return sizeof($rows);
+  }
+
+  return $rows;
+}
+
+function acereview_get_timeKeeping($key = '') {
+  $arr = array(
+    0 => t('No opinion'),
+    3 => t('Early'),
+    2 => t('On time'),
+    1 => t('Late'),
+  );
+  if (empty($key)) {
+    return $arr;
+  } else if (isset($arr[$key])) {
+    return $arr[$key];
+  }
+  return FALSE;
+}
+
+function acereview_get_timeKeeping_element($default_value = 0) {
+  $element = array(
+    '#type' => 'select',
+    '#options' => acereview_get_timeKeeping(),
+    '#default_value' => $default_value,
+  );
+  return $element;
+}
+
+function acereview_get_manner_element($default_value = 0) {
+  $element = array(
+    '#type' => 'select',
+    '#options' => array(
+      0 => t('No opinion'),
+      1 => 1,
+      2 => 2,
+      3 => 3,
+      4 => 4,
+      5 => 5,
+      6 => 6,
+      7 => 7,
+      8 => 8,
+      9 => 9,
+      10 => 10,
+    ),
+    '#default_value' => $default_value,
+  );
+  return $element;
+}
+
+function acereview_get_workEthic_element($default_value = 0) {
+  $element = array(
+    '#type' => 'select',
+    '#options' => array(
+      0 => t('No opinion'),
+      1 => 1,
+      2 => 2,
+      3 => 3,
+      4 => 4,
+      5 => 5,
+      6 => 6,
+      7 => 7,
+      8 => 8,
+      9 => 9,
+      10 => 10,
+    ),
+    '#default_value' => $default_value,
+  );
+  return $element;
+}
+
+function acereview_get_workAbility_element($default_value = 0) {
+  $element = array(
+    '#type' => 'select',
+    '#options' => array(
+      0 => t('No opinion'),
+      1 => 1,
+      2 => 2,
+      3 => 3,
+      4 => 4,
+      5 => 5,
+      6 => 6,
+      7 => 7,
+      8 => 8,
+      9 => 9,
+      10 => 10,
+    ),
+    '#default_value' => $default_value,
+  );
+  return $element;
+}
+
+function acereview_get_communicationalSkills_element($default_value = 0) {
+  $element = array(
+    '#type' => 'select',
+    '#options' => array(
+      0 => t('No opinion'),
+      1 => 1,
+      2 => 2,
+      3 => 3,
+      4 => 4,
+      5 => 5,
+      6 => 6,
+      7 => 7,
+      8 => 8,
+      9 => 9,
+      10 => 10,
+    ),
+    '#default_value' => $default_value,
+  );
+  return $element;
+}
+
+function acereview_get_addComments_element($default_value = 0) {
+  $element = array(
+    '#type' => 'textarea',
+    '#default_value' => $default_value,
+    '#cols' => 35,
+    '#rows' => 4,
+  );
+  return $element;
+}
+
+/**
+ * Get client email for related job
+ */
+function acereview_get_client_email($job_id = '') {
+  if ( empty($job_id) ) {
+    return 'archertester1@gmail.com';
+  }
+
+  $query = "SELECT field_client_company_email_email FROM {content_type_client} WHERE field_client_id_value =
+      (SELECT field_job_client_name_value FROM {content_type_job} WHERE nid = '%d') LIMIT 1";
+  $result = db_query($query, $job_id);
+
+  if(db_affected_rows($result) > 0) {
+      $result = db_fetch_object($result);
+      $email = $result->field_client_company_email_email;
+      return $email;
+  } else {
+      drupal_set_message(t("Review email not sent to the client"), "warning");
+  }
+}
+
+/**
+ * Send email to client
+ */
+function acereview_sent_email_to_client($email_address, $link, $job_number = 'TJob-Number', $contact_name = '', $job_details = array()) {
+
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = variable_get('site_mail', "crewreview@example.com");
+    $mail->AddAddress($email_address);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Review');
+
+
+
+    $message = "Dear $contact_name\n\n";
+    $message .= "We recently completed job:$job_number and invoiced you. We would appreciate if you could take a few minutes to complete a review of the job for us.\n\n";
+    $message .= "Job Details:\n\n";
+    $message .= ">> Client: " . $job_details['client_name'] . "\n\n";
+    $message .= ">> Venue: " . $job_details['venue_name']. "\n\n";
+    $message .= ">> Date range: " . $job_details['call_dates']. "\n\n";
+    $message .= "Please click here: $link\n\n";
+    $message .= "Thank you\nAce Crew";
+
+    $mail->Body = $message;
+
+    if(!$mail->Send()) {
+        drupal_set_message(t("Can't send email"));
+    } else {
+        drupal_set_message(t("Email sent to the client containing link to review page"));
+    }
+}
+
+/**
+ * Send email to admin about crew bad thing
+ */
+function acereview_sent_email_crew_bad_thing($crew_id, $job_id, $details = '') {
+    global $base_url;
+    $crew                     = user_load($crew_id);
+    $client                   = acecrew_get_client_by_job_id($job_id);
+
+    $crew_id                  = $crew->uid;
+    $crew_name                = $crew->name;
+    $client_id                = $client->nid;
+    $client_name              = $client->field_client_name[0]['value'];
+    $crew_profile_link        = $base_url.'/user/'.$crew_id;
+    $crew_review_report_link  = $base_url.'/admin/reports/review_spreadsheet/'.$crew_id;
+    $admin_from_email         = $admin_to_email = variable_get('site_mail', "crewreview@example.com");
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = $admin_from_email;
+    $mail->AddAddress($admin_to_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Crew "bad thing" notification');
+
+    $message = '';
+    $message .= "Notification to Acecrew administrator\n\n";
+
+    $message .= "Crew member $crew_name have got negative review from client: $client_name\n\n";
+
+    $message .= "$crew_name profile link: " . $crew_profile_link."\n\n";
+
+    $message .= "Crew review report link: ". $crew_review_report_link."\n\n";
+
+    $message .= "Negative review details:\n";
+
+    $message .= $details;
+
+    $mail->Body = $message;
+
+    $mail->Send();
+}
+
+/**
+ * Send email to admin about crew bad average
+ */
+function acereview_sent_email_crew_bad_average($crew_id, $job_id, $details = '') {
+    global $base_url;
+    $crew                     = user_load($crew_id);
+    $client                   = acecrew_get_client_by_job_id($job_id);
+
+    $crew_id                  = $crew->uid;
+    $crew_name                = $crew->name;
+    $client_id                = $client->nid;
+    $client_name              = $client->field_client_name[0]['value'];
+    $crew_profile_link        = $base_url.'/user/'.$crew_id;
+    $crew_review_report_link  = $base_url.'/admin/reports/review_spreadsheet/'.$crew_id;
+    $admin_from_email         = $admin_to_email = variable_get('site_mail', "crewreview@example.com");
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = $admin_from_email;
+    $mail->AddAddress($admin_to_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Crew "bad average" notification');
+
+    $message = '';
+    $message .= "Notification to Acecrew administrator\n\n";
+
+    $message .= "Crew member $crew_name have got negative review average.\n\n";
+
+    $message .= "$crew_name profile link: " . $crew_profile_link."\n\n";
+
+    $message .= "Crew review report link: ". $crew_review_report_link."\n\n";
+
+    $message .= "Negative average review details:\n";
+
+    $message .= $details;
+
+    $mail->Body = $message;
+
+    $mail->Send();
+}
+
+function acecrew_get_client_by_job_id($job_id) {
+  $job = node_load($job_id);
+  // get client id (not client nid.. another table)
+  $field_client_id_value = $job->field_job_client_name[0]['value'];
+  // get client nid from client id
+  $client_nid = db_result(db_query('SELECT nid FROM {content_type_client} WHERE field_client_id_value = %d', $field_client_id_value));
+  // get client object
+  $client = node_load($client_nid);
+
+  return $client;
+}
+
+function acereview_review_tx() {
+  drupal_set_title('Thank you for help');
+  $output = '<h3>Your review feedback has been saved. Thank you for help</h3>';
+  return $output;
+}
+
+function acereview_review_exp() {
+  drupal_set_title('Thank you for help');
+  $output = '<h3>Your review feedback has been expired.</h3>';
+  return $output;
+}
+
+function acecrew_generate_random_string($length = 10) {
+  $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  $random_string = '';
+  for ($i = 0; $i < $length; $i++) {
+      $random_string .= $characters[rand(0, strlen($characters) - 1)];
+  }
+  return $random_string;
+}
+
+function acereview_get_link_by_job($job_id) {
+  global $base_url;
+  $review_id = acecrew_create_review_by_job($job_nid);
+  $review = node_load($review_id);
+  $rid = $review->field_form_alias_id[0]['value'];
+  $path = path_load($rid);
+  $url = $base_url . '/' . $path['dst'];
+
+  return $url;
+}
+
+function acereview_get_link_by_review($review_id) {
+  global $base_url;
+  $review = node_load($review_id);
+  $rid = $review->field_form_alias_id[0]['value'];
+  $path = path_load($rid);
+  $url = $base_url . '/' . $path['dst'];
+
+  return $url;
+}

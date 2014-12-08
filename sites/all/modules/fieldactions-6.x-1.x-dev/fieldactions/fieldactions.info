@@ -1,0 +1,13 @@
+; $Id: fieldactions.info,v 1.4 2008/12/02 04:57:50 deekayen Exp $
+name = Field Actions
+description = Provides various actions that use CCK fields as a data source.
+package = CCK
+dependencies[] = content
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-08-13
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "fieldactions"
+datestamp = "1250122255"
+

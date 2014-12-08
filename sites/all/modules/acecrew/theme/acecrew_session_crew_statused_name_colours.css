@@ -1,0 +1,18 @@
+/*
+acecrew_session_crew_statused_name_colours.css
+*/
+.session_crew_statused_name_deny {
+    color: red;
+}
+.session_crew_statused_name_sms {
+    color: #E8A317;
+}
+.session_crew_statused_name_confirm {
+    color: green;
+}
+.crew_statuses_ul {
+    display: inline;
+}
+.crew_statuses_ul li {
+    display: inline;
+}

@@ -1,0 +1,86 @@
+.acecrew_session_container {
+	border: 1px dotted red;
+	margin: 10px;
+	padding: 10px;
+}
+
+.acecrew_session_form {
+	display: none;
+}
+
+#acecrew_session_add_form {
+	display: none;
+}
+
+#acecrew_session_add_buttons {
+	padding: 20px 0;
+	font-size: 15px;
+	font-weight: bold;
+}
+
+.acecrew_session_node_content{
+    margin-top: 0 !important;
+}
+
+.acecrew_session_node {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+.clear-both {
+    clear: both;
+}
+
+.field-field-crew-job-session-name, 
+.field-field-crew-job-session-status,
+.field-field-crew-job-session-hours-quo, 
+.field-field-crew-job-session-hours-wor,
+.field-field-crew-job-session-suppl 
+{
+    float: left;
+    padding: 0 10px;
+}
+.field-field-job-session-crews-items {
+    padding-left: 15px;
+}
+.acecrew_session_totals {
+    border-top: 2px solid #D3E7F4;
+    margin-top: 4px;
+    font-weight: bold;
+}
+
+.field-field-job-session-crews-item-even {
+    background-color: #EDF5FA;
+}
+.field-field-job-session-crews-item-odd {
+    background-color: #E0F0F0;
+}
+.delta-order, .delta-order-header{
+    display: none;
+}
+#acecrew_session_add_form {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #D3E7F4;
+}
+
+.acecrew_sessions_container {
+}
+
+.client_emails_form {
+    display: inline;
+}
+
+.session_crew_status_form { 
+    display: inline;
+    margin-bottom: 0 !important;
+}
+.session_crew_status_ajax {
+    display: none;
+}
+.del_crew_from_session {
+    display: inline-block;
+    padding-top: 10px;
+}

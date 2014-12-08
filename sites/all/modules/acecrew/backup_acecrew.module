@@ -1,0 +1,1340 @@
+<?php
+
+require_once dirname(__FILE__) .'/acecrew_func.inc';
+
+function acecrew_perm() {
+    return array('acecrew calendar', 'acecrew access user payrate', 'acecrew access reports', 'acecrew access sms');
+}
+
+function acecrew_theme_registry_alter(&$theme_registry) {
+    $theme_registry['node']['theme paths'][] = drupal_get_path('module', 'acecrew') . '/theme';
+}
+
+function acecrew_form_alter(&$form, $form_state, $form_id) {
+    if ($form_id == 'job_session_node_form') {
+
+        unset($form['buttons']['preview']);
+        unset($form['buttons']['delete']);
+    }
+    
+
+    
+    if ($form_id == 'user_register' || $form_id == 'user_profile_form'){
+        unset($form['Crew Skills']['profile_payrateid']);
+    }
+}
+
+
+/**
+* Implementaiton of hook_menu()
+*/
+function acecrew_menu() {
+    $items = array();
+    $items['acecrew/ajax/delsession/%'] = array(
+        'title' => 'Ace Crew AJAX Delete Session',
+        'page callback' => 'acecrew_del_job_session',
+        'page arguments' => array(3),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/ajax/session/sms/%'] = array(
+        'title' => 'Ace Crew send sms to session crews',
+        'page callback' => 'acecrew_session_sms',
+        'page arguments' => array(4),
+        'access arguments' => array('acecrew access sms'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/generateinvoice/%'] = array(
+        'title' => 'Ace Crew Generate Invoice',
+        'page callback' => 'acecrew_generate_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/delinvoice/%'] = array(
+        'title' => 'Ace Crew  Delete Invoice',
+        'page callback' => 'acecrew_delete_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/emailinvoice/%'] = array(
+        'title' => 'Ace Crew Email Invoice',
+        'page callback' => 'acecrew_email_invoice',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/generatequote/%'] = array(
+        'title' => 'Ace Crew Generate quote',
+        'page callback' => 'acecrew_generate_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/delquote/%'] = array(
+        'title' => 'Ace Crew  Delete quote',
+        'page callback' => 'acecrew_delete_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/emailquote/%'] = array(
+        'title' => 'Ace Crew Email quote',
+        'page callback' => 'acecrew_email_quote',
+        'page arguments' => array(2),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/calendar'] = array(
+        'title' => 'Ace Crew Calendar',
+        'page callback' => 'acecrew_calendar',
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['acecrew/calendar/%'] = array(
+        'title' => 'Ace Crew Calendar Date',
+        'page callback' => 'acecrew_calendar_date',
+        'page arguments' => array(2),
+        'access arguments' => array('acecrew calendar'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/ajax/report/%/%/%'] = array(
+        'title' => 'Ace Crew report',
+        'page callback' => 'acecrew_report_date_ajax',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/report/print/%/%/%'] = array(
+        'title' => 'Ace Crew report',
+        'page callback' => 'acecrew_report_date_print',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/report/csv/%/%/%'] = array(
+        'title' => 'Ace Crew CSV report',
+        'page callback' => 'acecrew_report_date_csv',
+        'page arguments' => array(3, 4, 5),
+        'access arguments' => array('acecrew access reports'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    $items['acecrew/ajax/fines/%'] = array(
+        'title' => 'Ace Crew Fines Ajax',
+        'page callback' => 'acecrew_addfines_ajax',
+        'page arguments' => array(3),
+        'access arguments' => array('create fines content'),
+        'type' => MENU_CALLBACK,
+    );
+        
+    $items['acecrew/ajax/client_contacts'] = array(
+        'title' => 'Ace Crew Client Contacts For Create Job Page',
+        'page callback' => 'acecrew_ajax_client_contacts',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_client_name'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/ajax/client_contacts/%'] = array(
+        'title' => 'Ace Crew Client Contacts For Create Job Page',
+        'page callback' => 'acecrew_ajax_client_contacts',
+        'page arguments' => array(3),
+        'access arguments' => array('edit field_job_client_name'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['acecrew/set_crew_session_status/%/%/%'] = array(
+        'title' => 'Set crew session status',
+        'page callback' => 'acecrew_set_crew_session_status',
+        'page arguments' => array(2, 3, 4),
+        'access arguments' => array('edit field_crew_job_session_status'),
+        'type' => MENU_CALLBACK,
+    );
+    $items['acecrew/del_crew_from_session/%/%'] = array(
+        'title' => 'Del crew from session',
+        'page callback' => 'acecrew_del_crew_from_session',
+        'page arguments' => array(2, 3),
+        'access arguments' => array('edit field_job_session_crews'),
+        'type' => MENU_CALLBACK,
+    );
+    
+    
+    return $items;
+}
+
+function acecrew_theme($existing, $type, $theme, $path) {
+    
+    $theme_registry['acecrew_customform'] = array(
+        'arguments' => array('acecrew_customform')
+    );
+    
+    $theme_registry['acecrew_assigned_sessions'] = array(
+        'arguments' => array('acecrew_assigned_sessions')
+    );
+    
+    $theme_registry['acecrew_assigned_docs'] = array(
+        'arguments' => array('acecrew_assigned_docs', 'client_emails')
+    );
+    
+    $theme_registry['acecrew_session_totals'] = array(
+        'arguments' => array('acecrew_session_totals')
+    );
+    
+    $theme_registry['acecrew_calendar_scheduler'] = array(
+        'arguments' => array('acecrew_calendar_scheduler')
+    );
+    
+    $theme_registry['acecrew_report_table'] = array(
+        'arguments' => array('acecrew_report_table')
+    );
+    
+    $theme_registry["views_view_table__job_view"] = array(
+        "template" => "views-view-table--job-view",
+        "path" => drupal_get_path('module', 'acecrew') . '/theme',
+        "arguments" => array (
+        "view" => NULL,
+        "options" => NULL,
+        "rows" => NULL,
+        "title" => NULL
+        ),
+        "preprocess functions" => array ("template_preprocess", "template_preprocess_views_view_table")
+    );
+    
+    return $theme_registry;             
+}
+
+function acecrew_user($op, &$edit, &$account, $category = NULL) {
+    global $user;
+    
+    //check access
+    if (!user_access('acecrew access user payrate', $user, true)){
+        return;
+    }
+    
+    if ('form' == $op  && 'Crew Skills' == $category) {
+        
+        //display at edit form at appropriate category(tab)
+        return _acecrew_get_rates_form($account->profile_payrateid);
+    } elseif('register' == $op) {
+       
+
+        //display at registration form
+        return _acecrew_get_rates_form();
+    } elseif('update' == $op || 'insert' == $op) {
+        
+        //save Pay Rate ID to appropriate profile field
+        $edit['profile_payrateid'] = $edit['acecrew_payrate_id'];
+    } elseif('insert' == $op){
+       
+    }  
+}
+
+function acecrew_profile_alter(&$account){
+    
+    $payrate_string = acecrew_get_payrate($account->acecrew_payrate_id, true);
+    
+    $payrate = array(
+        '#type' => 'user_profile_item',
+        '#title' => t('Payrate'),
+        '#value' => $payrate_string,
+    );
+    
+    $account->content['Crew Skills']['payrate'] = $payrate;
+    
+    if (!user_access('acecrew access reports')){
+        return;
+    }
+    
+    $account->content['Reports'] = array(
+        '#type' => 'user_profile_category',
+        '#title' => t('Reports')
+    );
+    
+    $my_settings = array(
+        'basepath' => drupal_get_path('module', 'acecrew'),
+        'report_uid' => $account->uid,
+    );
+    
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-profile-reports.css', 'module', 'all', false);
+    drupal_add_js(array('acecrew' => $my_settings), "setting");
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-profile-reports.js');
+    
+    
+    $output = '';
+    $output .= '<div id="acecrew_report_form"> ' . drupal_get_form('acecrew_report_form') . ' </div> ';
+    $output .= '<div id="acecrew_report_output">  </div>';
+    $output = '<div id="acecrew_report">' . $output . '</div>';
+    
+    $account->content['Reports']['Reports'] = array(
+        '#type' => 'user_profile_item',
+        '#title' => '',
+        '#value' => $output
+    );
+}
+
+function acecrew_del_job_session($ses_id)
+{
+    node_delete($ses_id);
+}
+
+/**
+ * Calculate cost of user hours 
+ **/
+function _acecrew_calc_crew_hours_cost($hour_rate, $hours)
+{
+    $unit_cost = 0.0;
+    $min_charge = 45;
+    switch ($hours){
+        case 0:
+            $unit_cost = $min_charge;
+            break;
+        case 1:
+            $unit_cost = $min_charge;
+            break;
+        case 2:
+            $unit_cost = $min_charge;
+            break;
+        case 3:
+            $unit_cost = $min_charge + $hour_rate;
+            break;
+        default:
+            $unit_cost = $hour_rate * $hours;
+    }
+    return $unit_cost;
+}
+
+function acecrew_generate_invoice($job_id)
+{
+    global $user;
+    
+    //get job
+    $job = _acecrew_get_job_node_by_id($job_id);
+    if (empty($job)){
+        return;
+    }
+    
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    if(empty($client)){
+        return;
+    }
+    
+    $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+    $venue_name = $venue->field_venue_name[0]['value'];
+    _acecrew_clear_invoice_items($user->uid);
+    $weight = 1;
+    
+    $sessions = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+    while ($session_row = db_fetch_object($sessions)) {
+        $works_hours = array();
+        $supplements = array();
+        $session = node_load(array('nid' => $session_row->nid));
+        $field_job_session_crews = $session->field_job_session_crews;
+        foreach($field_job_session_crews as $crew){
+            
+            if(!empty( $crew['value']['field_crew_job_session_hours_wor'][0]['value'] )){
+                $works_hours[] = $crew['value']['field_crew_job_session_hours_wor'][0]['value'];
+            }
+            
+            if(!empty($crew['value']['field_crew_job_session_suppl'])){
+                foreach($crew['value']['field_crew_job_session_suppl'] as $supplement){
+                    if(!empty($supplement['value'])){
+                        $supplements[] = $supplement['value'];
+                    }
+                }
+            }
+        }
+        
+        //set this session
+        $supplements = array_count_values($supplements);
+        $works_hours = array_count_values($works_hours);
+        $hour_rate = $session->field_job_session_client_rate[0]['value'];
+        
+        foreach($works_hours as $work_hours => $work_count){
+            $description = $session->field_job_session_date_time[0]['value'] . ' 1 man @ ' . $work_hours . ' hours @ ' . $venue_name;
+            
+            //unit cost calculating depends on count on worked hours, and minimum charge. Default $unit_cost = $hour_rate * $work_hours.
+            $unit_cost = _acecrew_calc_crew_hours_cost($hour_rate, $work_hours);
+            _acecrew_add_invoice_item($description, $work_count, $unit_cost, $user->uid, $weight);
+            $weight += 1;
+        }
+        
+        foreach($supplements as $supp_id => $supp_count){
+            $supplement = _acecrew_get_supplement($supp_id);
+            $description = 'Suppl: ' . $supplement->field_job_supplement_name[0]['value'];
+            _acecrew_add_invoice_item($description, $supp_count, $supplement->field_job_supplement_amount[0]['value'], $user->uid, $weight);
+            $weight += 1;
+        }
+    }
+    
+    // Create a new invoice
+    $form_state = array();
+    module_load_include('inc', 'node', 'node.pages');
+    $node = array('type' => 'invoice');
+    $form_state['values']['title'] = 'Invoice';
+    $form_state['values']['body'] = '';
+    $form_state['values']['name'] = $user->name;
+    $form_state['values']['op'] = t('Save');
+    $form_state['values']['company_name'] = $client->field_client_name[0]['value'];
+    $form_state['values']['firstname'] = $client->field_client_company_contact[0]['value'];
+    $form_state['values']['template'] = 'acecrewinv';
+    drupal_execute('invoice_node_form', $form_state, (object)$node);
+    
+    $invoice = node_load(array('nid' => $form_state['nid']));
+    
+    _acecrew_add_invoice_job_relate($invoice->invoice['invoice_number'], $job_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_delete_invoice($invoice_id){
+    $nid = db_result(db_query("SELECT nid FROM {invoice_invoices} WHERE iid=%d", $invoice_id));
+    node_delete($nid);
+    db_query("DELETE FROM {acecrew_job_invoices} WHERE invoice_id=%d", $invoice_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_email_invoice($invoice_id){
+    
+    $invoice_path = drupal_get_path('module', 'invoice');
+    require_once($invoice_path .'/dompdf/dompdf_config.inc.php');  
+    $html = _invoice_get_html($invoice_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $pdf = $dompdf->output();
+    
+    $filename = 'invoice_' . $invoice_id . '.pdf';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
+    file_put_contents  ($filepath . $filename, $pdf);
+    
+    if(empty($_POST['client_emails'])){
+        $client = acecrew_get_client_by_invoice_id($invoice_id);
+        $client_email = $client->field_client_company_email[0]['email'];
+    } else {
+        $client_email = $_POST['client_emails'];
+    }
+    
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From     = "from@example.com";
+    $mail->AddAddress($client_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Invoice');
+    $mail->Body = t('This is your invoice. Please see that attached file.');
+    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+    
+    if(!$mail->Send()) {
+        drupal_set_message(t('Can\'t send email'));
+    } else {
+        drupal_set_message(t('Email has been sent'));
+    }
+    
+    unlink($filepath . $filename);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_generate_quote($job_id)
+{
+    global $user;
+    
+    //get job
+    $job = _acecrew_get_job_node_by_id($job_id);
+    if (empty($job)){
+        return;
+    }
+    
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    if(empty($client)){
+        return;
+    }
+    
+    $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+    $venue_name = $venue->field_venue_name[0]['value'];
+    $venue_str = $venue->field_venue_name[0]['value'] . ' ,' . $venue->field_venue_address[0]['value'];
+    _acecrew_clear_invoice_items($user->uid);
+    $weight = 1;
+    
+    $sessions = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+    while ($session_row = db_fetch_object($sessions)) {
+        $works_hours = array();
+        $supplements = array();
+        $session = node_load(array('nid' => $session_row->nid));
+        $field_job_session_crews = $session->field_job_session_crews;
+        foreach($field_job_session_crews as $crew){
+            
+            if(!empty( $crew['value']['field_crew_job_session_hours_quo'][0]['value'] )){
+                $works_hours[] = $crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+            }
+            
+            if(!empty($crew['value']['field_crew_job_session_suppl'])){
+                foreach($crew['value']['field_crew_job_session_suppl'] as $supplement){
+                    if(!empty($supplement['value'])){
+                        $supplements[] = $supplement['value'];
+                    }
+                }
+            }
+        }
+        
+        //set this session
+        $supplements = array_count_values($supplements);
+        $works_hours = array_count_values($works_hours);
+        $hour_rate = $session->field_job_session_client_rate[0]['value'];
+        
+        foreach($works_hours as $work_hours => $work_count){
+            $description = $session->field_job_session_date_time[0]['value'] . '; ' . $work_count .' crew @ ' . $work_hours . ' hours ';
+            
+            //unit cost calculating depends on count on worked hours, and minimum charge. Default $unit_cost = $hour_rate * $work_hours.
+            $unit_cost = _acecrew_calc_crew_hours_cost($hour_rate, $work_hours);
+            _acecrew_add_invoice_item($description, $work_count, $unit_cost, $user->uid, $weight);
+            $weight += 1;
+        }
+        
+        foreach($supplements as $supp_id => $supp_count){
+            $supplement = _acecrew_get_supplement($supp_id);
+            $description = 'Suppl: ' . $supplement->field_job_supplement_name[0]['value'];
+            if (1 != $supp_count){
+                $description .= '*' . $supp_count;
+            }
+            _acecrew_add_invoice_item($description, $supp_count, $supplement->field_job_supplement_amount[0]['value'], $user->uid, $weight);
+            $weight += 1;
+        }
+    }
+    
+    // Create a new invoice
+    $form_state = array();
+    module_load_include('inc', 'node', 'node.pages');
+    $node = array('type' => 'invoice');
+    $form_state['values']['title'] = 'Quote';
+    $form_state['values']['body'] = '';
+    $form_state['values']['name'] = $user->name;
+    $form_state['values']['op'] = t('Save');
+    $form_state['values']['company_name'] = $client->field_client_name[0]['value'];
+    $form_state['values']['firstname'] = $client->field_client_company_contact[0]['value'];
+    $form_state['values']['street'] = $venue_str;
+    $form_state['values']['template'] = 'acecrewquo';
+    drupal_execute('invoice_node_form', $form_state, (object)$node);
+    
+    $invoice = node_load(array('nid' => $form_state['nid']));
+    
+    _acecrew_add_quote_job_relate($invoice->invoice['invoice_number'], $job_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_delete_quote($quote_id){
+    $nid = db_result(db_query("SELECT nid FROM {invoice_invoices} WHERE iid=%d", $quote_id));
+    node_delete($nid);
+    db_query("DELETE FROM {acecrew_job_quotes} WHERE quote_id=%d", $quote_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_email_quote($invoice_id){
+    $invoice_path = drupal_get_path('module', 'invoice');
+    require_once($invoice_path . '/dompdf/dompdf_config.inc.php');  
+    $html = _invoice_get_html($invoice_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $pdf = $dompdf->output();
+    
+    $filename = 'quote_' . $invoice_id . '.pdf';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
+    file_put_contents  ($filepath . $filename, $pdf);
+    
+    if(empty($_POST['client_emails'])){
+        $client = acecrew_get_client_by_quote_id($invoice_id);
+        $client_email = $client->field_client_company_email[0]['email'];
+    } else {
+        $client_email = $_POST['client_emails'];
+    }
+    
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From     = "from@example.com";
+    $mail->AddAddress($client_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Quote');
+    $mail->Body = t('This is your quote. Please see that attached file.');
+    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+    
+    if(!$mail->Send()) {
+        drupal_set_message(t('Can\'t send email'));
+    } else {
+        drupal_set_message(t('Email has been sent'));
+    }
+    
+    unlink($filepath . $filename);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_calendar(){
+    
+    $my_settings = array(
+        'basepath' => drupal_get_path('module', 'acecrew'),
+    );
+    drupal_add_js(array('acecrew' => $my_settings), "setting");
+    
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-calendar.js');
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew_session_crew_statused_name_colours.css', 'module', 'all', false);
+    
+    $output = '';
+    $output .= drupal_get_form('acecrew_calendar_form');
+    $output .= '<div id="acecrew_calendar_output"> </div>';
+    return $output;
+}
+
+function acecrew_calendar_date($date){
+    $query = "SELECT nid, field_session_job_nid_value AS jsnid,  TIME(field_job_session_date_time_value) AS jstime
+        FROM {content_type_job_session} js 
+        WHERE DATE(js.field_job_session_date_time_value) = '%s'
+        ORDER BY jstime ASC";
+    $query_result =  db_query($query, $date);
+    $scheduler = array();
+    $job_statuses = array('1' => 'Pencil', '2' => 'Confirmed', '3' => 'Cancel');
+    while ($row = db_fetch_object($query_result)) {
+        
+        $job = node_load(array('nid' => $row->jsnid));
+        $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+        $client_name = $client->field_client_name[0]['value'];
+        $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+        $venue_name = $venue->field_venue_name[0]['value'];
+        
+        $session_node = node_load(array('nid' => $row->nid));
+        $ses_count_crews = $session_node->field_job_session_crew[0]['value'];
+        $ses_count_hours = $session_node->field_job_session_hours[0]['value'];
+        
+        $crews = '';
+        foreach($session_node->field_job_session_crews as $ses_crew){
+            $crew_name = $ses_crew['value']['field_crew_job_session_name'][0]['value'];
+            $crew_status = $ses_crew['value']['field_crew_job_session_status'][0]['value'];
+            if ($crew_status == 'deny'){
+                $crew_name = '&nbsp;';
+            } else {
+                $user = user_load(array('uid' => $crew_name));
+                $crew_name = $user->name;
+            }
+            $crews .= '<li class="session_crew_statused_name_' . $crew_status . '">' . $crew_name . '</li>';
+        }
+        
+        $crews = '<ul class="crew_statuses_ul">' . $crews . '</ul>';
+        
+        $job_status_code = $job->field_job_status[0]['value'];
+        $job_status = $job_statuses[$job_status_code];
+        
+        $scheduler[] = array(
+            'time' => $row->jstime,
+            'venue' => $venue_name,
+            'client' => $client_name,
+            'job_id' => $job->field_job_number[0]['value'],
+            'job_ref' => $job->path,
+            'job_status_code' => $job_status_code,
+            'job_status' => $job_status,
+            'ses_count_crews' => $ses_count_crews,
+            'ses_count_hours' => $ses_count_hours,
+            'crews' => $crews
+        );
+        
+    }
+    
+    $html = theme('acecrew_calendar_scheduler', $scheduler);
+    drupal_json(array('html' => $html));
+}
+
+function acecrew_addfines_ajax($job_id)
+{
+    //get job
+    $job = _acecrew_get_job_node_by_id($job_id);
+    if (empty($job)){
+        $data = array(
+           'venue_id' => '0',
+           'client_id' => '0',
+           'staff_ids' => array(),
+        ); 
+    
+        drupal_json($data);
+        return;
+    }
+    
+    $crews = array();
+    $sessions = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+    while ($session_row = db_fetch_object($sessions)) {
+        $session = node_load(array('nid' => $session_row->nid));
+        $field_job_session_crews = $session->field_job_session_crews;
+        foreach($field_job_session_crews as $crew){
+            $crews[] = $crew['value']['field_crew_job_session_name'][0]['value'];
+        }
+    }
+    
+    $crews = array_unique($crews);
+    $null_user_key = array_search('', $crews);
+    if (false !== $null_user_key){
+        unset($crews[$null_user_key]);
+    }
+    $crews = implode("', '", $crews);
+    $crews = "'" . $crews . "'";
+    
+    $crews_list = array();
+    $result = db_query(db_rewrite_sql("SELECT `uid`, `name` FROM {users} WHERE uid IN ($crews) ORDER BY `name` ASC"));
+    while ($item = db_fetch_object($result)) {
+        $crews_list[$item->uid] = $item->name;
+    }
+    
+    $data = array(
+       'venue_id' => $job->field_job_venue[0]['value'],
+       'client_id' => $job->field_job_client_name[0]['value'],
+       'staff_ids' => $crews_list,
+    ); 
+
+    drupal_json($data);
+}
+
+function acecrew_ajax_client_contacts($client_name)
+{
+    //get client by name
+    $client = acecrew_get_client_by_name($client_name);
+    
+    //get clent contacts
+    $contacts = array();
+    foreach($client->field_client_contact as $contact){
+        $contacts[$contact['item_id']] = $contact['value']['field_client_contact_name']['0']['value'];
+    }
+    
+    //json
+    drupal_json($contacts);
+}
+
+function acecrew_report_date_ajax($startDate, $endDate, $user){
+    $report = acecrew_get_user_report($startDate, $endDate, $user, true);
+    $additional_links = '<br /><span id="acecrew_report_add_links">' . l(t('Page for print'), "acecrew/report/print/$startDate/$endDate/$user", array('attributes' => array('target' => '_blank'))) . ' ' . l(t('Export to CSV'), "acecrew/report/csv/$startDate/$endDate/$user", array('attributes' => array('target' => '_blank'))) . '</div>';
+    $report .= $additional_links;
+    drupal_json(array('html' => $report));
+}
+
+function acecrew_report_date_print($startDate, $endDate, $user){
+    drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-report-print.css', 'module', 'all', false);
+    
+    $user_profile = user_load($user);
+    $user_name = $user_profile->name;
+    $output = "<p>$user_name $startDate - $endDate</p>";
+    
+    $output .= acecrew_get_user_report($startDate, $endDate, $user, true);
+    return($output);
+}
+
+function acecrew_report_date_csv($startDate, $endDate, $user){
+    $user_profile = user_load($user);
+    $user_name = $user_profile->name;
+
+    $filename = $user_name . '_' . $startDate . '_' . $endDate . '.csv';
+    $filepath = drupal_get_path('module', 'acecrew') . '/temp/' . $filename;
+    $report = acecrew_get_user_report($startDate, $endDate, $user, false);
+    $total = 0;
+    
+    $fp = fopen($filepath, 'w+');
+    fputcsv($fp, array(t('Charge'), t('Value')));
+    foreach($report as $section){
+        foreach($section as $charge){
+            fputcsv($fp, array($charge['name'], $charge['value']));
+            $total += $charge['value'];
+        }
+    }
+    fputcsv($fp, array(t('Total'), $total));
+    fclose($fp);
+    $csv = file_get_contents($filepath);
+    unlink($filepath);
+    
+    drupal_set_header('Content-Type: text/csv');
+    drupal_set_header('Content-Disposition: attachment; filename=' . $filename);
+    
+    echo $csv;
+}
+
+function acecrew_session_sms($session_id)
+{
+    //load session
+    $session = node_load(array('nid' => $session_id));
+    if(empty($session)){
+        drupal_set_message(t('Can\'t send sms'));
+        return;
+    }
+    
+    //load job
+    $job = $session->field_session_job_nid[0]['value'];
+    $job = node_load(array('nid' => $job));
+    
+    //get job serian no
+    $job_number = $job->field_job_number[0]['value'];
+    
+    //load venue and get venue addr
+    $venue = $job->field_job_venue[0]['value'];
+    $venue = acecrew_get_venue_by_id($venue);
+    $addr = $venue->field_venue_address[0]['value'];
+
+    //selecting comments
+    $comments = array();
+    
+    //get job comments
+    foreach($job->field_job_comments as $comment){
+        if(!empty($comment['value'])){
+            $comments[] = $comment['value'];
+        }
+    }
+    
+    //get session comments
+    foreach($session->field_job_session_comment as $comment){
+        if(!empty($comment['value'])){
+            $comments[] = $comment['value'];
+        }
+    }
+    
+    //get client data
+    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+    $client_name = $client->field_client_name[0]['value'];
+    $client_contact = $client->field_client_company_contact[0]['value'];
+    
+    //unset job
+    unset($job);
+
+    //get main admin mobile number
+    $main_admin = user_load(array('uid' => 130));
+    $number = $main_admin->profile_crew_mobile;
+    
+    //calc count of crews by hours
+    $hours = array();
+    foreach($session->field_job_session_crews as $crew_arr_id => $crew){
+        $user = user_load($crew['value']['field_crew_job_session_name'][0]['value']);
+        $session->field_job_session_crews[$crew_arr_id]['value']['field_crew_job_session_status'][0]['value'] = 'sms';
+        $hours[] = $crew['value']['field_crew_job_session_hours_quo'][0]['value'];       
+    }
+    
+    foreach($hours as $key => $val){
+      if(empty($val)){
+        unset($hours[$key]);
+      }
+    }
+    
+    $hours = array_count_values($hours);
+    
+    $hours_text = array();
+    foreach($hours as $hour => $count_crews){
+        $hours_text[] = $count_crews . ' ' .t('crew') . ' @ ' . $hour . ' ' . t('hours');
+    }
+    
+    //calc session date/time
+    $sess_time = $session->field_job_session_date_time[0]['value'];
+    $sess_time = strtotime($sess_time);
+    $sess_time = date('l m/d G:i', $sess_time);
+
+    //variables for message
+    //$job_number
+    //$sess_time
+    //$hours_text
+    //$client_name
+    //$addr = '';
+    //$comments = array();
+    //$client_contact = '';
+     
+    //compose message
+    $newline = ' 
+';
+    $message = 'J' . $job_number . $newline . $sess_time . $newline . implode('; ', $hours_text) . $newline . $client_name . $newline . $addr . $newline . implode('; ', $comments) . $newline . $client_contact;
+
+    //if number start from '0' then it is nuber without country code;
+    if( substr($number, 0, 1) === '0' ){
+        
+        $number = ltrim($number, '0');
+        //UK countre phone code
+        $number = '44' . $number;
+    }
+    
+    $sms_status = sms_send($number, $message);
+    
+    //set message according to status
+    if($sms_status == false){
+        drupal_set_message(t('Error when sending message to ') . $main_admin->profile_crew_mobile, 'error');
+    } else {
+        
+        //save changed crew status
+        node_save($session);
+        drupal_set_message(t('Messages were sent.'));
+    }
+    
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_set_crew_session_status($nid, $uid, $status)
+{
+    $session = node_load(array('nid' => $nid));
+    foreach($session->field_job_session_crews as $crew_id => $crew){
+        if($crew['value']['field_crew_job_session_name'][0]['value'] == $uid){
+            $session->field_job_session_crews[$crew_id]['value']['field_crew_job_session_status'][0]['value'] = $status;
+        }
+    }
+    node_save($session);
+    drupal_json(array('status' => 'ok'));
+}
+
+function acecrew_del_crew_from_session($nid, $item_id)
+{
+    $session = node_load(array('nid' => $nid));
+    foreach($session->field_job_session_crews as $crew_id => $crew){
+        if($crew['item_id'] == $item_id){
+            unset ($session->field_job_session_crews[$crew_id]);
+        }
+    }
+    node_save($session);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_calendar_form(){
+    $form['date'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Diary Page'),
+        '#tree' => TRUE,
+    );
+    
+    $form['date']['timer'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attribute' => array('id' => 'acecrew_calendar_date'),
+    );
+    return $form;
+}
+
+function acecrew_report_form(){
+    $form['timer'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select start date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attribute' => array('id' => 'acecrew_reports_startdate'),
+    );
+    $form['timer1'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('Select end date'),
+        '#date_format' => 'Y-m-d',
+        '#default_value' => date ("Y-m-d"),
+        '#attribute' => array('id' => 'acecrew_reports_enddate'),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit', 
+        '#value' => t('Generate'),
+        '#attribute' => array('id' => 'acecrew_reports_submit'),
+    );
+    return $form;
+}
+
+
+
+function acecrew_nodeapi(&$node, $op, $teaser, $page) {
+    if($node->type == 'job'){
+        $acecrewmodule = acecrewmodule::getInstance();
+        $acecrewmodule->setCurrentJobId($node->nid);
+        
+        $client_nid = _acecrew_get_client_nid_by_job_nid($node->nid);
+        $acecrewmodule->setCurrentClientId($client_nid);
+    }
+    
+    if($node->type ==  'job' && ($op == 'prepare' || $op == 'validate')){
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-create.js');
+    }
+    
+    if($node->type == 'job' && $op == 'load'){
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-sessions.css', 'module', 'all', false);
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew_session_crew_statused_name_colours.css', 'module', 'all', false);
+        module_load_include('inc', 'node', 'node.pages');
+        $nodeType = 'job_session';
+        
+        // create a string of the $form_id
+        $form_id = $nodeType . '_node_form';
+        $add_new_form = drupal_get_form($form_id, array('type' => $nodeType));
+        
+        $assigned_sessions = _acecrew_get_assigned_job_sessions($node->nid);
+        $assigned_docs = _acecrew_get_assigned_job_docs($node->nid); 
+        
+        return array(
+            'acecrew_customform' => $add_new_form, 
+            'acecrew_assigned_sessions' => $assigned_sessions,
+            'acecrew_assigned_docs' => $assigned_docs);                
+    }
+    
+    if($node->type == 'job' && $op == 'delete'){
+        $ses_nids = array_keys($node->acecrew_assigned_sessions);
+        foreach($ses_nids as $ses_nid){
+            node_delete($ses_nid);
+        }
+    }
+    
+    if($node->type == 'job_session' && $op == 'view'){        
+        $totals = array(
+            'total_hours_worked' => 0, 
+            'total_hours_worked_pounds' => 0, 
+            'total_hours_quoted' => 0,
+            'total_hours_quoted_pounds' => 0, 
+            'total_crews' => 0);
+        foreach($node->field_job_session_crews as $crew){
+            if(!empty($crew['value']['field_crew_job_session_hours_wor'][0]['value'])){
+                $totals['total_hours_worked'] += $crew['value']['field_crew_job_session_hours_wor'][0]['value'];
+            }
+            
+            if(!empty($crew['value']['field_crew_job_session_hours_quo'][0]['value'])){               
+                $totals['total_hours_quoted'] += $crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+            }
+            
+            //if(!empty($crew['value']['field_crew_job_session_name'][0]['value'])){
+                $totals['total_crews'] += 1;
+            //}
+        }
+        
+        $hour_rate = $node->field_job_session_client_rate[0]['value'];
+        $totals['total_hours_worked_pounds'] = $totals['total_hours_worked'] * $hour_rate;
+        $totals['total_hours_quoted_pounds'] = $totals['total_hours_quoted'] * $hour_rate;
+        
+        if (!empty($totals)){
+            $node->content['acecrew_session_totals'] = array(
+                '#value' => theme('acecrew_session_totals', $totals),
+                '#weight' => 50,
+            );
+        }
+    }
+    
+    if ($node->type == 'job_session' && $op == 'validate') {
+        
+        //store id of seeeion crews to check duplicates
+        $session_crews_ids = array();
+        
+        $i = 1;
+        foreach($node->field_job_session_crews as $session_crew_id => $session_crew){
+            if(is_array($session_crew)){
+                $crew_not_valid = false;
+                $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+                $crew_hours_quo = $session_crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+                $crew_suppl = $session_crew['value']['field_crew_job_session_suppl'][0]['value'];
+                
+                if($i == 1 && empty($crew_name)){
+                    //$crew_not_valid = true;
+                }
+                
+                //name filled but hours not
+                if (!empty($crew_name) && empty($crew_hours_quo)){
+                    //$crew_not_valid = true;
+                }
+                
+                //some field filles but name not
+                if (empty($crew_name) && (!empty($crew_hours_quo) || !empty($crew_suppl))) {
+                    //$crew_not_valid = true;
+                }
+                
+                //set error
+                if ($crew_not_valid){
+                    form_set_error('field_job_session_crews', 'You must fill "Crew Name" and "Hours Quoted" fields');
+                }
+                
+                
+                //kpr($session_crew);
+                //search duplicates
+                if( !empty($session_crew['value']['field_crew_job_session_name']['0']['value'])  &&  in_array( $session_crew['value']['field_crew_job_session_name']['0']['value'], $session_crews_ids) ){
+                    $el_id = $i-1;
+                    form_set_error('field-job-session-crews-' . $el_id . '-value-field-crew-job-session-name-0-value', 'This member is already selected.');
+                }
+                
+                if( !empty($session_crew['value']['field_crew_job_session_name']['0']['value']) ) {
+                    $session_crews_ids[] = $session_crew['value']['field_crew_job_session_name']['0']['value'];
+                }
+                                
+
+                $i += 1;
+            }
+        }
+    }
+    
+    if ($node->type == 'job_session' && (($op == 'update') || ($op == 'insert'))) {
+        $i = 1;
+        foreach($node->field_job_session_crews as $session_crew_id => $session_crew){
+            if(is_array($session_crew)){
+                $crew_not_valid = false;
+                $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+                $crew_hours_quo = $session_crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+                $crew_suppl = $session_crew['value']['field_crew_job_session_suppl'][0]['value'];
+                
+                if (empty($crew_name) && empty($crew_hours_quo) && empty($crew_suppl) && ($i != 1)){
+                    unset($node->field_job_session_crews[$session_crew_id]);
+                }
+                $i += 1;
+            }
+        }
+    }
+    
+    if ($node->type == 'job_session' && ($op == 'insert' || $op == 'update')) {
+        
+        $session_id = $node->nid;
+        $crews = array();
+        foreach($node->field_job_session_crews as $session_crew){
+            $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+            if(!empty($crew_name)){
+                $crews[] = $crew_name;
+            }
+        }
+        
+        $crews = array_unique($crews);
+        _acecrew_save_session_crews_relate($crews, $session_id);
+    }
+    
+    if ($node->type == 'job_session' && $op == 'delete'){
+        $session_id = $node->nid;
+        _acecrew_save_session_crews_relate(array(), $session_id);
+    }
+    
+
+    
+    if($node->type == 'job' && $op == 'view'){
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        $clientEmails = _acecrew_get_client_emails($node->field_job_client_name[0]['value']);
+        
+        $node->content['acecrew_assigned_sessions'] = array(
+            '#value' => theme('acecrew_assigned_sessions', $node->acecrew_assigned_sessions),
+            '#weight' => 50,
+        );        
+        
+        $node->content['acecrew_customform'] = array(
+            '#value' => theme('acecrew_customform', $node->acecrew_customform),
+            '#weight' => 60,
+        );
+        
+        $node->content['acecrew_assigned_docs'] = array(
+            '#value' => theme('acecrew_assigned_docs', $node->acecrew_assigned_docs, $clientEmails),
+            '#weight' => 70,
+        );
+    }
+    
+    if($node->type == 'client' && $op == 'view'){
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-client-contact.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-client-contact.css', 'module', 'all', false);
+    }
+    
+    if ($node->type == 'fines' && $op == 'prepare') {
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.css', 'module', 'all', false);
+    }
+    
+    if ($node->type == 'fines' && $op == 'validate') {
+        $my_settings = array(
+            'basepath' => drupal_get_path('module', 'acecrew'),
+        );
+        drupal_add_js(array('acecrew' => $my_settings), "setting");
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.js');
+        drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-addfine.css', 'module', 'all', false);
+        
+        $job = _acecrew_get_job_node_by_id($node->field_fine_job_number[0]['value']);
+        
+        if($job->field_job_client_name[0]['value'] != $node->field_fine_client_id[0]['value']){
+            form_set_error('field_fine_client_id', t('Job and client doesn\'t match.'));
+        }
+        
+        if($job->field_job_venue[0]['value'] != $node->field_fine_venue_id[0]['value']){
+            form_set_error('field_fine_venue_id', t('Job and venue doesn\'t match.'));
+        }
+        
+        $query_result = _acecrew_get_assigned_job_sessions_iterator($job->nid);
+        
+        $is_crew = false;
+        while ($row = db_fetch_object($query_result)) {
+            $session = node_load(array('nid' => $row->nid));
+            foreach($session->field_job_session_crews as $crew){
+                if($crew['value']['field_crew_job_session_name'][0]['value'] == $node->field_fine_staff_id[0]['value']){
+                    $is_crew = true;
+                    break 2;
+                }
+            }
+        }
+        
+        if(!$is_crew){
+            form_set_error('field_fine_staff_id', t('Job and staff doesn\'t match.'));
+        }
+    }
+    
+    if ($node->type == 'uniform' && $op == 'insert') {
+        $count_of_months = $node->field_unif_payment[0]['value'];
+        
+        $current_month_i = 1;
+        $current_year = date('Y');
+        $current_month = date('m');
+        
+        while($count_of_months >= $current_month_i){
+            $date = date('Y-m-d H:i:s', mktime(0,0,0,$current_month, 15, $current_year));
+            
+            $query = "INSERT INTO {acecrew_uniform_pays} 
+                (uid, uniform_nid, pay_month) VALUES
+                ('%d','%d','%s')";
+            $query_result = db_query($query, $node->field_unif_staff[0]['value'], $node->nid, $date);
+            
+            $current_month_i++;
+            $current_month++;
+        }
+    }
+    
+    if ($node->type == 'uniform' && $op == 'delete') {
+        db_query("DELETE FROM {acecrew_uniform_pays} WHERE uid=%d AND uniform_nid=%d", $node->field_unif_staff[0]['value'], $node->nid);
+    }
+}
+
+function theme_acecrew_customform($acecrew_customform) {  
+  $output = 
+  '
+  <div class="acecrew_session_add_block clear-block">
+      <div id="acecrew_session_add_form">
+      
+        ' . $acecrew_customform . '
+      </div>
+      <div id="acecrew_session_add_buttons"> 
+        <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
+      </div>
+  </div>';
+  return $output;
+}
+
+function theme_acecrew_assigned_sessions($acecrew_assigned_sessions) {
+    $base_path = base_path();
+    $output = '';
+    $is_sms = user_access('acecrew access sms');
+    
+    foreach($acecrew_assigned_sessions as $ses_id => $session):
+        if ($is_sms){
+            $sms_output = "<a href=\"$base_path" . "acecrew/ajax/session/sms/$ses_id\" class=\"acecrew_session_sms_button\" id=\"acecrew_session_sms_button_$ses_id\">Generate text</a>";
+        } else {
+            $sms_output = '';
+        }
+        $output .=
+            '<div class="acecrew_sessions_container">' . 
+            "<div class=\"acecrew_session_content\" id=\"acecrew_session_content_$ses_id\"> " . $session['content'] . ' </div>' .
+            "<div class=\"acecrew_session_form\" id=\"acecrew_session_form_$ses_id\"> " . $session['form'] . ' </div>' .
+            "<div class=\"acecrew_session_buttons\" id=\"acecrew_session_buttons_$ses_id\">
+                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_edit('$ses_id')\" class=\"acecrew_session_edit_button\" id=\"acecrew_session_edit_button_$ses_id\">Edit</a>
+                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_del('$ses_id')\" class=\"acecrew_session_del_button\" id=\"acecrew_session_del_button_$ses_id\">Delete</a>
+                $sms_output
+            </div>" . 
+            '</div>';
+    endforeach;
+    return $output;
+}
+
+function theme_acecrew_assigned_docs($docs, $clientEmails) {
+    $base_path = base_path();
+
+    $clientEmailsSelectbox = '';
+    foreach($clientEmails as $clientEmail){
+        $clientEmailsSelectbox .= '<option value="' . $clientEmail['email'] . '"> ' . $clientEmail['name'] . ' &lt;' . $clientEmail['email'] . '&gt; </option>';
+    }
+    $clientEmailsSelectbox = '<select class="client_emails" name="client_emails">' . $clientEmailsSelectbox . '</select>';
+    
+    $invoices_html = '';
+    foreach($docs['invoices'] as $invoice_id => $invoice){
+        $invoices_html .= "<li><a href=\"$base_path" . "invoice/pdf/$invoice_id\">$invoice</a> <a href=\"$base_path" . "acecrew/delinvoice/$invoice_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$invoice_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailinvoice/$invoice_id\" class=\"client_emails_form\" id=\"client_emails_form_$invoice_id\"> $clientEmailsSelectbox </form> </li>"; 
+    }
+    if(!empty($invoices_html)){
+        $invoices_html = '<ul>' . $invoices_html . '</ul>';
+    }
+    
+    $quotes_html = '';
+    foreach($docs['quotes'] as $quote_id => $quote){
+        $quotes_html .= "<li><a href=\"$base_path" . "invoice/pdf/$quote_id\">$quote</a> <a href=\"$base_path" . "acecrew/delquote/$quote_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$quote_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailquote/$quote_id\" class=\"client_emails_form\" id=\"client_emails_form_$quote_id\"> $clientEmailsSelectbox </form> </li>"; 
+    }
+    if(!empty($quotes_html)){
+        $quotes_html = '<ul>' . $quotes_html . '</ul>';
+    }
+    
+    $output = '
+    <div class="acecrew_job_docs">
+        <h2>INVOICES</h2>
+        ' . $invoices_html . '
+        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_invoice">GENERATE INVOICE</a> <br /><br />
+        <h2>QUOTES</h2>
+        ' . $quotes_html . '
+        <a href="' .$base_path .  'acecrew/generatequote/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_quote">GENERATE QUOTE</a> <br />
+    </div>';
+    return $output;
+}
+
+function theme_acecrew_session_totals($totals){
+    $output = '';
+    $output .= '<span class="acecrew_session_totals_title acecrew_session_total_hours_title">' . t('Total hours worked') . ': </span> 
+        <span class="acecrew_session_totals_value acecrew_session_total_hours_value">' . $totals['total_hours_worked'] . ' (' . number_format($totals['total_hours_worked_pounds'], 2) . ' GBP)</span>
+        <br />
+        
+        <span class="acecrew_session_totals_title acecrew_session_total_hours_title">' . t('Total hours quoted') . ': </span> 
+        <span class="acecrew_session_totals_value acecrew_session_total_hours_value">' . $totals['total_hours_quoted'] . ' (' . number_format($totals['total_hours_quoted_pounds'], 2) . ' GBP)</span>        
+        <br />
+        
+        <span class="acecrew_session_totals_title acecrew_session_total_crews_title">' . t('Total crews') . ': </span> 
+        <span class="acecrew_session_totals_value acecrew_session_total_crews_value">' . $totals['total_crews'] . '</span>';
+        
+    $output = '<div class="acecrew_session_totals">' . $output . '</div>';
+    return $output;
+}
+
+function theme_acecrew_calendar_scheduler($scheduler)
+{
+    $output = '';
+    
+    if(empty($scheduler)){
+        return '<span class="acecrew_calendar_no_events">' . t('There are no items to display') . '</span>';
+    }
+    
+    $header = array(t('Job Status'), t('Time'), t('Client'), t('Venue'), t('Crew'), t('Hours'), t('Job Number'), t('Crew Memebers'));
+    $events = array();
+    foreach($scheduler as $event){
+        $events[] = array(array('data' => $event['job_status'], 'class' => 'job_status_' . $event['job_status']), $event['time'], $event['client'], $event['venue'], $event['ses_count_crews'], $event['ses_count_hours'], l($event['job_id'], $event['job_ref']), $event['crews']);
+    }
+    $output = theme_table($header, $events);
+    return $output;
+}
+
+function theme_acecrew_report_table($report)
+{
+    $output = '';
+    $summ = 0;
+    
+    $header = array(t('Charge'), t('Value'));
+    $charges = array();
+    foreach($report['hours'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    foreach($report['clothing'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    foreach($report['fines'] as $charge){
+        $charges[] = array($charge['name'], $charge['value']);
+        $summ += $charge['value'];
+    }
+    if(empty($summ)){
+        return '<span class="acecrew_report_no_events">' . t('There are no items to display') . '</span>';
+    }
+    $charges[] = array(t('Total'), $summ);
+    $output = theme_table($header, $charges);
+    return $output;
+}
+
+drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-list.css', 'module', 'all', false);

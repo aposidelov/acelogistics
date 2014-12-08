@@ -1,0 +1,11 @@
+name = "Printer-friendly pages"
+description = "Adds a printer-friendly version link to content and administrative pages."
+core=6.x
+package = "Printer, email and PDF versions"
+
+; Information added by Drupal.org packaging script on 2014-02-25
+version = "6.x-1.18+19-dev"
+core = "6.x"
+project = "print"
+datestamp = "1393370008"
+

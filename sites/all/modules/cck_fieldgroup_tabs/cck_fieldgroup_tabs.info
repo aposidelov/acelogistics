@@ -1,0 +1,13 @@
+name = CCK Fieldgroup Tabs
+description = Display CCK fieldgroups in tabs. Enables splitting up content onto tabs in both editing and display.
+dependencies[] = fieldgroup
+dependencies[] = tabs
+package = CCK
+core = 6.x
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "cck_fieldgroup_tabs"
+datestamp = "1380557751"
+

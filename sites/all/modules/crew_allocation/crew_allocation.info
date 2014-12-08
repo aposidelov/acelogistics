@@ -1,0 +1,11 @@
+name = Crew Allocation
+description = allocate crew with modal frame.
+package = Ace Crew
+dependencies[] = modalframe
+core = 6.x
+
+version = "6.x-1.7"
+core = "6.x"
+project = "crew_allocation"
+datestamp = "1273809616"
+

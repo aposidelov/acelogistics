@@ -1,0 +1,602 @@
+<?php
+/**
+ * @file
+ * Defines a CCK field for selecting multiple nodes from a view using checkboxes.  Also allows extra fields to be attached to each selected row.
+ */
+
+// @todo: extra field data isn't normalized (it's JSONified into a single db column, since that was way easier to implement).  JSON, because it makes way more sense than PHP serialize().
+// @todo: does the field data work when queried with another view?
+// @todo: devel.module integration
+// @todo: token.module integration
+
+
+
+/**
+ * Implement hook_perm().
+ */
+function nodereference_views_multifield_perm() {
+  $extrasForFields = array();
+  foreach (content_types() as $ct)
+    foreach ($ct['fields'] as $f)
+      if ($f['type'] === 'nodereference_views_multifield')
+        if (!isset($extrasForFields[$f['field_name']]))
+          $extrasForFields[$f['field_name']] = nodereference_views_multifield_parse_fields($f['fields']);
+
+  $perms = array();
+  foreach ($extrasForFields as $fieldname => $fieldextras) {
+    $perms[] = "$fieldname select rows";
+    foreach ($fieldextras as $extraname => $extrainfo)
+      $perms[] = "$fieldname extrafield $extraname edit";
+  }
+
+  return $perms;
+}
+
+/* CCK Field ****************************************************************************************/
+
+/**
+ * Implementation of hook_field_info().
+ */
+function nodereference_views_multifield_field_info() {
+  return array(
+    'nodereference_views_multifield' => array(
+      'label' => t('Node reference Views Multifield'),
+      'description' => t('Allows the user to select rows from a View using checkboxes.'),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_field_settings().
+ */
+function nodereference_views_multifield_field_settings($op, $field) {
+  switch ($op) {
+    case 'form':
+      $form = array();
+
+      $compatible_viewdisplays = array();
+      foreach (views_get_all_views() as $v)
+        if (!(isset($v->disabled) && $v->disabled) && $v->base_table === 'node')
+          foreach ($v->display as $dn => $dv)
+            // space isn't allowed as a view machinename, so it's a safe delimiter
+            $compatible_viewdisplays[$v->name . ' ' . $dn] = $v->name . ': ' . $dv->display_title;
+
+      $form['viewdisplay'] = array(
+        '#type' => 'select',
+        '#title' => t('Allow selections from View/display'),
+        '#default_value' => isset($field['viewdisplay']) ? $field['viewdisplay'] : '',
+        '#options' => $compatible_viewdisplays,
+      );
+
+      $form['fields'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Extra fields for each View row'),
+        '#default_value' => (isset($field['fields']) && $field['fields']) ? $field['fields'] : "price|Price per Item\nquantity|Quantity of Items",
+        '#required' => FALSE,
+        '#size' => 30,
+        '#rows' => 3,
+        '#description' => t('Specify a pipe-separated <tt>"machinename|Display Name|optional widget type"</tt> pair on each line.  Each line will cause an extra column to be added to the View, with fields allowing text entry (only when the row is checked).  Widget type defaults to "textfield", and can also be "checkbox".'),
+      );
+
+      return $form;
+
+    case 'save':
+      return array('fields', 'viewdisplay');
+
+    case 'database columns':
+      $columns['nid'] = array(
+        'description' => 'The node identifier this field points to.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'sortable' => TRUE,
+        'views' => TRUE,
+      );
+      $columns['fields'] = array(
+        'description' => 'The fields attached to this nodereference instance (JSON).',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'sortable' => TRUE,
+        'views' => TRUE,
+      );
+      return $columns;
+
+    case 'views data':
+      $data = content_views_field_views_data($field);
+      $db_info = content_database_info($field);
+      $table_alias = content_views_tablename($field);
+
+      $data[$table_alias][$field['field_name'] .'_nid']['relationship'] = array(
+        'base' => 'node',
+        'field' => $db_info['columns']['nid']['column'],
+        'handler' => 'content_handler_relationship',
+        'label' => t($field['widget']['label']),
+        'content_field_name' => $field['field_name'],
+      );
+      return $data;
+  }
+}
+
+/**
+ * Implementation of hook_field_settings_alter().
+ */
+function nodereference_views_multifield_field_settings_alter(&$form, $op, $field) {
+  if ($op !== 'form' || $field['type'] !== 'nodereference_views_multifield')
+    return;
+
+  // Hide the "Number of values" dropdown, since we always allow unlimited values.
+  $form['multiple'] = array(
+    '#type' => 'hidden',
+    '#value' => 1,
+  );
+}
+
+/**
+ * Implementation of hook_content_is_empty().
+ */
+function nodereference_views_multifield_content_is_empty($item, $field) {
+  // whenever there's a nid, we're not empty.
+  return FALSE;
+}
+
+
+
+
+
+/* CCK Widget ***************************************************************************************/
+
+/**
+ * Implementation of hook_widget_info().
+ */
+function nodereference_views_multifield_widget_info() {
+  return array(
+    'nodereference_views_multifield' => array(
+      'label' => t('Node reference Views Multifield Widget'),
+      'field types' => array('nodereference_views_multifield'),
+      'multiple values' => CONTENT_HANDLE_MODULE,
+      'callbacks' => array(
+        'default value' => CONTENT_CALLBACK_NONE,
+      ),
+    ),
+
+    // widget names are limited to 32 characters :^(
+    'nodereference_views_multifield_a' => array(
+      'label' => t('Node reference Views Add/Remove Widget'),
+      'field types' => array('nodereference_views_multifield'),
+      'multiple values' => CONTENT_HANDLE_MODULE,
+      'callbacks' => array(
+        'default value' => CONTENT_CALLBACK_NONE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_widget().
+ */
+function nodereference_views_multifield_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  return array('#type' => $field['widget']['type']);
+}
+
+/**
+ * Implementation of hook_elements().
+ */
+function nodereference_views_multifield_elements() {
+  return array(
+    'nodereference_views_multifield' => array(
+      '#input' => TRUE,
+      '#delta' => 0,
+      '#process' => array('nodereference_views_multifield_widget_process'),
+      '#submit' => array('nodereference_views_multifield_widget_submit'),
+      ),
+
+    // element names are limited to 32 characters :^(
+    'nodereference_views_multifield_a' => array(
+      '#input' => TRUE,
+      '#delta' => 0,
+      '#process' => array('nodereference_views_multifield_a_widget_process'),
+      '#submit' => array('nodereference_views_multifield_a_widget_submit'),
+      ),
+    );
+}
+
+/**
+ * Process an individual element.
+ */
+function nodereference_views_multifield_widget_process($element, $edit, &$form_state, $form) {
+  $element['#theme'] = $element['#type'] . '_widget';
+  $element['#type'] = 'fieldset';
+  $field = $form['#field_info'][$element['#field_name']];
+
+  list($viewname, $viewdisplay) = explode(' ', $field['viewdisplay']);
+  $view = views_get_view($viewname);
+  $view->set_display($viewdisplay);
+  $view->preview();
+
+  if (isset($view->display[$view->current_display]->display_options['fields']))
+    $viewfields = $view->display[$view->current_display]->display_options['fields'];
+  else
+    $viewfields = $view->display['default']->display_options['fields'];
+
+  $extrafields = nodereference_views_multifield_parse_fields($field['fields']);
+
+  $element['#title'] = $field['widget']['label'];
+
+  $header = array();
+  foreach ($viewfields as $viewfield)
+    if (isset($viewfield['exclude']) && !$viewfield['exclude'])
+      $header[] = $viewfield['label'];
+  foreach ($extrafields as $extrafield)
+    $header[] = $extrafield['name'];
+
+
+  // rearrange form field data for easy lookup
+  $extrafielddata = array();
+  if (isset($form['#node']->$element['#field_name']))
+    foreach ($form['#node']->$element['#field_name'] as $k)
+      $extrafielddata[$k['nid']] = json_decode($k['fields']);
+
+
+  // display all rows returned by the view
+  $rows_unselected = array();
+  $rows_selected = array();
+  foreach ($view->result as $viewresultnum => $viewresult) {
+    $row = array();
+
+    if (isset($form_state['node'][$field['field_name']]['rows'][$viewresultnum]))
+      $row_form_state = $form_state['node'][$field['field_name']]['rows'][$viewresultnum];
+    else {
+      // build $form_state from $form
+      $row_form_state = array();
+
+      // if the current row was stored in $form...
+      $nid = $viewresult->nid;
+      if (in_array($nid, array_keys($extrafielddata))) {
+        $row_form_state['nodereference_views_multifield_checkbox'] = 1;
+        foreach ($extrafielddata[$nid] as $k => $v)
+          $row_form_state[$k] = $v;
+        unset($extrafielddata[$nid]);
+      }
+    }
+
+    // add checkboxes, for the user to select the desired nodes
+    $checked = (isset($row_form_state['nodereference_views_multifield_checkbox']) && $row_form_state['nodereference_views_multifield_checkbox']);
+    $row['nodereference_views_multifield_checkbox'] = array(
+      '#type' => user_access($element['#field_name'] . ' select rows') ? 'checkbox' : 'hidden',
+      // need to set #value, in case the form is submitted without being sent to the browser
+      '#default_value' => $checked ? 1 : 0,
+      // need to set #attributes, because otherwise the checkbox widget doesn't get checked
+      '#attributes' => $checked ? array('checked' => 'checked') : array(),
+    );
+
+    // if this row isn't already checked, don't bother showing it if the user isn't permitted to select rows
+    if (!$checked && !user_access($element['#field_name'] . ' select rows'))
+      continue;
+
+    // add the columns from the view
+    foreach ($viewfields as $viewfieldname => $viewfield)
+      if (isset($viewfield['exclude']) && !$viewfield['exclude'])
+        $row[] = array(
+          '#value' => $view->render_field($viewfieldname, $viewresultnum),
+        );
+
+    // add the extra fields
+    foreach ($extrafields as $extrafieldkey => $extrafield) {
+      $disabled = !user_access($element['#field_name'] . ' extrafield ' . $extrafieldkey . ' edit');
+      $row[$extrafieldkey] = array(
+        '#type' => $extrafield['type'],
+        '#default_value' => isset($row_form_state[$extrafieldkey]) ? $row_form_state[$extrafieldkey] : '',
+        '#size' => 10,
+        '#disabled' => $disabled,
+
+        // @@@ disable by default (or, upon entering text, check the checkbox)
+      );
+
+      // if the field is disabled, we have to store #value, not #default_value
+      if ($disabled)
+        $row[$extrafieldkey]['#value'] = $row[$extrafieldkey]['#default_value'];
+    }
+
+    // add the nid
+    $row['nodereference_views_multifield_nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $viewresult->nid,
+      '#attributes' => array('class' => 'nodereference-views-multifield-nid'),
+    );
+
+    if ($checked)
+      $rows_selected[] = $row;
+    else
+      $rows_unselected[] = $row;
+  }
+
+  // also display any selected rows that weren't returned by the view
+  foreach ($extrafielddata as $nid => $extrafielddatum) {
+    $row = array();
+
+    // add checkbox
+    $row['nodereference_views_multifield_checkbox'] = array(
+      '#type' => user_access($element['#field_name'] . ' select rows') ? 'checkbox' : 'hidden',
+      // need to set #value, in case the form is submitted without being sent to the browser
+      '#default_value' => 1,
+      // need to set #attributes, because otherwise the checkbox widget doesn't get checked
+      '#attributes' => array('checked' => 'checked'),
+    );
+
+    // add the columns from the view
+    foreach ($viewfields as $viewfieldname => $viewfield)
+      if (isset($viewfield['exclude']) && !$viewfield['exclude']) {
+        // since this nid is no longer returned by our view, try to approximate the view data by consulting the node
+        $node = node_load($nid);
+        $f = $viewfield['field'];
+        if (substr($f, -6) === '_value')
+          $text = $node->{str_replace('_value', '', $f)}[0]['value'];
+        else
+          $text = $node->{$f};
+        
+        if ($viewfield['link_to_node'])
+          $v = l($text, 'node/'.$nid);
+        else
+          $v = $text;
+
+        $row[] = array(
+          '#value' => $v,
+        );
+      }
+
+    // add the extra fields
+    foreach ($extrafields as $extrafieldkey => $extrafield) {
+      $disabled = !user_access($element['#field_name'] . ' extrafield ' . $extrafieldkey . ' edit');
+      $row[$extrafieldkey] = array(
+        '#type' => $extrafield['type'],
+        '#default_value' => $extrafielddatum->{$extrafieldkey},
+        '#size' => 10,
+        '#disabled' => $disabled,
+      );
+
+      // if the field is disabled, we have to store #value, not #default_value
+      if ($disabled)
+        $row[$extrafieldkey]['#value'] = $row[$extrafieldkey]['#default_value'];
+    }
+
+    // add the nid
+    $row['nodereference_views_multifield_nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $nid,
+      '#attributes' => array('class' => 'nodereference-views-multifield-nid'),
+    );
+
+    $rows_selected[] = $row;
+  }
+  
+  // place selected rows at the top
+  $rows = array_merge($rows_selected, $rows_unselected);
+
+  drupal_alter('nodereference_views_multifield_widget_rows', $rows, $view->result);
+  $rowsHidden = array();
+  foreach ($rows as $rk => $rv)
+    foreach ($rv as $ck => $cv)
+      if ($ck==='nodereference_views_multifield_hidden') {
+        $rowsHidden[] = $rows[$rk];
+        unset($rows[$rk]);
+      }
+
+  // wrap $header in a value FAPI element, so the form builder doesn't mess with it
+  $element['header'] = array(
+    '#type' => 'value',
+    '#value' => $header,
+  );
+  $element['rows'] = $rows;
+  $element['rowsHidden'] = $rowsHidden;
+  $element['#element_validate'] = array('nodereference_views_multifield_widget_validate');
+  $element['#attributes'] = array('class' => 'nodereference-views-multifield');
+  return $element;
+}
+
+
+function nodereference_views_multifield_a_widget_process($element, $edit, &$form_state, $form) {
+  $element = nodereference_views_multifield_widget_process($element, $edit, $form_state, $form);
+  $element['#attributes']['class'] .= ' nodereference-views-multifield-add-remove';
+  return $element;
+}
+
+
+function nodereference_views_multifield_widget_validate($element, &$form_state) {
+  $rows = $form_state['values'][$element['#field_name']]['rows'];
+
+  // merge the hidden rows back into the dataset for storage
+  $rowsHidden = $element['rowsHidden'];
+  foreach (element_children($rowsHidden) as $rowid) {
+    $row = array();
+    foreach (element_children($rowsHidden[$rowid]) as $elid) {
+      $row[$elid] = $rowsHidden[$rowid][$elid]['#value'] ? $rowsHidden[$rowid][$elid]['#value'] : $rowsHidden[$rowid][$elid]['#default_value'];
+    }
+    $rows[] = $row;
+  }
+
+  // reformat the data for storage in the database
+  $form_state['values'][$element['#field_name']] = array();
+  foreach ($rows as $row) {
+    // only store rows in which the checkbox is checked
+    if ($row['nodereference_views_multifield_checkbox']) {
+      unset($row['nodereference_views_multifield_checkbox']);
+      $nid = $row['nodereference_views_multifield_nid'];
+      unset($row['nodereference_views_multifield_nid']);
+      $form_state['values'][$element['#field_name']][] = array(
+        'nid' => $nid,
+        'fields' => json_encode($row),
+      );
+    }
+  }
+}
+
+/**
+ * Turns "price|Price per Item\nquantity|Quantity of Items\napproved|Approved?|checkbox"
+ * into array("price"=>array("name"=>"Price per Item","type"=>"textfield"),"quantity"=>array("name"=>"Quantity of Items","type"=>"textfield"),"approved"=>array("name"=>"Approved?","type"=>"checkbox"))
+ */
+function nodereference_views_multifield_parse_fields($fields_string) {
+  $fields = array();
+  if (trim($fields_string))
+    foreach (explode("\n", $fields_string) as $f) {
+      $x = explode('|', $f);
+      $k = $x[0];
+      $name = $x[1];
+      if (isset($x[2]))
+        $t = trim($x[2]);
+      else
+        $t = 'textfield';
+      $fields[trim($k)] = array(
+        'name' => trim($name),
+        'type' => $t,
+      );
+    }
+  return $fields;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function nodereference_views_multifield_theme() {
+  return array(
+    // Themes for the widgets (node edit).
+    'nodereference_views_multifield_widget' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'nodereference_views_multifield_a_widget' => array(
+      'arguments' => array('form' => NULL),
+    ),
+
+    // Themes for the formatters (node view.
+    'nodereference_views_multifield_formatter_default' => array(
+      'arguments' => array('element' => NULL),
+    ),
+  );
+}
+
+function theme_nodereference_views_multifield_widget($form) {
+  $header = $form['header']['#value'];
+  // add an empty column header, making room for the checkbox
+  array_unshift($header, array());
+
+  $rows_rendered = array();
+  foreach (element_children($form['rows']) as $rowid) {
+    $row_rendered = array();
+    foreach (element_children($form['rows'][$rowid]) as $elid) {
+      $row_rendered[] = drupal_render($form['rows'][$rowid][$elid]);
+    }
+    $rows_rendered[] = $row_rendered;
+  }
+
+  return theme('table', $header, $rows_rendered);
+}
+
+function theme_nodereference_views_multifield_a_widget($form) {
+  drupal_add_js(drupal_get_path('module', 'nodereference_views_multifield') . '/nodereference_views_multifield_add_remove.js');
+  return theme_nodereference_views_multifield_widget($form);
+}
+
+
+
+/* CCK Formatter ************************************************************************************/
+
+/**
+ * Implementation of hook_field_formatter_info().
+ */
+function nodereference_views_multifield_field_formatter_info() {
+  return array(
+    'default' => array(
+      'label' => t('Default'),
+      'field types' => array('nodereference_views_multifield'),
+      'multiple values' => CONTENT_HANDLE_MODULE,
+    ),
+  );
+}
+
+/**
+ * Theme function for 'default' field formatter.
+ */
+function theme_nodereference_views_multifield_formatter_default($element) {
+  $ct = content_types($element['#node']->type);
+  $field = $ct['fields'][$element['#field_name']];
+
+  // rearrange data for easy lookup
+  $data = array();
+  foreach (element_children($element) as $k) {
+    $nid = $element[$k]['#item']['nid'];
+    $fields = json_decode($element[$k]['#item']['fields']);
+    $data[$nid] = $fields;
+  }
+  $nids_selected = array_keys($data);
+
+  // retrieve the complete view (then filter it later)
+  list($viewname, $viewdisplay) = explode(' ', $field['viewdisplay']);
+  $view = views_get_view($viewname);
+  $view->set_display($viewdisplay);
+  $view->preview();
+
+  $view_resultnum_by_nid = array();
+  foreach ($view->result as $viewresultnum => $viewresult) {
+    $nid = $viewresult->nid;
+
+    if (in_array($nid, $nids_selected))
+      $view_resultnum_by_nid[$nid] = $viewresultnum;
+  }
+
+  if (isset($view->display[$view->current_display]->display_options['fields']))
+    $viewfields = $view->display[$view->current_display]->display_options['fields'];
+  else
+    $viewfields = $view->display['default']->display_options['fields'];
+
+  $extrafields = nodereference_views_multifield_parse_fields($field['fields']);
+
+  $header = array();
+  foreach ($viewfields as $viewfield)
+    if (isset($viewfield['exclude']) && !$viewfield['exclude'])
+      $header[] = $viewfield['label'];
+  foreach ($extrafields as $extrafieldkey => $extrafieldinfo)
+    $header[] = $extrafieldinfo['name'];
+
+  drupal_alter('nodereference_views_multifield_formatter_rows_prerender', $nids_selected);
+
+  $rows = array();
+  foreach ($nids_selected as $nid) {
+    $row = array();
+
+    // add the columns from the view
+    foreach ($viewfields as $viewfieldname => $viewfield)
+      if (isset($viewfield['exclude']) && !$viewfield['exclude']) {
+        if (isset($view_resultnum_by_nid[$nid]))
+          $row[] = $view->render_field($viewfieldname, $view_resultnum_by_nid[$nid]);
+        else {
+          // since this nid is no longer returned by our view, try to approximate the view data by consulting the node
+          $node = node_load($nid);
+          $f = $viewfield['field'];
+          if (substr($f, -6) === '_value')
+            $text = $node->{str_replace('_value', '', $f)}[0]['value'];
+          else
+            $text = $node->{$f};
+          
+          if ($viewfield['link_to_node'])
+            $row[] = l($text, 'node/'.$nid);
+          else
+            $row[] = $text;
+        }
+      }
+
+    // add the extra fields
+    foreach ($extrafields as $extrafieldkey => $extrafieldinfo) {
+      switch ($extrafieldinfo['type']) {
+        case 'checkbox':
+          $row[] = $data[$nid]->$extrafieldkey ? '&#x2714;' : '';
+          break;
+        default:
+          $row[] = $data[$nid]->$extrafieldkey;
+      }
+    }
+
+    $rows[] = array('data' => $row);
+  }
+
+  return theme('table', $header, $rows);
+}
