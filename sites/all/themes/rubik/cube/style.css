@@ -17,6 +17,15 @@ a {
 
 #top { background:url(images/header.png) 0px 0 repeat-x; height: 191px; position: relative; }
 
+.client {
+    
+}
+
+.client.client-credit-warning {
+    color: #E01F1F;
+    font-weight: bold;
+}
+
 /**
  * Branding ===========================================================
  */

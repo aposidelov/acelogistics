@@ -84,7 +84,7 @@ function op_custom_menu() {
 }
 
 function op_custom_ajax_client_account($client_name = '') {
-  $status = false;  
+  $status = false;
   if (!empty($client_name)) {
     $account_limit = db_result(db_query('SELECT ctc.field_credit_limit_box_value FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
     if (!empty($account_limit) && $account_limit > 0) {
@@ -94,6 +94,37 @@ function op_custom_ajax_client_account($client_name = '') {
 
   print json_encode(array('status' => $status));
   exit;
+}
+
+function acecrew_get_client_name($client_id) {
+  $client_name = db_result(db_query("SELECT field_client_name_value 
+    FROM {content_type_client} 
+    WHERE field_client_id_value = %d", $client_id));
+
+  return $client_name;
+}
+
+function acecrew_get_client_id_by_job_id($job_id) {
+  $client_id = db_result(db_query("SELECT c.field_client_id_value 
+    FROM {content_type_client} c INNER JOIN {content_type_job} j 
+    ON c.field_client_id_value = j.field_job_client_name_value
+    WHERE j.nid = %d", $job_id));
+
+  return $client_id;
+}
+
+function acecrew_client_is_credit_exists($client_id) {
+  $status = false;
+  $credit_limit = db_result(db_query('
+    SELECT ctc.field_credit_limit_box_value 
+    FROM {content_type_client} ctc 
+    WHERE ctc.field_client_id_value = %d', $client_id));
+
+  if (!empty($credit_limit) && $credit_limit > 0) {
+    $status = true;
+  }
+
+  return $status;
 }
 
 /**

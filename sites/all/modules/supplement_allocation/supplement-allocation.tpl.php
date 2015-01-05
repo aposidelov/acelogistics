@@ -25,17 +25,17 @@
         <div style="padding-left: 10px; padding-right: 10px; padding-bottom: 10px; background-color: white;">
             <div class="call-second-row">
             <span class="call-status">
-                <strong>Call Status:</strong><?=$job_status;?>
+                <strong>Call Status: </strong><?=$job_status;?>
             </span>
             <span class="call-client">
-                <strong>Client:</strong><?=$client_name;?>
+                <strong>Client: </strong><span class="client <?=$client_warning_class;?>"><?=$client_name;?></span>
             </span>
             <span class="call-venue">
-                <strong>Venue:</strong><?=$venue_name;?>
+                <strong>Venue: </strong><?=$venue_name;?>
             </span>
             </div>
             <div class="call-third-row">
-                <strong>Skills Required:</strong>
+                <strong>Skills Required: </strong>
                 <?=$supps;?>
             </div>
 

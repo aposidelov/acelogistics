@@ -22,5 +22,10 @@
 $job = node_load($row->node_data_field_job_id_field_job_id_value);
 $client_id = $job->field_job_client_name[0]['value'];
 $client_name = db_result(db_query('SELECT field_client_name_value FROM {content_type_client} WHERE field_client_id_value = %d', $client_id));
+$client_credit_exists = acecrew_client_is_credit_exists($client_id);
+$red_class = !$client_credit_exists ? 'client-credit-warning' : '';
 ?>
-<?php print $client_name; ?>
+<div class="client <?php print $red_class; ?>">
+  <?php print $client_name; ?>
+</div>
+

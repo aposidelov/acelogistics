@@ -2130,7 +2130,12 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     $index = 0;
     // 'to be confirmed' short name
     $tbc_short = 'TBC';
+    //watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
     foreach ($scheduler as $event) {
+        $client_id = acecrew_get_client_id_by_job_id($event['job_nid']);
+        $client_credit_exists = acecrew_client_is_credit_exists($client_id);
+        $red_class = !$client_credit_exists ? 'client-credit-warning' : '';
+
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
 
         $call_status_text = ($event['call_time_tbc'] || $event['call_crew_tbc'] || $event['call_hours_tbc'] || $event['call_contract_tbc']) ? t('To be confirmed') : $event['job_status'];
@@ -2198,7 +2203,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     <span class="call-status">
                         <strong>Call Status:</strong> ' . $call_status_text . '
                     </span>
-                    <span class="call-client"><strong>Client:</strong> ' .  $event['client'] . '</span>
+                    <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  $event['client'] . '</span></span>
                     <span class="call-venue"><strong>Venue:</strong> ' .  (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']) . '</span>
                     <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
                 </div>
@@ -2286,6 +2291,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 var call_hours = item.find(".call-hours").text();
                 var call_status = item.find(".call-status").text();
                 var call_client = item.find(".call-client").text();
+
                 var call_venue = item.find(".call-venue").text();
                 var crews = {};
                 var supps = {};
@@ -2302,7 +2308,13 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 sidebar_widget += "</div>";
                 sidebar_widget += "<div id=\"call-info2\">";
                 sidebar_widget += "<span>" + call_venue + "</span><br>";
-                sidebar_widget += "<span>" + call_client + "</span><br>";
+
+                if (item.find(".call-client .client").hasClass("client-credit-warning")) {
+                    sidebar_widget += "<span class=\'client client-credit-warning\'>" + call_client + "</span><br>";
+                } else {
+                    sidebar_widget += "<span class=\'client\'>" + call_client + "</span><br>";
+                }
+                
                 sidebar_widget += "<span>" + call_status + "</span><br>";
                 sidebar_widget += "</div>";
                 sidebar_widget += "<div id=\"supplements\">";

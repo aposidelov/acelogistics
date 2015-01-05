@@ -19,13 +19,21 @@
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
   */
-$client_name = db_result(db_query("SELECT field_client_name_value FROM {content_type_client} WHERE field_client_id_value = %d", $row->job_field_job_client_name_value));
-$client_credit_exists = acecrew_client_is_credit_exists($row->job_field_job_client_name_value);
+
+$client_name = $output; 
+$client_id = '';
+if ($client_name == 'Metro') {
+  watchdog('name', '<pre>'.print_r($row, TRUE).'</pre>');
+}
+if (isset($row->node_data_field_client_name_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_name_field_client_id_value;
+} elseif (isset($row->node_data_field_client_logo_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_logo_field_client_id_value;
+}
+$client_credit_exists = acecrew_client_is_credit_exists($client_id);
 $red_class = !$client_credit_exists ? 'client-credit-warning' : '';
 ?>
 
 <div class="client <?php print $red_class; ?>">
-  <?php print $client_name; ?>
+  <?php print $output; ?>
 </div>
-
-
