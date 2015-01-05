@@ -19,9 +19,14 @@
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
   */
+
+ 
 $job = node_load($row->node_data_field_job_session_date_time_field_session_job_nid_value);
 
 $client_id = $job->field_job_client_name[0]['value'];
+if ($client_id == 1) {
+  watchdog('cseach', '<pre>'.print_r($row, TRUE).'</pre>');
+}
 $client_name = db_result(db_query("SELECT field_client_name_value FROM {content_type_client} WHERE field_client_id_value = %d", $client_id));
 $client_credit_exists = acecrew_client_is_credit_exists($row->job_field_job_client_name_value);
 
