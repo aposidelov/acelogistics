@@ -23,6 +23,13 @@
 $client_name = $output; 
 $client_id = '';
 
+if ($client_name == '3D Set Company') {
+  watchdog('name1', '<pre>'.print_r($row, TRUE).'</pre>');
+}
+if ($client_name == '24 Productions') {
+  watchdog('name2', '<pre>'.print_r($row, TRUE).'</pre>');
+}
+
 if (isset($row->node_data_field_client_name_field_client_id_value)) {
     $client_id = $row->node_data_field_client_name_field_client_id_value;
 } elseif (isset($row->node_data_field_client_logo_field_client_id_value)) {
