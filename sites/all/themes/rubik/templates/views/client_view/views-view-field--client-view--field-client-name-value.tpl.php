@@ -22,14 +22,23 @@
 
 $client_name = $output; 
 $client_id = '';
-if ($client_name == 'Metro') {
-  watchdog('name', '<pre>'.print_r($row, TRUE).'</pre>');
-}
+
 if (isset($row->node_data_field_client_name_field_client_id_value)) {
     $client_id = $row->node_data_field_client_name_field_client_id_value;
 } elseif (isset($row->node_data_field_client_logo_field_client_id_value)) {
     $client_id = $row->node_data_field_client_logo_field_client_id_value;
+} elseif (isset($row->node_data_field_client_company_access_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_company_access_field_client_id_value;
+} elseif (isset($row->node_data_field_client_company_postcode_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_company_postcode_field_client_id_value;
+} elseif (isset($row->node_data_field_client_company_telephone_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_company_telephone_field_client_id_value;
+} elseif (isset($row->node_data_field_client_company_email_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_company_email_field_client_id_value;
+} elseif (isset($row->node_data_field_client_rate_field_client_id_value)) {
+    $client_id = $row->node_data_field_client_rate_field_client_id_value;
 }
+
 $client_credit_exists = acecrew_client_is_credit_exists($client_id);
 $red_class = !$client_credit_exists ? 'client-credit-warning' : '';
 ?>
