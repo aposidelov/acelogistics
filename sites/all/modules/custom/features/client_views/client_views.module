@@ -1,0 +1,3 @@
+<?php
+
+include_once('client_views.features.inc');
