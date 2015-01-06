@@ -77,6 +77,72 @@ function clients_fieldgroup_default_groups() {
     ),
   );
 
+  // Exported group: group_blocked_crews
+  $groups['client-group_blocked_crews'] = array(
+    'group_type' => 'standard',
+    'type_name' => 'client',
+    'group_name' => 'group_blocked_crews',
+    'label' => 'Blocked Crews',
+    'settings' => array(
+      'form' => array(
+        'style' => 'fieldset',
+        'description' => '',
+      ),
+      'display' => array(
+        'description' => '',
+        'label' => 'above',
+        'teaser' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'full' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '4' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '2' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '3' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '100' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '101' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'inline' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'modal' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '5' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'token' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+      ),
+    ),
+    'weight' => '43',
+    'fields' => array(
+      '0' => 'field_blocked_crews',
+    ),
+  );
+
   // Exported group: group_client_config
   $groups['client-group_client_config'] = array(
     'group_type' => 'standard',
@@ -141,7 +207,7 @@ function clients_fieldgroup_default_groups() {
         ),
       ),
     ),
-    'weight' => '37',
+    'weight' => '36',
     'fields' => array(
       '0' => 'field_credit_limit_box',
       '1' => 'field_client_name',
@@ -292,7 +358,7 @@ function clients_fieldgroup_default_groups() {
         ),
       ),
     ),
-    'weight' => '38',
+    'weight' => '37',
     'fields' => array(
       '0' => 'field_client_company_email',
       '1' => 'field_client_company_telephone',
@@ -443,6 +509,7 @@ function clients_fieldgroup_default_groups() {
 
   // Translatables
   // Included for use with string extractors like potx.
+  t('Blocked Crews');
   t('Client Address Details');
   t('Client Configuration');
   t('Client Contact Details');

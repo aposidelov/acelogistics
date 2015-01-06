@@ -344,6 +344,90 @@ function clients_content_default_fields() {
     ),
   );
 
+  // Exported field: field_blocked_crews
+  $fields['client-field_blocked_crews'] = array(
+    'field_name' => 'field_blocked_crews',
+    'type_name' => 'client',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'userreference',
+    'required' => '0',
+    'multiple' => '1',
+    'module' => 'userreference',
+    'active' => '1',
+    'referenceable_roles' => array(
+      '2' => 0,
+      '4' => 0,
+      '5' => 0,
+      '3' => 0,
+    ),
+    'referenceable_status' => '',
+    'advanced_view' => 'crews_active',
+    'advanced_view_args' => '',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'uid' => NULL,
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Blocked Crews',
+      'weight' => '44',
+      'description' => '',
+      'type' => 'multiselect_select',
+      'module' => 'multiselect',
+    ),
+  );
+
   // Exported field: field_client_company_address
   $fields['client-field_client_company_address'] = array(
     'field_name' => 'field_client_company_address',
@@ -988,6 +1072,88 @@ function clients_content_default_fields() {
       'description' => '',
       'type' => 'serial_widget',
       'module' => 'serial',
+    ),
+  );
+
+  // Exported field: field_client_job_call_cb
+  $fields['client-field_client_job_call_cb'] = array(
+    'field_name' => 'field_client_job_call_cb',
+    'type_name' => 'client',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => '5',
+      'size' => 60,
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_client_job_call_cb][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Client Job Call Comments Box',
+      'weight' => '38',
+      'description' => '',
+      'type' => 'text_textarea',
+      'module' => 'text',
     ),
   );
 
@@ -1679,7 +1845,9 @@ function clients_content_default_fields() {
   t('3 Hour Default');
   t('Accounts');
   t('Address');
+  t('Blocked Crews');
   t('Client ID');
+  t('Client Job Call Comments Box');
   t('Company Number');
   t('Contact');
   t('Credit limit box');
