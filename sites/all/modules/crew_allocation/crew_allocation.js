@@ -50,15 +50,51 @@ jQuery(document).ready(function() {
             var call_vid = Drupal.settings.call_vid;
             var crew_id = $(this).attr('id').substring(5);
             var crew_name = this.name;            
-
+            /*
+            $.ajax({
+                url: '/admin/ajax/client-call-crew-is-blocked/' + call_vid + '/' + crew_id,
+                async: false,
+                type: 'jsonp',
+                success: function(data) {
+                    if (data.is_blocked) {
+                        var client_name = Drupal.settings.client_name;
+                        alert('"{0}" crew is blocked for "{1}" client!'.format(crew_name, client_name));                                                     
+                    }
+                }
+            });
+            $.ajax({
+                url: '/admin/ajax/venue-call-crew-is-blocked/' + call_vid + '/' + crew_id,
+                async: false,
+                type: 'jsonp',
+                success: function(data) {
+                    if (data.is_blocked) {
+                        var venue_name = Drupal.settings.venue_name;
+                        alert('"{0}" crew is blocked for "{1}" venue!'.format(crew_name, venue_name));
+                    }
+                }
+            });   
+            */
+            
             $.getJSON('/admin/ajax/client-call-crew-is-blocked/' + call_vid + '/' + crew_id, function(data) {
                 if (!data.is_blocked) {
                     var client_name = Drupal.settings.client_name;
 
                     alert('"{0}" crew is blocked for "{1}" client!'.format(crew_name, client_name));                    
                 }
-            });            
-        }
+            }); 
+
+            $.getJSON('/admin/ajax/venue-call-crew-is-blocked/' + call_vid + '/' + crew_id, function(data) {
+                if (!data.is_blocked) {
+                    var venue_name = Drupal.settings.venue_name;
+
+                    alert('"{0}" crew is blocked for "{1}" venue!'.format(crew_name, venue_name));                    
+                }
+            }); 
+
+            /*
+            
+            */ 
+        }                           
     });
 
 

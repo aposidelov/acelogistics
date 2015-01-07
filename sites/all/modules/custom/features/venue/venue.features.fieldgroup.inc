@@ -6,6 +6,72 @@
 function venue_fieldgroup_default_groups() {
   $groups = array();
 
+  // Exported group: group_blocked_crews
+  $groups['venue-group_blocked_crews'] = array(
+    'group_type' => 'standard',
+    'type_name' => 'venue',
+    'group_name' => 'group_blocked_crews',
+    'label' => 'Blocked Crews',
+    'settings' => array(
+      'form' => array(
+        'style' => 'fieldset',
+        'description' => '',
+      ),
+      'display' => array(
+        'description' => '',
+        'label' => 'above',
+        'teaser' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'full' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '4' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '2' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '3' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '100' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '101' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'inline' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'modal' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        '5' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+        'token' => array(
+          'format' => 'fieldset',
+          'exclude' => 0,
+        ),
+      ),
+    ),
+    'weight' => '23',
+    'fields' => array(
+      '0' => 'field_blocked_crews',
+    ),
+  );
+
   // Exported group: group_venue_config
   $groups['venue-group_venue_config'] = array(
     'group_type' => 'standard',
@@ -69,7 +135,7 @@ function venue_fieldgroup_default_groups() {
         ),
       ),
     ),
-    'weight' => '34',
+    'weight' => '20',
     'fields' => array(
       '0' => 'field_boundary_charge',
       '1' => 'field_boundary_round_trip',
@@ -139,7 +205,7 @@ function venue_fieldgroup_default_groups() {
         ),
       ),
     ),
-    'weight' => '33',
+    'weight' => '19',
     'fields' => array(
       '0' => 'field_venue_id',
       '1' => 'field_venue_name',
@@ -212,7 +278,7 @@ function venue_fieldgroup_default_groups() {
         ),
       ),
     ),
-    'weight' => '35',
+    'weight' => '21',
     'fields' => array(
       '0' => 'field_venue_email',
       '1' => 'field_venue_contact',
@@ -224,6 +290,7 @@ function venue_fieldgroup_default_groups() {
 
   // Translatables
   // Included for use with string extractors like potx.
+  t('Blocked Crews');
   t('Venue Configuration');
   t('Venue Contact Details');
   t('Venue Details');

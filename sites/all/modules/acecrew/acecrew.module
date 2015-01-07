@@ -632,6 +632,7 @@ function acecrew_calendar_popup_sms($callNodeid) {
     $client_name = $client->field_client_name[0]['value'];
     $client_comment = isset($client->field_client_job_call_cb) ? $client->field_client_job_call_cb[0]['value'] : '';
     $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+    $venue_comment = isset($venue->field_venue_job_call_cb) ? $venue->field_venue_job_call_cb[0]['value'] : '';
     //If no call venue, display the job venue
     if(acecrew_get_call_venue_by_call_id($node_id)) {
         $venue_name = acecrew_get_call_venue_by_call_id($node_id);
@@ -659,7 +660,8 @@ function acecrew_calendar_popup_sms($callNodeid) {
         $crew_with_supp
         Cont: {$ses_call_contact[0]} {$ses_call_contact[1]} <br/>
         $ses_call_comment <br/>
-        Client comment: $client_comment <br/><br/>
+        Client comment: $client_comment <br/>
+        Venue comment: $venue_comment <br/><br/>
         Please reply J: $ses_call_id OK!<br/>
         <br/>
         <br/>
