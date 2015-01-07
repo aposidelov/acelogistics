@@ -87,9 +87,14 @@ function _crew_allocation_top_form(&$form_state) {
 
     //print_r($_REQUEST);
     $page_arguments = func_get_args();
+    //watchdog('ppa', '<pre>'.print_r($page_arguments, TRUE).'</pre>');
     $vid = $page_arguments[1];
     $call_id = $page_arguments[2];
 
+    $client_name = db_result(db_query("SELECT c.field_client_name_value FROM {content_type_job_session} js INNER JOIN {content_type_job} j ON j.nid = js.field_session_job_nid_value
+        INNER JOIN {content_type_client} c ON j.field_job_client_name_value = c.field_client_id_value WHERE js.vid = %d LIMIT 1", $vid));
+
+    drupal_add_js(array('call_vid' => $vid, 'client_name' => $client_name), 'setting');
 
     $form['crew_allocation'] = array('#type' => 'fieldset',
         '#title' => t('Crew Allocation - You Must Select '._crew_allocation_get_allocated_number($vid, $call_id).' Crew Members'),
