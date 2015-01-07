@@ -55,7 +55,7 @@ jQuery(document).ready(function() {
                 if (!data.is_blocked) {
                     var client_name = Drupal.settings.client_name;
 
-                    alert("{0} crew is blocked for {1} client!".format(crew_name, client_name));                    
+                    alert('"{0}" crew is blocked for "{1}" client!'.format(crew_name, client_name));                    
                 }
             });            
         }
