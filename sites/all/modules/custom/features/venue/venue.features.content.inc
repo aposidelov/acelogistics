@@ -6,9 +6,9 @@
 function venue_content_default_fields() {
   $fields = array();
 
-  // Exported field: field_blocked_list
-  $fields['venue-field_blocked_list'] = array(
-    'field_name' => 'field_blocked_list',
+  // Exported field: field_blocked_crews
+  $fields['venue-field_blocked_crews'] = array(
+    'field_name' => 'field_blocked_crews',
     'type_name' => 'venue',
     'display_settings' => array(
       'label' => array(
@@ -67,23 +67,23 @@ function venue_content_default_fields() {
     'module' => 'userreference',
     'active' => '1',
     'referenceable_roles' => array(
-      '5' => 5,
       '2' => 0,
       '4' => 0,
+      '5' => 0,
       '3' => 0,
     ),
     'referenceable_status' => '',
-    'advanced_view' => '--',
+    'advanced_view' => 'crews_active',
     'advanced_view_args' => '',
     'widget' => array(
       'default_value' => array(
         '0' => array(
-          'uid' => '',
+          'uid' => NULL,
         ),
       ),
       'default_value_php' => NULL,
-      'label' => 'Blocked list',
-      'weight' => '46',
+      'label' => 'Blocked Crews',
+      'weight' => 0,
       'description' => '',
       'type' => 'multiselect_select',
       'module' => 'multiselect',
@@ -639,6 +639,88 @@ function venue_content_default_fields() {
     ),
   );
 
+  // Exported field: field_venue_job_call_cb
+  $fields['venue-field_venue_job_call_cb'] = array(
+    'field_name' => 'field_venue_job_call_cb',
+    'type_name' => 'venue',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => '5',
+      'size' => 60,
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_venue_job_call_cb][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Venue Job Call Comments Box',
+      'weight' => '22',
+      'description' => '',
+      'type' => 'text_textarea',
+      'module' => 'text',
+    ),
+  );
+
   // Exported field: field_venue_name
   $fields['venue-field_venue_name'] = array(
     'field_name' => 'field_venue_name',
@@ -922,7 +1004,7 @@ function venue_content_default_fields() {
   // Translatables
   // Included for use with string extractors like potx.
   t('Address');
-  t('Blocked list');
+  t('Blocked Crews');
   t('Boundary Charge');
   t('Contact');
   t('Contact Telephone');
@@ -934,6 +1016,7 @@ function venue_content_default_fields() {
   t('Round Trip In Miles');
   t('Telephone');
   t('Venue ID');
+  t('Venue Job Call Comments Box');
 
   return $fields;
 }
