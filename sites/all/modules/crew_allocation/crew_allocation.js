@@ -41,14 +41,23 @@
 //
 //});
 
-jQuery(document).ready(function() {
-
-
+jQuery(document).ready(function() {    
     $("#-crew-allocation-top-form .form-checkbox").click(function() {
-        if(!$(this).is(":checked")) {
-            var group = this.name;
-            console.log(group);
+        if (!$(this).is(":checked")) {
+            var group = this.name;            
             $('input:checkbox[name="'+ group + '"][checked]').attr('checked', false);
+        } else {            
+            var call_vid = Drupal.settings.call_vid;
+            var crew_id = $(this).attr('id').substring(5);
+            var crew_name = this.name;            
+
+            $.getJSON('/admin/ajax/client-call-crew-is-blocked/' + call_vid + '/' + crew_id, function(data) {
+                if (!data.is_blocked) {
+                    var client_name = Drupal.settings.client_name;
+
+                    alert("{0} crew is blocked for {1} client!".format(crew_name, client_name));                    
+                }
+            });            
         }
     });
 
@@ -93,3 +102,16 @@ jQuery(document).ready(function() {
 
     })
 })
+
+// First, checks if it isn't implemented yet.
+if (!String.prototype.format) {
+  String.prototype.format = function() {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function(match, number) { 
+      return typeof args[number] != 'undefined'
+        ? args[number]
+        : match
+      ;
+    });
+  };
+}

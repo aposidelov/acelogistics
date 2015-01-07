@@ -71,7 +71,12 @@ function op_custom_menu() {
     'type' => MENU_CALLBACK,
   );
 
-
+  $items['admin/ajax/client-call-crew-is-blocked/%/%'] = array(
+    'page callback' => 'op_custom_ajax_client_call_is_blocked_crew',
+    'page arguments' => array(3,4),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );  
  
   /*
   $items['pdf_test'] = array(
@@ -93,6 +98,18 @@ function op_custom_ajax_client_account($client_name = '') {
   }
 
   print json_encode(array('status' => $status));
+  exit;
+}
+
+function op_custom_ajax_client_call_is_blocked_crew($call_vid = '', $crew_id = '') {  
+  $is_not_blocked = db_result(db_query('SELECT COUNT(*) 
+    FROM `drupal_content_type_job_session` c 
+    INNER JOIN `drupal_content_type_job` j ON c.field_session_job_nid_value = j.nid 
+    INNER JOIN `drupal_content_type_client` cl ON j.field_job_client_name_value = cl.field_client_id_value
+    INNER JOIN `drupal_content_field_blocked_crews` bc ON cl.nid = bc.nid
+    WHERE c.vid = %d AND bc.field_blocked_crews_uid = %d', $call_vid, $crew_id));  
+
+  print json_encode(array('is_blocked' => !$is_not_blocked));
   exit;
 }
 
