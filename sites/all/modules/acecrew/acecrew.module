@@ -2063,15 +2063,15 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
     }
 
     $output = '<div class="acecrew_job_docs">';
-	$output .= '<h2>Ace Crew Documents</h2>
-	<div class="document-wrapper invoice-wrapper">
-        <h3>Invoices</h3>
-        ' . $invoices_html . '
-        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_invoice">Generate Invoice</a></div>
+	$output .= '<h2>Ace Crew Documents</h2>	
         <div class="document-wrapper">
 		<h3>Quotes</h3>
         ' . $quotes_html . '
-        <a href="' .$base_path .  'acecrew/generatequote/' . $docs['job_id'] . '" class="acecrew_job_button" id="acecrew_job_button_quote">Generate Quote</a></div>';
+        <a href="' .$base_path .  'acecrew/generatequote/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-quote-btn" id="acecrew_job_button_quote">Generate Quote</a></div>
+        <div class="document-wrapper invoice-wrapper">
+        <h3>Invoices</h3>
+        ' . $invoices_html . '
+        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-invoice-btn" id="acecrew_job_button_invoice">Generate Invoice</a></div>';
     $has_crews = acecrew_get_crews_by_job($docs['job_nid']);
     if ($has_crews) {
     $output .= '<div class="document-wrapper">
