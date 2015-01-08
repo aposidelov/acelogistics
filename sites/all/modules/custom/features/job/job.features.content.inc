@@ -557,7 +557,7 @@ return $items;',
     'repeat_collapsed' => '',
     'default_format' => 'medium',
     'widget' => array(
-      'default_value' => 'blank',
+      'default_value' => 'now',
       'default_value_code' => '',
       'default_value2' => 'same',
       'default_value_code2' => '',
