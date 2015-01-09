@@ -16,7 +16,7 @@
     <li class="call-listing-item">
         <div class="call-first-row">
             <strong>
-                <span class="call-id"><?=$call_id;?></span>
+                <span class="call-id <?=$call_status_canceled;?>"><?=$call_id;?></span>
                 <span class="call-time"><?=$date_time;?></span>
                 <span class="call-crew-count"><?=$count_crews;?></span>
                 <span class="call-hours"><?=$count_hours;?></span>

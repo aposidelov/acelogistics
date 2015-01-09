@@ -806,7 +806,14 @@ function _get_venue_by_job($job) {
 function _get_callings_by_job($job) {
     $callings = array();
 
-    $query = "SELECT * FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
+    $query = "SELECT ctjs.* FROM `drupal_content_type_job` ctj 
+    INNER JOIN `drupal_content_type_job_session` ctjs 
+    ON ctjs.field_session_job_nid_value = ctj.nid
+    INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
+    WHERE jsn.status = 1 AND ctj.vid ='%d'"; // 
+    
+   
+    //$query = "SELECT * FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
     $query_result = db_query($query, $job->vid);
     while($row = db_fetch_object($query_result)) {
         $supplement = _get_call_supplement($row->nid);
@@ -821,7 +828,13 @@ function _get_callings_by_job($job) {
 function _get_callings_for_invoice_by_job($job) {
     $callings = array();
 
-    $query = "SELECT ctjs.* FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
+    $query = "SELECT ctjs.* FROM `drupal_content_type_job` ctj 
+    INNER JOIN `drupal_content_type_job_session` ctjs 
+    ON ctjs.field_session_job_nid_value = ctj.nid
+    INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
+    WHERE jsn.status = 1 AND ctj.vid ='%d'";
+
+    //$query = "SELECT ctjs.* FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
     $query_result = db_query($query, $job->vid);
     while($row = db_fetch_object($query_result)) {
         $supplement = _get_call_supplement_invoice($row);

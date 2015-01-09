@@ -12,12 +12,17 @@ function acecrew_session_edit(ses_id)
 
 function acecrew_session_del(ses_id)
 {
-    $.get(Drupal.settings.basePath + "acecrew/ajax/delsession/" + ses_id, function(data){
+    $.get(Drupal.settings.basePath + "acecrew/ajax/delsession/" + ses_id, function(data) {
         window.location.reload();
     });
 }
 
-
+function acecrew_session_status_toogle(ses_id)
+{
+    $.get(Drupal.settings.basePath + "acecrew/ajax/status-session/" + ses_id, function(data) {
+        window.location.reload();
+    });
+}
 
 $(document).ready(function() {
     $('#acecrew_session_add_button').click(function(){

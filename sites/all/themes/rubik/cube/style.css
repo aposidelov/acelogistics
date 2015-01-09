@@ -21,7 +21,7 @@ a {
     
 }
 
-.client.client-credit-warning {
+.client.client-credit-warning, .call-status-canceled {
     color: #E01F1F;
     font-weight: bold;
 }
@@ -444,19 +444,7 @@ ul li.leaf a, ul li.expanded a, ul li.collapsed a {
 
 .field-field-job-session-crews-items {padding-left: 0 !important; margin: 20px 0;}
 
-/*
-.node-job .node-content .field-field-job-client-contact .field-label, .node-job .node-content .field-field-job-client-name .field-label, .node-job .node-content .field-field-job-venue .field-label, .node-job .node-content .field-field-job-status .field-label, .node-job .node-content .field-field-job-date .field-label, .node-job .node-content .field-field-job-number .field-label, .node-job .node-content .field-field-session-job-nid .field-label {float: left !important;}
-
-.node-job .node-content .field-field-job-client-contact, .node-job .node-content .field-field-job-client-name, .node-job .node-content .field-field-job-venue, .node-job .node-content .field-field-job-status, .node-job .node-content .field-field-job-date, .node-job .node-content .field-field-job-number {margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #ccc;}
-
-.node-job .node-content .acecrew_session_totals {text-align: right; font-size: 16px; line-height: 1.5;}
-
-.node-job .node-content .field-field-session-job-nid { font-size: 16px; line-height: 1.5;}
-*/
-
-
-
-.acecrew_session_edit_button, .acecrew_session_sms_button, .acecrew_session_del_button, .form-submit, button, #acecrew_session_add_buttons a, #acecrew_job_button_quote, #acecrew_job_button_invoice, input.teaser-button, input.form-submit, .call-buttons a {
+.acecrew_session_edit_button, .acecrew_session_status_button, .acecrew_session_sms_button, .acecrew_session_del_button, .form-submit, button, #acecrew_session_add_buttons a, #acecrew_job_button_quote, #acecrew_job_button_invoice, input.teaser-button, input.form-submit, .call-buttons a {
 
     color: #ffffff;
     padding: 8px 19px;
@@ -475,15 +463,13 @@ ul li.leaf a, ul li.expanded a, ul li.collapsed a {
     border: 1px solid #4c5764;
     text-shadow:
         -1px -1px 3px rgba(62,69,80,1)
-
-
 }
 
 
 #edit-submit {margin-bottom: 10px;}
 
 
-.acecrew_session_edit_button:hover, .acecrew_session_sms_button:hover, .acecrew_session_del_button:hover, .form-submit:hover, button:hover, #acecrew_session_add_buttons a:hover, #acecrew_job_button_quote:hover, #acecrew_job_button_invoice:hover, input.teaser-button:hover, input.form-submit:hover, .call-buttons a:hover {
+.acecrew_session_edit_button:hover, .acecrew_session_status_button:hover, .acecrew_session_sms_button:hover, .acecrew_session_del_button:hover, .form-submit:hover, button:hover, #acecrew_session_add_buttons a:hover, #acecrew_job_button_quote:hover, #acecrew_job_button_invoice:hover, input.teaser-button:hover, input.form-submit:hover, .call-buttons a:hover {
     background: #30353d;
     background: -moz-linear-gradient(
         top,
@@ -623,7 +609,7 @@ fieldset.group-company-contact-details #edit-field-client-logo-0-ahah-wrapper {w
 ul.call-listing li.call-listing-item {position: relative; background: #fff url(images/listing-header.png) repeat-x 0 0; border: 1px solid #d5d5d5; border-radius: 6px; margin-top: 10px;}
 .call-count-title {background: url(images/pattern-dark-blue.png) repeat-x 0 0; height: 25px; color: #fff; display: inline-block; border-radius: 4px; padding: 0 12px; line-height: 25px;}
 .call-first-row {height: 30px; margin-bottom: 20px; line-height: 30px;}
-.call-first-row span {color: #363636; line-height: 30px;}
+.call-first-row span {line-height: 30px;} /*color: #363636;*/
 .call-first-row .call-id {background: url(images/call-id.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-flag {background: url(images/call-flag.png) no-repeat 0 center;padding: 0px 18px;margin-left:10px;display:inline-block;height:30px;color:#fff; float: right; cursor: pointer}
 .call-first-row .call-time {background: url(images/call-time.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}

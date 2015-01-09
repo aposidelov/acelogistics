@@ -103,6 +103,14 @@ function acecrew_menu() {
         'access arguments' => array('delete any job_session content'),
         'type' => MENU_CALLBACK,
     );
+    $items['acecrew/ajax/status-session/%'] = array(
+        'title' => 'Ace Crew AJAX Toggle Status of Job Session',
+        'page callback' => 'acecrew_toogle_status_job_session',
+        'page arguments' => array(3),
+        'access arguments' => array('delete any job_session content'),
+        'type' => MENU_CALLBACK,
+    );
+
     $items['acecrew/ajax/session/sms/%'] = array(
         'title' => 'Ace Crew send sms to session crews',
         'page callback' => 'acecrew_session_sms',
@@ -476,6 +484,12 @@ function acecrew_del_job_session($ses_id) {
     node_delete($ses_id);
 }
 
+function acecrew_toogle_status_job_session($ses_id) {
+    $node = node_load($ses_id);
+    $node->status = !$node->status;
+    node_save($node);
+}
+
 /**
  * Calculate cost of user hours
  **/
@@ -764,7 +778,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         IF( js.field_call_time_tbc_value IS NULL , 0, js.field_call_time_tbc_value ) AS call_time_tbc,
         IF( js.field_call_crew_tbc_value IS NULL , 0, js.field_call_crew_tbc_value ) AS call_crew_tbc,
         IF( js.field_call_hours_tbc_value IS NULL , 0, js.field_call_hours_tbc_value ) AS call_hours_tbc,
-        IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc
+        IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc,
+        jsn.status AS call_status
         FROM {content_type_job_session} js
         INNER JOIN {content_type_job} ctj ON ctj.nid = js.field_session_job_nid_value
         INNER JOIN {content_type_client} ctc ON ctc.field_client_id_value = ctj.field_job_client_name_value
@@ -894,7 +909,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_time_tbc' => $row->call_time_tbc,
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc
+                    'call_contract_tbc' => $row->call_contract_tbc,
+                    'is_call_canceled' => !$row->call_status,
                 );
                 $tbc_scheduler_date[$date_item]['date'] = $date_item;
             } else {
@@ -920,7 +936,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_time_tbc' => $row->call_time_tbc,
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc
+                    'call_contract_tbc' => $row->call_contract_tbc,
+                    'is_call_canceled' => !$row->call_status,
                 );
             }
         } // dates foreach
@@ -2016,6 +2033,8 @@ function theme_acecrew_assigned_sessions($acecrew_assigned_sessions) {
     $output = '';
     $is_sms = user_access('acecrew access sms');
     foreach($acecrew_assigned_sessions as $ses_id => $session):
+        $node = node_load($ses_id);
+        $status_label = $node->status ? t('Cancel') : t('Activate');
         if ($is_sms){
             $sms_output = '';
         } else {
@@ -2028,6 +2047,7 @@ function theme_acecrew_assigned_sessions($acecrew_assigned_sessions) {
                 "<div class=\"acecrew_session_buttons\" id=\"acecrew_session_buttons_$ses_id\">
                 <a href=\"javascript:void(0)\" onclick=\"acecrew_session_edit('$ses_id')\" class=\"acecrew_session_edit_button\" id=\"acecrew_session_edit_button_$ses_id\">Edit</a>
                 <a href=\"javascript:void(0)\" onclick=\"acecrew_session_del('$ses_id')\" class=\"acecrew_session_del_button\" id=\"acecrew_session_del_button_$ses_id\">Delete</a>
+                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_status_toogle('$ses_id')\" class=\"acecrew_session_status_button\" id=\"acecrew_session_status_button_$ses_id\">" . $status_label . "</a>
                 $sms_output
             </div>" .
                 '</div>';
@@ -2122,7 +2142,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     global $theme_path;
     global $user;
 
-    if(empty($scheduler)){
+    if (empty($scheduler)){
         return '<div class="item-list">
                     <h3><span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">0 calls</span></h3>
                     <span class="acecrew_calendar_no_events">' . t('There are no items to display') . '</span>
@@ -2142,6 +2162,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
 
+        $is_call_canceled = $event['is_call_canceled'] ? 'call-status-canceled' : '';
+
         $call_status_text = ($event['call_time_tbc'] || $event['call_crew_tbc'] || $event['call_hours_tbc'] || $event['call_contract_tbc']) ? t('To be confirmed') : $event['job_status'];
         $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
         $call_crew_amount = !$event['call_crew_tbc'] ? $event['ses_count_crews'] . ' crew' : $tbc_short;
@@ -2157,8 +2179,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $crew_members_required = (int) $event['ses_count_crews'];
         $listing_number = $assigned_crew_members > $crew_members_required ? $assigned_crew_members : $crew_members_required;
 
-        for($i = 0; $i < $listing_number; $i++) {
-            if(!$event['crews'][$i]) {
+        for ($i = 0; $i < $listing_number; $i++) {
+            if (!$event['crews'][$i]) {
                 $crew_placeholder .= '<span class="crew-names to-be-allocated"></span>';
             } else {
 
@@ -2169,7 +2191,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 $member_allocated_skills = $event['crews'][$i][3];
                 $member_fine = $event['crews'][$i][4] ? "FINE" : "";
                 $member_no_show = $event['crews'][$i][5] ? "NO SHOW" : "";
-                if($member_allocated_skills || $member_fine || $member_no_show) {
+                if ($member_allocated_skills || $member_fine || $member_no_show) {
                     $member_name_suffix = implode(", ", array_filter(array($member_allocated_skills, $member_fine, $member_no_show)));
                 } else {
                     $member_name_suffix = "";
@@ -2179,7 +2201,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 $crew_placeholder .= '<span class="crew-names ' . ($event['crews'][$i][2] ? $event['crews'][$i][2] : "text_not_sent") . '" id="uid-' . $event['job_session_id'] . '-' . $event['crews'][$i][1] . '">';
                 $crew_placeholder .= $event['crews'][$i][0];
                 //If crew member have supplements or fine/no_show
-                if($member_name_suffix) {
+                if ($member_name_suffix) {
                     $crew_placeholder .= '<span class=\"allocated-skills\">(' . $member_name_suffix . ')</span>';
                 }
                 $crew_placeholder .= '</span>';
@@ -2189,7 +2211,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $data = '
                 <input type="hidden" name="job-session-id-' . $event['job_session_id'] . '" id="job-session-id-' . $event['job_session_id'] . '" value="' . $event['job_session_id'] . '" />
                 <div class="call-first-row">
-                        <div class="call-id">' . $event['call_id'] . '</div>
+                        <div class="call-id '.$is_call_canceled.'">' . $event['call_id'] . '</div>
                         <div class="call-time">' .  $call_time . '</div>
                         <div class="call-crew-count">' .  $call_crew_amount . '</div>
                         <div class="call-hours">' . $call_hours . '</div>';
@@ -2305,7 +2327,14 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 var sidebar_widget = "<div id=\"sidebar_widget\">";
                 sidebar_widget += "<input type=\"hidden\" name=\"job-session-id\" id=\"job-session-id\" value=\"" + id + "\">";
                 sidebar_widget += "<div id=\"call-info1\">";
-                sidebar_widget += "<span>" + call_id + " / </span>";
+
+                if (item.find(".call-id").hasClass("call-status-canceled")) {
+                    sidebar_widget += "<span class=\'call-status-canceled\'>" + call_id + "</span> / ";
+                } else {
+                    sidebar_widget += "<span>" + call_id + " / </span>";
+                }
+
+                
                 sidebar_widget += "<span>" + call_time + " / </span>";
                 sidebar_widget += "<span>" + call_crew_count + " / </span>";
                 sidebar_widget += "<span>" + call_hours + "</span>";

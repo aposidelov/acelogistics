@@ -218,8 +218,10 @@ function template_preprocess_supplement_allocation(&$variables) {
     $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
     $client_id = $job->field_job_client_name[0]['value'];
     $client_credit_exists = acecrew_client_is_credit_exists($client_id);
-    $red_class = !$client_credit_exists ? 'client-credit-warning' : ''; 
-    $variables['client_warning_class'] = $red_class;
+    $client_warning_class = !$client_credit_exists ? 'client-credit-warning' : ''; 
+    $variables['client_warning_class'] = $client_warning_class;
+    $variables['call_status_canceled'] = !$call->status ? 'call-status-canceled' : '';
+
     $variables['client_name'] = $client->field_client_name[0]['value'];
     $variables['client_rate'] = $session_node->field_job_session_client_rate[0]['value'];//$client->field_client_rate[0]['value'];
     $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
