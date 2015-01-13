@@ -767,7 +767,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         js.field_job_session_hours_value AS job_session_hours,
         js.field_session_num_vehicles_value AS num_vehicles,
         js.field_session_callid_value AS call_number,
+        ctc.nid AS client_nid,
         ctc.field_client_name_value AS client_name,
+        ctv.nid AS venue_nid,
         ctv.field_venue_name_value AS venue_name,
         ctj.field_job_status_value AS job_status,
         ctj.field_job_number_value AS job_number,
@@ -820,7 +822,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $job_status          = $row->job_status;
             $job_number          = $row->job_number;
             $job_client_contact  = $row->job_client_contact;
+            $client_nid          = $row->client_nid;
             $client_name         = $row->client_name;
+            $venue_nid           = $row->venue_nid;
             $venue_name          = $row->venue_name;
             $ses_count_crews     = $row->job_session_crew;
             $ses_count_hours     = $row->job_session_hours;
@@ -890,7 +894,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                 $tbc_scheduler_date[$date_item]['scheduler'][] = array(
                     'job_session_id' => $row->vid,
                     'time' => $row->jstime,
+                    'venue_nid' => $venue_nid,
                     'venue' => $venue_name,
+                    'client_nid' => $client_nid,
                     'client' => $client_name,
                     'job_id' => $job_number,
                     'job_nid' => $row->job_nid,
@@ -917,7 +923,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                 $scheduler[] = array(
                     'job_session_id' => $row->vid,
                     'time' => $row->jstime,
+                    'venue_nid' => $venue_nid,
                     'venue' => $venue_name,
+                    'client_nid' => $client_nid,
                     'client' => $client_name,
                     'job_id' => $job_number,
                     'job_nid' => $row->job_nid,
@@ -2154,7 +2162,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     $index = 0;
     // 'to be confirmed' short name
     $tbc_short = 'TBC';
-    //watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
+    watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
     foreach ($scheduler as $event) {
         $client_id = acecrew_get_client_id_by_job_id($event['job_nid']);
         $client_credit_exists = acecrew_client_is_credit_exists($client_id);
@@ -2163,6 +2171,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
 
         $is_call_canceled = $event['is_call_canceled'] ? 'call-status-canceled' : '';
+
+        $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
 
         $call_status_text = ($event['call_time_tbc'] || $event['call_crew_tbc'] || $event['call_hours_tbc'] || $event['call_contract_tbc']) ? t('To be confirmed') : $event['job_status'];
         $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
@@ -2199,7 +2209,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
                 //Append to the list of crew members allocated skills and fine/no_show status
                 $crew_placeholder .= '<span class="crew-names ' . ($event['crews'][$i][2] ? $event['crews'][$i][2] : "text_not_sent") . '" id="uid-' . $event['job_session_id'] . '-' . $event['crews'][$i][1] . '">';
-                $crew_placeholder .= $event['crews'][$i][0];
+                $crew_placeholder .= l($event['crews'][$i][0], 'user/'.$event['crews'][$i][1], array('attributes' => array('target' => '_blank')));
                 //If crew member have supplements or fine/no_show
                 if ($member_name_suffix) {
                     $crew_placeholder .= '<span class=\"allocated-skills\">(' . $member_name_suffix . ')</span>';
@@ -2211,7 +2221,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $data = '
                 <input type="hidden" name="job-session-id-' . $event['job_session_id'] . '" id="job-session-id-' . $event['job_session_id'] . '" value="' . $event['job_session_id'] . '" />
                 <div class="call-first-row">
-                        <div class="call-id '.$is_call_canceled.'">' . $event['call_id'] . '</div>
+                        <div class="call-id '.$is_call_canceled.'">' . l($event['call_id'], 'node/'.$event['job_nid'], array('attributes' => array('target' => '_blank'))) . '</div>
                         <div class="call-time">' .  $call_time . '</div>
                         <div class="call-crew-count">' .  $call_crew_amount . '</div>
                         <div class="call-hours">' . $call_hours . '</div>';
@@ -2229,8 +2239,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     <span class="call-status">
                         <strong>Call Status:</strong> ' . $call_status_text . '
                     </span>
-                    <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  $event['client'] . '</span></span>
-                    <span class="call-venue"><strong>Venue:</strong> ' .  (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']) . '</span>
+                    <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  l($event['client'], 'node/'.$event['client_nid'], array('attributes' => array('target' => '_blank'))) . '</span></span>
+                    <span class="call-venue"><strong>Venue:</strong> ' .  l($venue_name, 'node/'.$event['venue_nid'], array('attributes' => array('target' => '_blank'))) . '</span>
                     <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
                 </div>
                 <div class="call-third-row"><strong>Skills Required:</strong>'. $event['supplement'] . '</div>

@@ -9,7 +9,7 @@ body.rubik {
 }
 
 a {
-    color:#39c;
+    color:#095E89; /*#39c;*/
     text-decoration:none;
 }
 
@@ -21,7 +21,7 @@ a {
     
 }
 
-.client.client-credit-warning, .call-status-canceled {
+.client.client-credit-warning, .client.client-credit-warning a, .call-status-canceled, .call-status-canceled a {
     color: #E01F1F;
     font-weight: bold;
 }
