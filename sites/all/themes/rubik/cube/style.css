@@ -26,6 +26,10 @@ a {
     font-weight: bold;
 }
 
+#edit-field-job-session-client-rate-value-1-wrapper {
+    clear: both;
+}
+
 /**
  * Branding ===========================================================
  */
@@ -847,7 +851,7 @@ div#ui-datepicker-div.ui-datepicker.ui-widget {width: 222px !important;}
 table.ui-datepicker-calendar {margin: 0 !important;}
 .ui-datepicker th {text-align: center;}
 
-#edit-field-job-client-name-0-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-venue-0-value-wrapper, #edit-field-job-status-value-wrapper, .page-node .date-clear-block, #edit-field-job-po-number-0-value-wrapper, #edit-field-job-discount-0-value-wrapper, #edit-field-job-booked-by-0-value-wrapper, #edit-field-job-created-by-0-value-wrapper, #edit-field-additional-charge-ammount-0-value-wrapper, #edit-field-additional-charge-desc-0-value-wrapper {float: left; width: 23%; overflow: hidden; height: 70px; margin-right: 3px !important;}
+#edit-field-job-client-name-0-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-venue-0-value-wrapper, #edit-field-job-status-value-wrapper, #edit-field-job-po-number-0-value-wrapper, #edit-field-job-discount-0-value-wrapper, #edit-field-job-booked-by-0-value-wrapper, #edit-field-job-created-by-0-value-wrapper, #edit-field-additional-charge-ammount-0-value-wrapper, #edit-field-additional-charge-desc-0-value-wrapper {float: left; width: 23%; overflow: hidden; height: 70px; margin-right: 3px !important;}
 .modalframe-page-container .form-item  {float: none !important; width: 100% !important;}
 .modalframe-page-container .form-textarea.resizable {min-height: 300px !important;}
 .buttons, #acecrew_session_add_buttons {clear: both}
@@ -959,7 +963,7 @@ html {overflow-y: scroll;}
 #acecrew_session_add_form .container-inline-date {width: 100% !important;}
 #acecrew_session_add_form .container-inline-date .form-item, #acecrew_session_add_form .container-inline-date .form-item input {width: auto !important;}
 #acecrew_session_add_form  #edit-field-job-session-comment-0-value-wrapper {width: 59% !important; float: left;}
-#acecrew_session_add_form .form-item {float: left; width: 23%;}
+/*#acecrew_session_add_form .form-item {float: left; width: 23%;}*/
 .nodereference-views-multifield {clear: both; width: 100%;}
 #acecrew_session_add_form  .grippie, #edit-field-session-job-nid-0-value-wrapper, #comments {display: none;}
 

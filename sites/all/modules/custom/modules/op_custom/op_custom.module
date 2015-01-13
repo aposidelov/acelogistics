@@ -138,16 +138,92 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
     $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';    
   } elseif ($form_id == 'job_node_form') {    
     drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');
-  } elseif ($form_id == 'job_session_node_form') {    
-    if (!empty($form['nid']['#value'])) {
-      $form['buttons']['cancel'] = array(
-        '#type' => 'submit',
-        '#value' => $form['#node']->status ? t('Cancel') : t('Activate'),
-        '#weight' => 7,
-        '#submit' => array('op_custom_call_cancel_submit'),
-      );
-    }
+  } elseif ($form_id == 'job_session_node_form') {        
+      //watchdog('ffff', '<pre>'.print_r($form, TRUE).'</pre>');
+      $form['buttons']['submit']['#submit'][] = 'op_custom_call_duplicate_submit';
+      $form['duplications'] = array(
+        '#type' => 'select',
+        '#title' => t('Duplications by Days (optional)'),
+        '#default_value' => 0,
+        '#weight' => 34,
+        '#options' => array(
+          0 => 'No Duplications',
+          1 => 1,
+          2 => 2,
+          3 => 3,
+          4 => 4,
+          5 => 5,
+          6 => 6,
+          7 => 7,
+          8 => 8,
+          9 => 9,
+          10 => 10,
+        ),
+      );      
   }
+}
+
+function op_custom_call_duplicate_submit($form, &$form_state) {
+  watchdog('dupl_f2', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  $duplications = $form_state['values']['duplications'];  
+
+  if (!$duplications) {
+    return;
+  }
+
+  $call = $form_state['node'];  
+  $call_obj = (object)$form_state['node'];
+  unset($call_obj->created);
+  unset($call_obj->changed);
+  unset($call_obj->vid);
+  unset($call_obj->op);
+  unset($call_obj->submit);
+  unset($call_obj->preview_changes);
+  unset($call_obj->form_build_id);
+  unset($call_obj->form_token);
+  unset($call_obj->form_id);
+  unset($call_obj->comment);
+  unset($call_obj->menu);
+  unset($call_obj->path);
+  unset($call_obj->pid);
+  unset($call_obj->pathauto_perform_alias);
+  unset($call_obj->old_alias);  
+  unset($call_obj->content_lock_old_format);
+  unset($call_obj->duplications);  
+  unset($call_obj->print_display);
+  unset($call_obj->print_display_comment);  
+  unset($call_obj->print_display_urllist);
+  unset($call_obj->teaser_include);  
+  unset($call_obj->teaser);
+  unset($call_obj->format);  
+  unset($call_obj->validated);
+  
+  //watchdog('$co', '<pre>'.print_r($call_obj, TRUE).'</pre>');
+  //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['value'], TRUE).'</pre>');
+  //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['timezone'], TRUE).'</pre>');
+  //node
+  $date = date_make_date($call_obj->field_job_session_date_time[0]['value'], $call_obj->field_job_session_date_time[0]['timezone']);
+  watchdog('$ddd', '<pre>'.print_r($date, TRUE).'</pre>');
+  $job_id = $call_obj->field_session_job_nid[0]['value'];
+  for ($days = 1; $days <= $duplications; $days++) {    
+    date_modify($date, '+1 days');
+    $updated_date = date_format($date, 'Y-m-d H:i:s');
+    watchdog('upd_d', '<pre>'.print_r($updated_date, TRUE).'</pre>');
+    if (!acecrew_is_call_exists($job_id, $updated_date)) {
+      watchdog('ex', '<pre>'.print_r('ne'.$days, TRUE).'</pre>');      
+      $call_obj->field_job_session_date_time[0]['value'] = $updated_date;
+      $call_obj->field_job_session_date_time[0]['value2'] = $updated_date;
+      $call_obj->nid = '';
+      $call_obj->vid = '';
+      $call_obj->is_new = TRUE; 
+      $max_call_data = acecrew_get_max_call_parsed_by_jobid($job_id);
+      $call_obj->field_session_callid[0]['value'] = $max_call_data['job_number'].'-'.($max_call_data['max'] + 1);
+      watchdog('ccobj', '<pre>'.print_r($call_obj, TRUE).'</pre>');
+      node_save($call_obj);
+    } else {
+      watchdog('ex', '<pre>'.print_r('e'.$days, TRUE).'</pre>');
+    }
+  }  
 }
 
 function op_custom_call_cancel_submit($form, &$form_state) {  
@@ -1029,4 +1105,27 @@ function acercrew_rule_call_crews_status_revert($call) {
   $call_nid = $call->nid;
   //watchdog('call-crews-rev', '<pre>'.print_r($call_nid, TRUE).'</pre>');
   acecrew_set_crews_status_by_call($call_nid);
+}
+
+
+function acecrew_get_max_call_parsed_by_jobid($job_id) {
+  $query = "SELECT field_job_number_value AS job_number, MAX(CONVERT(SUBSTRING_INDEX(js.field_session_callid_value,'-',-1),UNSIGNED INTEGER)) max FROM `drupal_content_type_job_session` js 
+  INNER JOIN `drupal_content_type_job` j ON js.field_session_job_nid_value = j.nid
+  WHERE js.field_session_job_nid_value = %d";
+  $data = db_fetch_array(db_query($query, $job_id));
+
+  return $data;
+}
+/**
+ * [acecrew_is_call_exists description]
+ * @param  [type] $job_id   [description]
+ * @param  [type] $datatime 'Y-m-d H:i:s'
+ * @return [type]           [description]
+ */
+function acecrew_is_call_exists($job_id, $datatime) {
+  $query = "SELECT COUNT(*) FROM `drupal_content_type_job_session` js 
+  WHERE js.field_session_job_nid_value = %d AND js.field_job_session_date_time_value = '%s'";
+  $is_exists = db_result(db_query($query, $job_id, $datatime));
+
+  return $is_exists;
 }
