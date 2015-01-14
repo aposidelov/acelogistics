@@ -961,6 +961,10 @@ function op_custom_jobs_venue_form($form_state) {
 }
 
 function op_custom_jobs_venue_form_submit($form, &$form_state) {
+  
+  $crews = acecrew_get_bookoff_crews('2014-09-18');
+  drupal_set_message('<pre>'.print_r($crews, TRUE).'</pre>');
+
   /*$row = new stdClass();
   $row->src = 'node/6534/edit';
   $row->dst = acecrew_generate_random_string(5);
@@ -1131,20 +1135,19 @@ function acecrew_is_call_exists($job_id, $datatime) {
 }
 
 function acecrew_get_bookoff_crews($date) {
-  $query = "SELECT ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name
-  FROM `drupal_content_type_user_bookedoff` ub 
+  $query = "SELECT ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name, DATE(ub.field_ub_date_start_value) AS date_start, DATE(ub.field_ub_date_end_value) AS date_end, TIME(ub.field_ub_date_start_value) AS time_start, TIME(ub.field_ub_date_end_value) AS time_end
+  FROM `drupal_content_type_user_bookedoff` ub
+  INNER JOIN `drupal_users_roles` ur ON ur.uid = ub.field_ub_owner_uid
   INNER JOIN `drupal_users` u ON ub.field_ub_owner_uid = u.uid
-  INNER JOIN `drupal_users_roles` ur ON ur.uid = u.uid
-  WHERE DATE_FORMAT('%s','%Y%m%d') BETWEEN
-  DATE_FORMAT(ub.field_ub_date_start_value,'%Y%m%d') AND DATE_FORMAT(ub.field_ub_date_end_value,'%Y%m%d') 
-  AND ur.rid = 5
+  WHERE '%s' BETWEEN DATE(ub.field_ub_date_start_value) AND DATE(ub.field_ub_date_end_value)
+  AND ur.rid =5
   GROUP BY ub.field_ub_owner_uid
   ORDER BY u.name ASC";
-  $result = db_query($query, $date);
+  $result = db_query($query, $date); //
   $crews = array();
   while ($crew = db_fetch_object($result)) {
-    $crews[$crew->crew_uid] = $crew->crew_name;
-  }
+    $crews[$crew->crew_uid] = $crew;
+  }  
 
   return $crews;
 }
