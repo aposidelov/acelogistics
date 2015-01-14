@@ -1138,7 +1138,8 @@ function acecrew_get_bookoff_crews($date) {
   WHERE DATE_FORMAT('%s','%Y%m%d') BETWEEN
   DATE_FORMAT(ub.field_ub_date_start_value,'%Y%m%d') AND DATE_FORMAT(ub.field_ub_date_end_value,'%Y%m%d') 
   AND ur.rid = 5
-  GROUP BY ub.field_ub_owner_uid";
+  GROUP BY ub.field_ub_owner_uid
+  ORDER BY u.name ASC";
   $result = db_query($query, $date);
   $crews = array();
   while ($crew = db_fetch_object($result)) {
