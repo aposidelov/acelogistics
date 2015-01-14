@@ -938,7 +938,9 @@ html {overflow-y: scroll;}
 
 
 .call-listing-item .crew-names, .each-crew span {background: #fff; border-radius: 2px; -moz-border-radius: 2px; -webkit-border-radius: 2px; display: inline-block;}
-.call-listing-item .crew-names.to-be-allocated, .each-crew span.to-be-allocated {height: 20px; width: 50px; border: 1px solid #ccc; background: #fff !important;}
+.call-listing-item .crew-names.to-be-allocated, .each-crew span.to-be-allocated, span.bookoff-crew {height: 20px; width: 50px; border: 1px solid #ccc; background: #fff !important;}
+.bookoff-title { padding-top: 17px;}
+span.bookoff-crew { width: auto; }
 .crew-names.text_not_sent, .each-crew span.text_not_sent { color: #a4622a;
     background-color: #F1DC6E;
     border: 1px solid #BFA620;}

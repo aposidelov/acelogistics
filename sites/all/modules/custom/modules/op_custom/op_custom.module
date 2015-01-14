@@ -1129,3 +1129,21 @@ function acecrew_is_call_exists($job_id, $datatime) {
 
   return $is_exists;
 }
+
+function acecrew_get_bookoff_crews($date) {
+  $query = "SELECT ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name
+  FROM `drupal_content_type_user_bookedoff` ub 
+  INNER JOIN `drupal_users` u ON ub.field_ub_owner_uid = u.uid
+  INNER JOIN `drupal_users_roles` ur ON ur.uid = u.uid
+  WHERE DATE_FORMAT('%s','%Y%m%d') BETWEEN
+  DATE_FORMAT(ub.field_ub_date_start_value,'%Y%m%d') AND DATE_FORMAT(ub.field_ub_date_end_value,'%Y%m%d') 
+  AND ur.rid = 5
+  GROUP BY ub.field_ub_owner_uid";
+  $result = db_query($query, $date);
+  $crews = array();
+  while ($crew = db_fetch_object($result)) {
+    $crews[$crew->crew_uid] = $crew->crew_name;
+  }
+
+  return $crews;
+}

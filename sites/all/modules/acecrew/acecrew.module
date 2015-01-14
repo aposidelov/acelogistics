@@ -2155,11 +2155,25 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     <h3><span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">0 calls</span></h3>
                     <span class="acecrew_calendar_no_events">' . t('There are no items to display') . '</span>
                 </div>';
+    }    
+    $bookoff_crews = acecrew_get_bookoff_crews($date);
+    
+    $bookoff_crews_block = '';
+    if (sizeof($bookoff_crews)) {
+        $bookoff_crews_block = '<div class="bookoff-crews">';
+        $bookoff_crews_block .= '<p class="bookoff-title">Booked-off crews:</p>';
+        foreach ($bookoff_crews as $uid => $name) {
+            $bookoff_crews_block .= '<span class="crew-names bookoff-crew">';
+            $bookoff_crews_block .= l($name, 'user/'.$uid, array('attributes' => array('target' => '_blank')));
+            $bookoff_crews_block .= '</span>';
+        }
+        $bookoff_crews_block .= '</div>';   
     }
+    $title = '<span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">' . count($scheduler) . ' calls</span>' . $bookoff_crews_block;
 
-    $title = '<span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">' . count($scheduler) . ' calls</span>';
     $items = array();
     $index = 0;
+
     // 'to be confirmed' short name
     $tbc_short = 'TBC';
     //watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
