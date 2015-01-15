@@ -2161,7 +2161,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     if (sizeof($bookoff_crews)) {
         $bookoff_crews_block = '<div class="bookoff-crews">';
         $bookoff_crews_block .= '<p class="bookoff-title">Booked-off crews:</p>';
-        foreach ($bookoff_crews as $uid => $crew) {
+        foreach ($bookoff_crews as $crew) {
             $crew_name = $crew->crew_name;
             if ($crew->date_start == $crew->date_end) {
                 $time_start = date('H:i', strtotime($crew->time_start));
@@ -2170,7 +2170,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     array('!time_start' => $time_start, '!time_end' => $time_end));
             }
             $bookoff_crews_block .= '<span class="crew-names bookoff-crew">';            
-            $bookoff_crews_block .= l($crew_name, 'user/'.$uid, array('attributes' => array('target' => '_blank')));
+            $bookoff_crews_block .= l($crew_name, 'user/'.$crew->crew_uid, array('attributes' => array('target' => '_blank')));
             $bookoff_crews_block .= '</span>';
         }
         $bookoff_crews_block .= '</div>';   

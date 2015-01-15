@@ -1140,13 +1140,12 @@ function acecrew_get_bookoff_crews($date) {
   INNER JOIN `drupal_users_roles` ur ON ur.uid = ub.field_ub_owner_uid
   INNER JOIN `drupal_users` u ON ub.field_ub_owner_uid = u.uid
   WHERE '%s' BETWEEN DATE(ub.field_ub_date_start_value) AND DATE(ub.field_ub_date_end_value)
-  AND ur.rid =5
-  GROUP BY ub.field_ub_owner_uid
+  AND ur.rid =5  
   ORDER BY u.name ASC";
-  $result = db_query($query, $date); //
+  $result = db_query($query, $date); // GROUP BY ub.field_ub_owner_uid
   $crews = array();
   while ($crew = db_fetch_object($result)) {
-    $crews[$crew->crew_uid] = $crew;
+    $crews[] = $crew;
   }  
 
   return $crews;
