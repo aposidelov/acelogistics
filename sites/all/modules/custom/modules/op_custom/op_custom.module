@@ -1,5 +1,9 @@
 <?php
 
+define('CANCELLATION_NA', NULL);
+define('CANCELLATION_12HOURS_NOTICE', 1);
+define('CANCELLATION_24HOURS_NOTICE', 2);
+
 /**
  * Implements hook_init().
  */
@@ -164,7 +168,7 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
 }
 
 function op_custom_call_duplicate_submit($form, &$form_state) {
-  watchdog('dupl_f2', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  //watchdog('dupl_f2', '<pre>'.print_r($form_state, TRUE).'</pre>');
   $duplications = $form_state['values']['duplications'];  
 
   if (!$duplications) {
@@ -202,26 +206,20 @@ function op_custom_call_duplicate_submit($form, &$form_state) {
   //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['value'], TRUE).'</pre>');
   //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['timezone'], TRUE).'</pre>');
   //node
-  $date = date_make_date($call_obj->field_job_session_date_time[0]['value'], $call_obj->field_job_session_date_time[0]['timezone']);
-  watchdog('$ddd', '<pre>'.print_r($date, TRUE).'</pre>');
+  $date = date_make_date($call_obj->field_job_session_date_time[0]['value'], $call_obj->field_job_session_date_time[0]['timezone']);  
   $job_id = $call_obj->field_session_job_nid[0]['value'];
   for ($days = 1; $days <= $duplications; $days++) {    
     date_modify($date, '+1 days');
-    $updated_date = date_format($date, 'Y-m-d H:i:s');
-    watchdog('upd_d', '<pre>'.print_r($updated_date, TRUE).'</pre>');
-    if (!acecrew_is_call_exists($job_id, $updated_date)) {
-      watchdog('ex', '<pre>'.print_r('ne'.$days, TRUE).'</pre>');      
+    $updated_date = date_format($date, 'Y-m-d H:i:s');    
+    if (!acecrew_is_call_exists($job_id, $updated_date)) {      
       $call_obj->field_job_session_date_time[0]['value'] = $updated_date;
       $call_obj->field_job_session_date_time[0]['value2'] = $updated_date;
       $call_obj->nid = '';
       $call_obj->vid = '';
       $call_obj->is_new = TRUE; 
       $max_call_data = acecrew_get_max_call_parsed_by_jobid($job_id);
-      $call_obj->field_session_callid[0]['value'] = $max_call_data['job_number'].'-'.($max_call_data['max'] + 1);
-      watchdog('ccobj', '<pre>'.print_r($call_obj, TRUE).'</pre>');
+      $call_obj->field_session_callid[0]['value'] = $max_call_data['job_number'].'-'.($max_call_data['max'] + 1);      
       node_save($call_obj);
-    } else {
-      watchdog('ex', '<pre>'.print_r('e'.$days, TRUE).'</pre>');
     }
   }  
 }
@@ -1149,4 +1147,13 @@ function acecrew_get_bookoff_crews($date) {
   }  
 
   return $crews;
+}
+
+function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job_status = CANCELLATION_NA) {  
+  if ( ($call_status == CANCELLATION_12HOURS_NOTICE) ||
+       ($job_status == CANCELLATION_12HOURS_NOTICE AND $call_status == CANCELLATION_NA)) {
+    $price = $price / 2;
+  }
+
+  return $price;
 }

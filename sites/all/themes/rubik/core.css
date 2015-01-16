@@ -170,7 +170,7 @@ table tr.draggable span.tabledrag-changed { display:none; }
 .node-type-list,
 .admin-panel {
   background:#fff;
-  margin:0px 0px 10px;
+  margin:0px 0px 30px;
 
   border-width:1px;
   border-style:solid;

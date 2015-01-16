@@ -9,7 +9,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $booked_by = $quote['job']->field_job_booked_by_value;
     $job_number = $quote['job']->field_job_number_value;
     $venue = $quote['venue'];
-    $callings = $quote['callings'];
+    $callings = $quote['callings'];    
 
     $logo = dirname(__FILE__) . '/../theme/acecrewquo.png';
 
@@ -271,9 +271,9 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $cell->setCellPaddings(0.2, 0, 0, 0);
 
         //Unit price
-        $li_table->writeToCell($row,10, '&pound;' . sprintf("%01.2f", $call_amount), $small_font);
+        $li_table->writeToCell($row,10, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($call_amount, $call->cancellation_status, $job->cancellation_status)), $small_font);
         //Unit price
-        $li_table->writeToCell($row,11, '&pound;' . sprintf("%01.2f", $total), $small_font);
+        $li_table->writeToCell($row,11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($total, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
         $cell = $li_table->getCell($row, 10);
         $cell->setVerticalAlignment('center');
@@ -292,7 +292,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $li_table->writeToCell($row, 5, $call->field_job_session_crew_value, $small_font);
             $li_table->writeToCell($row, 9, "&#xd7;", $small_font);
             $li_table->writeToCell($row, 10, get_default_boundary_charge(), $small_font);
-            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $boundary_charge), $small_font);
+            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
             $cell = $li_table->getCell($row, 1);
             $cell->setVerticalAlignment('center');
@@ -322,7 +322,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $li_table->writeToCell($row, 5, $call->field_session_num_vehicles_value, $small_font);
             $li_table->writeToCell($row, 9, "&#xd7;", $small_font);
             $li_table->writeToCell($row, 10, $mileage_unit, $small_font);
-            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $mileage_charge), $small_font);
+            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_charge, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
             $cell = $li_table->getCell($row, 1);
             $cell->setVerticalAlignment('center');
@@ -350,7 +350,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $li_table->writeToCell($row, 5, $additional_client_desc, $small_font);
             $li_table->writeToCell($row, 9, '', $small_font);
             $li_table->writeToCell($row, 10, '=', $small_font);
-            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $additional_client_charge), $small_font);
+            $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_client_charge, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
             $cell = $li_table->getCell($row, 1);
             $cell->setVerticalAlignment('center');
@@ -420,7 +420,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
                 $li_table->writeToCell($row, 5, $quantity, $small_font);
                 $li_table->writeToCell($row, 9, '', $small_font);
                 $li_table->writeToCell($row, 10, '', $small_font);
-                $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $value), $small_font);
+                $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($value, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
                 $cell = $li_table->getCell($row, 1);
                 $cell->setVerticalAlignment('center');
@@ -454,7 +454,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $li_table->mergeCellRange($row,3,$row,10);
         $li_table->writeToCell($row, 1, 'Discount:', $small_font);
         $li_table->writeToCell($row, 3, $discount_desc, $small_font);
-        $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $discount), $small_font);
+        $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($discount, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
@@ -476,7 +476,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $li_table->addRow(0.7);
     $li_table->mergeCellRange($row,1,$row,10);
     $li_table->writeToCell($row, 1, 'Total (Excluding VAT)', $small_font);
-    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $sum), $small_font);
+    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
     $cell = $li_table->getCell($row, 1);
     $cell->setVerticalAlignment('center');
@@ -492,7 +492,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $li_table->addRow(0.7);
     $li_table->mergeCellRange($row,1,$row,10);
     $li_table->writeToCell($row, 1, '+ VAT', $small_font);
-    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $vat), $small_font);
+    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
     $cell = $li_table->getCell($row, 1);
     $cell->setVerticalAlignment('center');$cell->setCellPaddings(0, 0, 0.3, 0);
@@ -507,7 +507,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $li_table->addRow(0.7);
     $li_table->mergeCellRange($row,1,$row,10);
     $li_table->writeToCell($row, 1, 'TOTAL', $small_font);
-    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", $sum + $vat), $small_font);
+    $li_table->writeToCell($row, 11, '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, $call->cancellation_status, $job->cancellation_status)), $small_font);
 
     $cell = $li_table->getCell($row, 1);
     $cell->setVerticalAlignment('center');$cell->setCellPaddings(0, 0, 0.3, 0);

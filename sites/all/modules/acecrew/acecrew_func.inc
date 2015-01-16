@@ -655,8 +655,13 @@ function _quote_dompdf_include_lib() {
 }
 
 function _acecrew_quote_get_html($quote_id, $type='print') {
+    /*
+      , cs.field_cancellation_status_value AS cancellation_status
+    FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid
+     */
+
     $job = NULL;
-    $query = "SELECT ctj.*, ajq.* FROM {content_type_job} ctj, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
+    $query = "SELECT ctj.*, ajq.*, cs.field_cancellation_status_value AS cancellation_status FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
     $query_result = db_query($query, $quote_id);
     while($row = db_fetch_object($query_result)){
         $job = $row;
@@ -684,7 +689,8 @@ function _acecrew_quote_get_html($quote_id, $type='print') {
 
 function _acecrew_invoice_get_html($invoice_id, $type='print') {
     $job = NULL;
-    $query = "SELECT ctj.*, aji.* FROM {content_type_job} ctj, {acecrew_job_invoices} aji WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
+    
+    $query = "SELECT ctj.*, aji.*, cs.field_cancellation_status_value AS cancellation_status FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_invoices} aji WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
     $query_result = db_query($query, $invoice_id);
     $row = db_fetch_object($query_result);
     $job = $row;
@@ -806,9 +812,10 @@ function _get_venue_by_job($job) {
 function _get_callings_by_job($job) {
     $callings = array();
 
-    $query = "SELECT ctjs.* FROM `drupal_content_type_job` ctj 
-    INNER JOIN `drupal_content_type_job_session` ctjs 
-    ON ctjs.field_session_job_nid_value = ctj.nid
+    $query = "SELECT ctjs.*, cs.field_cancellation_status_value AS cancellation_status
+    FROM `drupal_content_type_job` ctj 
+    INNER JOIN `drupal_content_type_job_session` ctjs ON ctjs.field_session_job_nid_value = ctj.nid
+    LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctjs.nid
     INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
     WHERE jsn.status = 1 AND ctj.vid ='%d'"; // 
     
@@ -828,9 +835,10 @@ function _get_callings_by_job($job) {
 function _get_callings_for_invoice_by_job($job) {
     $callings = array();
 
-    $query = "SELECT ctjs.* FROM `drupal_content_type_job` ctj 
-    INNER JOIN `drupal_content_type_job_session` ctjs 
-    ON ctjs.field_session_job_nid_value = ctj.nid
+    $query = "SELECT ctjs.*, cs.field_cancellation_status_value AS cancellation_status 
+    FROM `drupal_content_type_job` ctj 
+    INNER JOIN `drupal_content_type_job_session` ctjs ON ctjs.field_session_job_nid_value = ctj.nid
+    LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctjs.nid
     INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
     WHERE jsn.status = 1 AND ctj.vid ='%d'";
 
@@ -1127,7 +1135,8 @@ function acecrew_get_job_row_by_id($id) {
 
 function _acecrew_quote_rtf_get_html($quote_id) {
     $job = NULL;
-    $query = "SELECT ctj.*, ajq.* FROM {content_type_job} ctj, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
+    $query = "SELECT ctj.*, ajq.*, cs.field_cancellation_status_value AS cancellation_status 
+    FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
     $query_result = db_query($query, $quote_id);
     while($row = db_fetch_object($query_result)){
         $job = $row;
@@ -1153,12 +1162,15 @@ function _acecrew_quote_rtf_get_html($quote_id) {
     return $content;
 }
 
-function _acecrew_invoice_rtf_get_html($invoice_id) {
+function _acecrew_invoice_rtf_get_html($invoice_id) {    
     $job = NULL;
-    $query = "SELECT ctj.*, aji.* FROM {content_type_job} ctj, {acecrew_job_invoices} aji WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
+    $query = "SELECT ctj.*, aji.*, cs.field_cancellation_status_value AS cancellation_status
+        FROM `drupal_content_type_job` ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid 
+, `drupal_acecrew_job_invoices` aji         
+        WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
     $query_result = db_query($query, $invoice_id);
     $row = db_fetch_object($query_result);
-    $job = $row;
+    $job = $row;    
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);

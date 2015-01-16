@@ -27,6 +27,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $venue = $quote['venue'];
     $callings = $quote['callings'];
 
+    watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
+
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_inv_footer_text_value;
     $footer_txt = explode("\r\n", $footer_text);
@@ -295,15 +297,15 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
           <td width=4% valign=top>Hours: </td>
           <td width=10% valign=top>' . $quoted_hours . '</td>
           <td width=2% valign=top>=</td>
-          <td width=7% valign=top>' . ($total_adjusted ? "" : '&pound;' . sprintf("%01.2f", $quoted_amount) ) . '</td>
-          <td width=7% valign=top>&pound;' . ($total_adjusted ? sprintf("%01.2f", $quoted_amount * $number_of_standard_crews + $total_adjust_add - $total_adjust_reduce) : sprintf("%01.2f", $quoted_amount * $number_of_standard_crews) ) . '</td>
+          <td width=7% valign=top>' . ($total_adjusted ? "" : '&pound;' . sprintf("%01.2f", acecrew_cancellation_price($quoted_amount, $call->cancellation_status, $job->cancellation_status)) ) . '</td>
+          <td width=7% valign=top>&pound;' . ($total_adjusted ? sprintf("%01.2f", acecrew_cancellation_price($quoted_amount * $number_of_standard_crews + $total_adjust_add - $total_adjust_reduce, $call->cancellation_status, $job->cancellation_status)) : sprintf("%01.2f", acecrew_cancellation_price($quoted_amount * $number_of_standard_crews, $call->cancellation_status, $job->cancellation_status)) ) . '</td>
         </tr>';
         if ($additional_hours > 0) {
           echo "<tr>
                 <td colspan=8 valign=top>Includes $additional_hours additional hours</td>
                 <td valign=top>&#xd7;</td>
-                <td valign=top>&pound;" . sprintf("%01.2f", $client_rate) . "</td>
-                <td valign=top>&pound;" . sprintf("%01.2f", $client_rate * $additional_hours) . "</td>
+                <td valign=top>&pound;" . sprintf("%01.2f", acecrew_cancellation_price($client_rate, $call->cancellation_status)) . "</td>
+                <td valign=top>&pound;" . sprintf("%01.2f", acecrew_cancellation_price($client_rate * $additional_hours, $call->cancellation_status)) . "</td>
               </tr>";
         }
         if ($call->field_add_boundary_charge_value == 1) {
@@ -312,8 +314,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                 <td colspan=4 valign=top>Boundary Charge:</td>
                 <td colspan=4 valign=top>' . $call->field_job_session_crew_value . '</td>
                 <td valign=top>&#xd7;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", get_default_boundary_charge()) . '</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", $boundary_charge) . '</td>
+                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price(get_default_boundary_charge(), $call->cancellation_status, $job->cancellation_status)) . '</td>
+                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
       if ($call->field_session_num_vehicles_value >= 1) {
@@ -322,8 +324,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                 <td colspan=4 valign=top>Mileage Charge(' . $distance . ' miles): </td>
                 <td colspan=4 valign=top>' . $call->field_session_num_vehicles_value . '</td>
                 <td valign=top>&#xd7;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", $mileage_unit) . '</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", $mileage_charge) . '</td>
+                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_unit, $call->cancellation_status, $job->cancellation_status)) . '</td>
+                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_charge, $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
 
@@ -334,7 +336,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                 <td colspan=6 valign=top>' . $additional_client_desc . '</td>
                 <td width=2% valign=top>=</td>
                 <td width=7% valign=top>&nbsp;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", $additional_client_charge) . '</td>
+                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_client_charge, $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
 
@@ -347,7 +349,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                     <td colspan=4 valign=top>' . $supplement['quantity'] . '</td>
                     <td valign=top>&#xd7;</td>
                     <td valign=top>&nbsp;</td>
-                    <td valign=top>&pound;' . sprintf("%01.2f", $supplement['amount']) . '</td>
+                    <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($supplement['amount'], $call->cancellation_status, $job->cancellation_status)) . '</td>
                 </tr>';
             }  else {
                 echo '<tr><td colspan=11></td></tr>';
@@ -358,7 +360,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
             echo '<tr>
                     <td colspan=8 valign=top>Additional costs: </td>
                     <td colspan=2 valign=top>=</td>
-                    <td valign=top>&pound;' . sprintf("%01.2f", $additional_charge) . '</td>
+                    <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_charge, $call->cancellation_status, $job->cancellation_status)) . '</td>
                 </tr>';
         }
 
@@ -372,7 +374,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
             <tr>
                 <td colspan=1 valign=top>Discount: </td>
                 <td colspan=10 valign=top>' . $discount_desc . '</td>
-                <td valign=top>- &pound;' . sprintf("%01.2f", $discount) . '</td>
+                <td valign=top>- &pound;' . sprintf("%01.2f", acecrew_cancellation_price($discount, $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
     }
 
@@ -380,9 +382,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $vat = round(getVAT() * $sum / 100, 2);
 
-    echo '<tr><td colspan="11" align="right">Total (Excluding VAT)</td><td>&pound;' . sprintf("%01.2f", $sum) . '</td></tr>';
-    echo '<tr><td colspan="11" align="right">+ VAT</td><td>&pound;' . sprintf("%01.2f", $vat) . '</td></tr>';
-    echo '<tr><td colspan="11" align="right">TOTAL</td><td>&pound;' . sprintf("%01.2f", $sum + $vat) . '</td></tr>';
+    echo '<tr><td colspan="11" align="right">Total (Excluding VAT)</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, $call->cancellation_status, $job->cancellation_status)) . '</td></tr>';
+    echo '<tr><td colspan="11" align="right">+ VAT</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, $call->cancellation_status, $job->cancellation_status)) . '</td></tr>';
+    echo '<tr><td colspan="11" align="right">TOTAL</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, $call->cancellation_status, $job->cancellation_status)) . '</td></tr>';
 
     echo '</table>';
 
