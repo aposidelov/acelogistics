@@ -2187,9 +2187,9 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
             }            
         }
 
-
+        $crews_bookoff_count = sizeof($bookoff_grouped_crews);
         $bookoff_crews_block = '<div class="bookoff-crews">';
-        $bookoff_crews_block .= '<p class="bookoff-title">Booked-off crews:</p>';
+        $bookoff_crews_block .= '<p class="bookoff-title">Booked Off Crews: ' . $crews_bookoff_count . '</p>';
         foreach ($bookoff_grouped_crews as $uid => $crew) {            
             $time_str = '';
             if (isset($crew['time'])) {                
