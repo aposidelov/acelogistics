@@ -2179,8 +2179,11 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
             if ($crew->date_start == $crew->date_end) {
                 $time_start = date('H:i', strtotime($crew->time_start));
                 $time_end   = date('H:i', strtotime($crew->time_end));                    
-
-                array_unshift($bookoff_grouped_crews[$crew->crew_uid]['time'], $time_start . ' - ' . $time_end);
+                if (!isset($bookoff_grouped_crews[$crew->crew_uid]['time'])) {
+                    $bookoff_grouped_crews[$crew->crew_uid]['time'] = array();
+                }
+                $bookoff_grouped_crews[$crew->crew_uid]['time'][] = $time_start . ' - ' . $time_end;
+                //array_unshift($bookoff_grouped_crews[$crew->crew_uid]['time'], $time_start . ' - ' . $time_end);
             }            
         }
 
