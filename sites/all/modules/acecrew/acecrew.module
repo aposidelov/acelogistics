@@ -2180,7 +2180,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 $time_start = date('H:i', strtotime($crew->time_start));
                 $time_end   = date('H:i', strtotime($crew->time_end));                    
 
-                $bookoff_grouped_crews[$crew->crew_uid]['time'][] = $time_start . ' - ' . $time_end;
+                array_unshift($bookoff_grouped_crews[$crew->crew_uid]['time'], $time_start . ' - ' . $time_end);
             }            
         }
 
