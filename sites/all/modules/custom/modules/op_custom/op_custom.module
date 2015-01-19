@@ -78,13 +78,6 @@ function op_custom_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );  
- 
-  /*
-  $items['pdf_test'] = array(
-    'page callback' => 'pdf_test_page',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );*/
 
   return $items;
 }
@@ -142,8 +135,7 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
     $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';    
   } elseif ($form_id == 'job_node_form') {    
     drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');
-  } elseif ($form_id == 'job_session_node_form') {        
-      //watchdog('ffff', '<pre>'.print_r($form, TRUE).'</pre>');
+  } elseif ($form_id == 'job_session_node_form') {              
       $form['buttons']['submit']['#submit'][] = 'op_custom_call_duplicate_submit';
       $form['duplications'] = array(
         '#type' => 'select',
