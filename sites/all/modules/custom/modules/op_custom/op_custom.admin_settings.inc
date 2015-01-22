@@ -3,7 +3,6 @@
 define('DEFAULT_2_RATE', '_per_hour');
 define('DEFAULT_3_RATE', '_per_hour_3');
 
-
 //define('DEFAULT_2_GROUP', 'group_default_2');
 define('DEFAULT_2_GROUP', 'group_default_crew_payments');
 //define('DEFAULT_3_GROUP', 'group_default_3');

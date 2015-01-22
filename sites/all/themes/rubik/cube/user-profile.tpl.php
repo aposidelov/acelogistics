@@ -303,11 +303,11 @@ $(document).ready(function(){
   <script type="text/javascript">
   $(document).ready(function(){
     $('#ub_date_start').datetimepicker({ 
-      dateFormat: 'mm/dd/yy',
+      dateFormat: 'yy-mm-dd',
       timeFormat: ' hh:ii' 
     });
     $('#ub_date_end').datetimepicker({ 
-      dateFormat: 'mm/dd/yy',
+      dateFormat: 'yy-mm-dd',
       timeFormat: ' hh:ii' 
     });
     
@@ -323,58 +323,131 @@ $(document).ready(function(){
     
   });
 
-  function formValidate(){
-	  if ( $('#ub_label').val().length<1 ||
-          $('#ub_date_start').val().length<1 ||
-          $('#ub_date_end').val().length < 1 ) { 
-		  return false;
-	  }else{
-		  return true;
-	  }
+  function formValidate() {
+	  if ($('#ub_label').val() == '') {
+      return 'Label is required';
+    }
+
+    if ($('#ub_date_start').val() == '') {
+      return 'Start Date+Time is required';
+    }
+
+    return '';
   }
-  function addBookedOff(){
-	  if (! formValidate())
-	  {				
-		  $('#msgboard').html("invalid input value");
-		  $('#msgboard').addClass("error");
-		  $('#msgboard').removeClass('status');
-		  $('#msgboard').show(1000)
-		  return;
-	  }
-      postData = {
-          uid:'<?php echo $account->uid?>', //$('[name=uid]').val()
-          ub_label:$('#ub_label').val(),
-          ub_date_start:$('#ub_date_start').val(),
-          ub_date_end:$('#ub_date_end').val(),
-      }
+
+  function addBookedOff() {
+	  var message = formValidate();
+    if (message != '') {        
+      $('#msgboard').html(message);
+      $('#msgboard').addClass("error");
+      $('#msgboard').removeClass('status');
+      $('#msgboard').show(1000);
       
-      $.post(Drupal.settings.basePath + "acecrew/ajax/usr/addbookedoff/uid:<?php echo $account->uid?>",
-            postData,
-            function(data){
-                var result = Drupal.parseJson(data);
+      return;
+    }
+
+    postData = {
+      uid : '<?php echo $account->uid?>',
+      ub_label : $('#ub_label').val(),
+      ub_date_start : $('#ub_date_start').val(),
+      ub_date_end : $('#ub_date_end').val()
+    }
+      
+    $.post(Drupal.settings.basePath + "acecrew/ajax/usr/addbookedoff/uid:<?php echo $account->uid?>",
+      postData,
+      function(data) {
+        var result = Drupal.parseJson(data);        
+        window.location.reload();
+        /*if (result.result == 1) {
+          $('#msgboard').html(result.msg);
+          $('#msgboard').addClass("status");
+          //add new row to the end
+          $rowHtml = "<tr id='tr_ub_" + result.node_id + "'><td>"
+              + postData['ub_label'] + '</td> <td>'
+              + postData['ub_date_start'] + '</td> <td>'
+              + postData['ub_date_end'] + '</td>  <td>'
+              + "<a href='#' onclick=\"delBookedOff('" +result.node_id +"')\">delete</a></td>"
+              + "</tr>";
+          $($rowHtml).insertAfter('#ub-list-0').fadeOut(500).fadeIn(500);
+          
+        } else if (result.result == 0) {
+          $('#msgboard').html(result.msg);
+          $('#msgboard').addClass("error");
+        }
                 
-                if ( result.result == 1){
-                    $('#msgboard').html(result.msg);
-                    $('#msgboard').addClass("status");
-                    //add new row to the end
-                    $rowHtml = "<tr id='tr_ub_"+ result.node_id + "'><td>"
-                        + postData['ub_label']+ '</td> <td>'
-                        + postData['ub_date_start']+ '</td> <td>'
-                        + postData['ub_date_end'] + '</td>  <td>'
-                        + "<a href='#' onclick=\"delBookedOff('" +result.node_id +"')\">delete</a></td>"
-                        + "</tr>"
-                    $($rowHtml).insertAfter('#ub-list-0').fadeOut(500).fadeIn(500)
-                    
-                }else if ( result.result== 0){
-                    $('#msgboard').html(result.msg);
-                    $('#msgboard').addClass("error")
-                }
-                
-                $('#msgboard').show(1000)
-            }); 
+        $('#msgboard').show(1000);
+        */
+      }
+    ); 
   }
+
+  function formRepeatValidate() {    
+    if ($('#ub_label').val() == '') {
+      return 'Label is required';
+    }
+
+    if ($('#ub_date_start').val() == '') {
+      return 'Start Date+Time is required';
+    }
+
+    if (($('#ub_periodicity_number').val() == 0 && $('#ub_range_number').val() > 0) ||
+        ($('#ub_range_number').val() == 0 && $('#ub_periodicity_number').val() > 0)) {
+      return 'Periodicity number & Range number cannot be zero'; 
+    }
+
+    var periodicity_longer_message = 'Periodicity cannot be longer than Range';
+    if ( ( ($('#ub_periodicity_type').val() == 'weeks' || $('#ub_periodicity_type').val() == 'months') && 
+         $('#ub_range_type').val() == 'days') && $('#ub_periodicity_number').val() > $('#ub_range_number').val() ) {
+      return periodicity_longer_message;
+    }
+
+    if ( ( ($('#ub_periodicity_type').val() == 'months') && 
+         $('#ub_range_type').val() == 'weeks') && $('#ub_periodicity_number').val() > $('#ub_range_number').val() ) {
+      return periodicity_longer_message;
+    }
+
+    if ( $('#ub_periodicity_type').val() == $('#ub_range_type').val()  && 
+         $('#ub_periodicity_number').val() > $('#ub_range_number').val() ) {
+      return periodicity_longer_message;
+    }
+
+    return '';    
+  }
+
+  function addRepeatBookedOff() {
+    var message = formRepeatValidate();
+    if (message != '') {        
+      $('#msgboard').html(message);
+      $('#msgboard').addClass("error");
+      $('#msgboard').removeClass('status');
+      $('#msgboard').show(1000);
+      
+      return;
+    }
+
+    postData = {
+      uid : '<?php echo $account->uid?>',
+      ub_label : $('#ub_label').val(),
+      ub_date_start : $('#ub_date_start').val(),
+      ub_date_end : $('#ub_date_end').val(),
+      ub_periodicity_number : $('#ub_periodicity_number').val(),
+      ub_periodicity_type : $('#ub_periodicity_type').val(),
+      ub_range_number : $('#ub_range_number').val(),
+      ub_range_type : $('#ub_range_type').val(),
+    }
+      
+    $.post(Drupal.settings.basePath + "acecrew/ajax/usr/addbookedoff/uid:<?php echo $account->uid?>",
+      postData,
+      function(data) {
+        var result = Drupal.parseJson(data);        
+        window.location.reload();        
+      }
+    ); 
+  }
+
+  //addRepeatBookedOff
   
-  function delBookedOff(nid){
+  function delBookedOff(nid) {
         $.get(Drupal.settings.basePath + "acecrew/ajax/usr/delbookedoff/"+nid, function(data){
            
             var result = Drupal.parseJson(data);
@@ -418,7 +491,18 @@ $(document).ready(function(){
     <span><input type="text" id="ub_date_start" name="ub_date_start" class="ub-calendar"></span>
     <label>End Date+Time</label>
     <span><input type="text" id="ub_date_end" name="ub_date_end" class="ub-calendar"></span>
+    <div class="periodicity">
+      <label>Periodicity</label>      
+      <select name="ub_periodicity_number" class="form-select" id="ub_periodicity_number"><option value="0" selected="selected">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+      <select name="ub_periodicity_type" class="form-select" id="ub_periodicity_type"><option value="days" selected="selected">Days</option><option value="weeks">Weeks</option><option value="months">Months</option></select>
+    </div>
+    <div class="range">
+      <label>Range</label>
+      <select name="ub_range_number" class="form-select" id="ub_range_number"><option value="0" selected="selected">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+      <select name="ub_range_type" class="form-select" id="ub_range_type"><option value="days">Days</option><option value="weeks" selected="selected">Weeks</option><option value="months">Months</option></select>
+    </div>
     <span><input type="button" value="Add new line" class="form-submit" onclick="addBookedOff()"/></span>
+    <span><input type="button" value="Add repeat lines" class="form-submit" onclick="addRepeatBookedOff()"/></span>
     </fieldset>
     </form>
   </div>
@@ -439,15 +523,16 @@ $(document).ready(function(){
       <th>Date and time to</th>
       <th></th>
   </tr>
-  <?php foreach($account->bookoff_list as $row ){
+  <?php foreach ($account->bookoff_list as $row) {
    $nid = $row['nid'];
+   $link = l('edit', 'node/'.$nid.'/edit', array('query' => drupal_get_destination()));
    
    echo <<<TABLE_ROW
     <tr id="tr_ub_$nid">
     <td>$row[field_ub_label_value] </td>
     <td>$row[field_ub_date_start_value]</td>
     <td>$row[field_ub_date_end_value]</td>
-    <td><a href="#" onclick="delBookedOff('$nid')">delete</a></td>
+    <td>$link <a href="#" onclick="delBookedOff('$nid')">delete</a></td>
   </tr>
 TABLE_ROW;
   }?>

@@ -13,9 +13,32 @@ function acecrew_del_user_bookedoff($nid){
 function acecrew_add_user_bookedoff(){
     $query = file_get_contents('php://input');
     extract($_POST);
-    module_load_include('inc', 'node', 'node.pages');
+    module_load_include('inc', 'op_custom', 'op_custom.forms');
 
-    $node = new StdClass();
+    //$ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
+    //$ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);
+
+    watchdog('uid', '<pre>'.print_r($uid, TRUE).'</pre>');
+    watchdog('uds', '<pre>'.print_r($ub_date_start, TRUE).'</pre>');
+    watchdog('ude', '<pre>'.print_r($ub_date_end, TRUE).'</pre>');
+    watchdog('ul', '<pre>'.print_r($ub_label, TRUE).'</pre>');
+    watchdog('pn', '<pre>'.print_r($ub_periodicity_number, TRUE).'</pre>');
+    watchdog('pt', '<pre>'.print_r($ub_periodicity_type, TRUE).'</pre>');
+    watchdog('rn', '<pre>'.print_r($ub_range_number, TRUE).'</pre>');
+    watchdog('rt', '<pre>'.print_r($ub_range_type, TRUE).'</pre>');
+
+    acecrew_add_bookoff(
+        $uid,
+        $ub_date_start,
+        $ub_date_end,
+        $ub_label,
+        $ub_periodicity_number,
+        $ub_periodicity_type,
+        $ub_range_number,
+        $ub_range_type
+    );
+
+    /*$node = new StdClass();
     $node->field_ub_label[0]['value']= $ub_label;
 
     //$ub_date_start = explode(" ",$ub_date_start);
@@ -38,6 +61,8 @@ function acecrew_add_user_bookedoff(){
     }else{
         drupal_json(array('result' => '0', 'msg'=>'bookoff operatio failed'));
     }
+    */
+    drupal_json(array('result' => '1'));
     exit();
 }
 
@@ -426,8 +451,8 @@ function acecrew_user($op, &$edit, &$account, $category = NULL) {
 
     }
     //??saf
-    if ('view' == $op)  {
-        $sql = "select * from {content_type_user_bookedoff} where field_ub_owner_uid = %d";
+    if ('view' == $op) {
+        $sql = "SELECT * FROM {content_type_user_bookedoff} WHERE field_ub_owner_uid = %d ORDER BY field_ub_date_start_value";
         $query = db_query($sql, array($account->uid));
         $ret = array();
         while($row = db_fetch_array($query)){
@@ -440,7 +465,7 @@ function acecrew_user($op, &$edit, &$account, $category = NULL) {
 /**
  * Implementaiton of hook_profile_alter()
  */
-function acecrew_profile_alter(&$account){
+function acecrew_profile_alter(&$account) {
     $payrate_string = acecrew_get_payrate($account->acecrew_payrate_id, true);
     $payrate = array(
         '#type' => 'user_profile_item',
@@ -450,7 +475,7 @@ function acecrew_profile_alter(&$account){
 
     $account->content['Supplement']['payrate'] = $payrate;
 
-    if (!user_access('acecrew access reports')){
+    if (!user_access('acecrew access reports')) {
         return;
     }
 
@@ -2173,7 +2198,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
          *     
          *     )
          * )
-         */
+         */        
         foreach ($bookoff_crews as $crew) {
             $bookoff_grouped_crews[$crew->crew_uid]['name'] = $crew->crew_name;
             if ($crew->date_start == $crew->date_end) {

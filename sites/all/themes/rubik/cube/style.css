@@ -30,6 +30,23 @@ a {
     clear: both;
 }
 
+.profile #ub_label, .profile #ub_date_start, .profile #ub_date_end {
+    border: 1px solid #ccc;
+    margin-bottom: 5px;
+}
+
+.periodicity, .range { 
+    display: inline-block;
+}
+
+.periodicity #ub_periodicity_number, .range #ub_range_number { 
+    width: 60px;
+}
+
+.periodicity #ub_periodicity_type, .range #ub_range_type { 
+    width: 87px;
+}
+
 /**
  * Branding ===========================================================
  */
@@ -935,7 +952,6 @@ html {overflow-y: scroll;}
 #acecrew-calendar-form  #edit-date-forward-days-wrapper {float: left; margin-left: 20px; margin-right: 20px;}
 #acecrew-calendar-form  .container-inline-date {float: left;}
 #acecrew-calendar-form   #edit-date-submit {margin: 15px 0 0px 0px;}
-
 
 .call-listing-item .crew-names, .each-crew span {background: #fff; border-radius: 2px; -moz-border-radius: 2px; -webkit-border-radius: 2px; display: inline-block;}
 .call-listing-item .crew-names.to-be-allocated, .each-crew span.to-be-allocated, span.bookoff-crew {height: 20px; width: 50px; border: 1px solid #ccc; background: #fff !important;}

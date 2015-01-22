@@ -33,6 +33,13 @@ function op_custom_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items['crews/bookoff/repeat-form'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_bookoff_repeat_form'),
+    'access callback' => TRUE,
+    'file' => 'op_custom.forms.inc',
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/admin-settings/cck-add'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_admin_settins_cck_form'),
@@ -117,7 +124,7 @@ function op_custom_rules_action_info() {
  * Implements hook_form_alter().
  */
 function op_custom_form_alter(&$form, &$form_state, $form_id) {
-  //watchdog('v_n', '<pre>'.print_r($form_state['view']->name, TRUE).'</pre>');
+  //watchdog('f_id', '<pre>'.print_r($form_id, TRUE).'</pre>');  
   if ($form_id == 'views_exposed_form' && isset($form_state['view'])) {
     if ($form_state['view']->name == 'call_search') {
       // add extra statuses
@@ -156,6 +163,15 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
           10 => 10,
         ),
       );      
+  } elseif ($form_id == 'user_bookedoff_node_form') {
+    //watchdog('ff', '<pre>'.print_r($form, TRUE).'</pre>');
+    $form['title']['#access'] = 0;
+    $form['revision_information']['#access'] = 0;
+    $form['author']['#access'] = 0;
+    $form['options']['#access'] = 0;
+    $form['comment_settings']['#access'] = 0;
+    $form['menu']['#access'] = 0;
+    $form['path']['#access'] = 0;    
   }
 }
 
@@ -196,7 +212,8 @@ function op_custom_call_duplicate_submit($form, &$form_state) {
   
   //watchdog('$co', '<pre>'.print_r($call_obj, TRUE).'</pre>');
   //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['value'], TRUE).'</pre>');
-  //watchdog('$co', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['timezone'], TRUE).'</pre>');
+  //watchdog('$co1', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['value'], TRUE).'</pre>');
+  //watchdog('$co2', '<pre>'.print_r($call_obj->field_job_session_date_time[0]['timezone'], TRUE).'</pre>');
   //node
   $date = date_make_date($call_obj->field_job_session_date_time[0]['value'], $call_obj->field_job_session_date_time[0]['timezone']);  
   $job_id = $call_obj->field_session_job_nid[0]['value'];
