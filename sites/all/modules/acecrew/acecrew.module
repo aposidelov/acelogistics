@@ -16,17 +16,7 @@ function acecrew_add_user_bookedoff(){
     module_load_include('inc', 'op_custom', 'op_custom.forms');
 
     //$ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
-    //$ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);
-
-    watchdog('uid', '<pre>'.print_r($uid, TRUE).'</pre>');
-    watchdog('uds', '<pre>'.print_r($ub_date_start, TRUE).'</pre>');
-    watchdog('ude', '<pre>'.print_r($ub_date_end, TRUE).'</pre>');
-    watchdog('ul', '<pre>'.print_r($ub_label, TRUE).'</pre>');
-    watchdog('pn', '<pre>'.print_r($ub_periodicity_number, TRUE).'</pre>');
-    watchdog('pt', '<pre>'.print_r($ub_periodicity_type, TRUE).'</pre>');
-    watchdog('rn', '<pre>'.print_r($ub_range_number, TRUE).'</pre>');
-    watchdog('rt', '<pre>'.print_r($ub_range_type, TRUE).'</pre>');
-
+    //$ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);    
     acecrew_add_bookoff(
         $uid,
         $ub_date_start,
@@ -270,7 +260,7 @@ function acecrew_menu() {
         'page arguments' => array(3),
         'access arguments' => array('create fines content'),
         'type' => MENU_CALLBACK,
-    );
+    );    
 
     $items['acecrew/ajax/client_contacts'] = array(
         'title' => 'Ace Crew Client Contacts For Create Job Page',
@@ -2180,42 +2170,16 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     <h3><span class="call-date">' . getDateFormat($date) . '&nbsp;-&nbsp;</span><span class="call-count-title">0 calls</span></h3>
                     <span class="acecrew_calendar_no_events">' . t('There are no items to display') . '</span>
                 </div>';
-    }    
-    $bookoff_crews = acecrew_get_bookoff_crews($date);    
-    $bookoff_crews_block = '';
-    if (sizeof($bookoff_crews)) {
-        $bookoff_grouped_crews = array();        
-        /**
-         * $bookoff_grouped_crews = array(
-         *     123 => array(
-         *         'name' => 'Crew name',
-         *         'time' => array('') // if empty - All day, if 1+ elements - time ranges in format array('09:00 - 11:30', '17:00 - 19:30')
-         *     ),
-         *     35 => array(
-         *     
-         *     ),
-         *     456 => array(
-         *     
-         *     )
-         * )
-         */        
-        foreach ($bookoff_crews as $crew) {
-            $bookoff_grouped_crews[$crew->crew_uid]['name'] = $crew->crew_name;
-            if ($crew->date_start == $crew->date_end) {
-                $time_start = date('H:i', strtotime($crew->time_start));
-                $time_end   = date('H:i', strtotime($crew->time_end));                    
-                if (!isset($bookoff_grouped_crews[$crew->crew_uid]['time'])) {
-                    $bookoff_grouped_crews[$crew->crew_uid]['time'] = array();
-                }
-                //$bookoff_grouped_crews[$crew->crew_uid]['time'][] = $time_start . ' - ' . $time_end;
-                array_unshift($bookoff_grouped_crews[$crew->crew_uid]['time'], $time_start . ' - ' . $time_end);
-            }            
-        }
+    } 
 
-        $crews_bookoff_count = sizeof($bookoff_grouped_crews);
+    $bookoff_crews = acecrew_get_bookoff_crews($date);    
+    
+    $bookoff_crews_block = '';
+    if (sizeof($bookoff_crews)) {        
+        $crews_bookoff_count = sizeof($bookoff_crews);
         $bookoff_crews_block = '<div class="bookoff-crews">';
         $bookoff_crews_block .= '<p class="bookoff-title">Booked Off Crews: ' . $crews_bookoff_count . '</p>';
-        foreach ($bookoff_grouped_crews as $uid => $crew) {            
+        foreach ($bookoff_crews as $uid => $crew) {            
             $time_str = '';
             if (isset($crew['time'])) {                
                 $time_str = t(' (!time)', 

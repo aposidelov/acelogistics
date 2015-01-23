@@ -84,30 +84,49 @@ function op_custom_bookoff_repeat_form(&$form_state) {
 	    '#description' => t(''),
 	    '#options' => $type,
 	);
-	$form['sumbit'] = array(
+	$form['submit'] = array(
 		'#type' => 'submit',
 		'#value' => t('Add new range'),
+	);
+	$form['crews_overload'] = array(
+		'#type' => 'submit',
+		'#value' => t('Check date'),
 	);
 
 	return $form;
 }
 
 function op_custom_bookoff_repeat_form_submit($form, &$form_state) {
+	//watchdog('fs', '<pre>'.print_r($form_state['clicked_button']['#parents'][0], TRUE).'</pre>');
 	$form_state['rebuild'] = 1;
 
-	$label 				= $form_state['values']['label'];
-	$crew_uid 			= $form_state['values']['crew_uid'];
-	$start_date 		= $form_state['values']['start_datetime'];
-	$end_date 			= $form_state['values']['end_datetime'];
-	$periodicity_number = $form_state['values']['periodicity_number'];
-	$periodicity_type 	= $form_state['values']['periodicity_type'];
-	$range_number 		= $form_state['values']['range_number'];
-	$range_type 		= $form_state['values']['range_type'];
-	$timezone			= 'Europe/London';
+	if ($form_state['clicked_button']['#parents'][0] == 'submit') {	
+		
+		$label 				= $form_state['values']['label'];
+		$crew_uid 			= $form_state['values']['crew_uid'];
+		$start_date 		= $form_state['values']['start_datetime'];
+		$end_date 			= $form_state['values']['end_datetime'];
+		$periodicity_number = $form_state['values']['periodicity_number'];
+		$periodicity_type 	= $form_state['values']['periodicity_type'];
+		$range_number 		= $form_state['values']['range_number'];
+		$range_type 		= $form_state['values']['range_type'];
+		$timezone			= 'Europe/London';
 
-	acecrew_add_bookoff($crew_uid, $start_date, $end_date, $label, 
-		$periodicity_number, $periodicity_type, 
-		$range_number, $range_type,	$timezone);
+		acecrew_add_bookoff($crew_uid, $start_date, $end_date, $label, 
+			$periodicity_number, $periodicity_type, 
+			$range_number, $range_type,	$timezone);
+
+	} elseif ($form_state['clicked_button']['#parents'][0] == 'crews_overload') {
+		drupal_set_message(t('over load'));
+	}
+}
+
+function acecrew_bookoff_is_date_valid($date = '') {
+	$output = '';
+	
+		
+
+	return $output;
 }
 
 /**

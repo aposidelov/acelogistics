@@ -3,6 +3,7 @@
 define('CANCELLATION_NA', NULL);
 define('CANCELLATION_12HOURS_NOTICE', 1);
 define('CANCELLATION_24HOURS_NOTICE', 2);
+define('BOOKOFF_DAILY_CREWS_COUNT', 5);
 
 /**
  * Implements hook_init().
@@ -40,6 +41,14 @@ function op_custom_menu() {
     'file' => 'op_custom.forms.inc',
     'type' => MENU_CALLBACK,
   );
+  $items['acecrew/ajax/checkbookoff/%'] = array(
+    'title' => 'Acecrew Check Bookoff Date Ajax',
+    'page callback' => 'acecrew_ajax_check_bookoff_by_date',
+    'page arguments' => array(3),
+    'access arguments' => array('create user_bookedoff content'),
+    'type' => MENU_CALLBACK,
+  );
+
   $items['admin/admin-settings/cck-add'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_admin_settins_cck_form'),
@@ -164,6 +173,7 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
         ),
       );      
   } elseif ($form_id == 'user_bookedoff_node_form') {
+    drupal_add_js(drupal_get_path('module', 'op_custom') . '/js/bookoff.js');
     //watchdog('ff', '<pre>'.print_r($form, TRUE).'</pre>');
     $form['title']['#access'] = 0;
     $form['revision_information']['#access'] = 0;
@@ -1141,13 +1151,31 @@ function acecrew_is_call_exists($job_id, $datatime) {
   return $is_exists;
 }
 
+function acecrew_ajax_check_bookoff_by_date($date = '') {  
+  $crews = acecrew_get_bookoff_crews($date);
+  $crews_count = sizeof($crews);
+  $message = '';
+  if ($crews_count >= BOOKOFF_DAILY_CREWS_COUNT) {
+    foreach ($crews as $crew) {
+      $message .= $crew['name'];
+      if (isset($crew['time'])) {
+        $message .= ' ('.$crew['time'].')';
+      }
+      $message .= "\n";
+    }
+  }
+    
+  print json_encode(array('crews_count' => $crews_count, 'max_crews_count' => BOOKOFF_DAILY_CREWS_COUNT, 'message' => $message));
+  exit;
+}
+
 function acecrew_get_bookoff_crews($date) {
   $query = "SELECT ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name, DATE(ub.field_ub_date_start_value) AS date_start, DATE(ub.field_ub_date_end_value) AS date_end, TIME(ub.field_ub_date_start_value) AS time_start, TIME(ub.field_ub_date_end_value) AS time_end
   FROM `drupal_content_type_user_bookedoff` ub
   INNER JOIN `drupal_users_roles` ur ON ur.uid = ub.field_ub_owner_uid
   INNER JOIN `drupal_users` u ON ub.field_ub_owner_uid = u.uid
   WHERE '%s' BETWEEN DATE(ub.field_ub_date_start_value) AND DATE(ub.field_ub_date_end_value)
-  AND ur.rid =5  
+  AND ur.rid = 5  
   ORDER BY u.name ASC";
   $result = db_query($query, $date); // GROUP BY ub.field_ub_owner_uid
   $crews = array();
@@ -1155,7 +1183,35 @@ function acecrew_get_bookoff_crews($date) {
     $crews[] = $crew;
   }  
 
-  return $crews;
+  /**
+   * $bookoff_grouped_crews = array(
+   *     123 => array(
+   *         'name' => 'Crew name',
+   *         'time' => array('') // if empty - All day, if 1+ elements - time ranges in format array('09:00 - 11:30', '17:00 - 19:30')
+   *     ),
+   *     35 => array(
+   *     
+   *     ),
+   *     456 => array(
+   *     
+   *     )
+   * )
+   */    
+  $bookoff_grouped_crews = array();
+  foreach ($crews as $crew) {
+      $bookoff_grouped_crews[$crew->crew_uid]['name'] = $crew->crew_name;
+      if ($crew->date_start == $crew->date_end) {
+          $time_start = date('H:i', strtotime($crew->time_start));
+          $time_end   = date('H:i', strtotime($crew->time_end));                    
+          if (!isset($bookoff_grouped_crews[$crew->crew_uid]['time'])) {
+              $bookoff_grouped_crews[$crew->crew_uid]['time'] = array();
+          }
+          //$bookoff_grouped_crews[$crew->crew_uid]['time'][] = $time_start . ' - ' . $time_end;
+          array_unshift($bookoff_grouped_crews[$crew->crew_uid]['time'], $time_start . ' - ' . $time_end);
+      }            
+  }
+
+  return $bookoff_grouped_crews;
 }
 
 function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job_status = CANCELLATION_NA) {  

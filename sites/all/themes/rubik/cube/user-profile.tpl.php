@@ -304,16 +304,32 @@ $(document).ready(function(){
   $(document).ready(function(){
     $('#ub_date_start').datetimepicker({ 
       dateFormat: 'yy-mm-dd',
-      timeFormat: ' hh:ii' 
+      timeFormat: 'hh:ii',
+      onSelect: function (e, t) {
+        var date = $(this).val();   
+        $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
+          if (data.message != '') {
+            alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
+          }
+        });
+      }
     });
     $('#ub_date_end').datetimepicker({ 
       dateFormat: 'yy-mm-dd',
-      timeFormat: ' hh:ii' 
+      timeFormat: 'hh:ii',
+      onSelect: function (e, t) {
+        var date = $(this).val();   
+        $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
+          if (data.message != '') {
+            alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
+          }
+        });
+      } 
     });
     
      $(document).ajaxStart(function(){
         //$(this).show();
-        $('#msgboard').hide()
+        $('#msgboard').hide();
         $.blockUI();
      }).ajaxStop(function(){
         //$(this).hide();
