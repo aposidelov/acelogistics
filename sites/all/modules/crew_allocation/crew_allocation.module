@@ -71,9 +71,9 @@ function crew_allocation_menu() {
 /**
  * Menu callback; Generate the parent window, from where all examples are available.
  */
-function crew_allocation_page($first, $second)
+function crew_allocation_page($first, $second, $date)
 {
-    return drupal_get_form('_crew_allocation_top_form', $first, $second);
+    return drupal_get_form('_crew_allocation_top_form', $first, $second, $date);
 }
 
 
@@ -86,10 +86,10 @@ function _crew_allocation_top_form(&$form_state) {
     drupal_add_js(drupal_get_path('module', 'crew_allocation') .'/crew_allocation.js');
 
     //print_r($_REQUEST);
-    $page_arguments = func_get_args();
-    //watchdog('ppa', '<pre>'.print_r($page_arguments, TRUE).'</pre>');
+    $page_arguments = func_get_args();    
     $vid = $page_arguments[1];
     $call_id = $page_arguments[2];
+    $date = $page_arguments[3];    
 
     $client_name = db_result(db_query("SELECT c.field_client_name_value FROM {content_type_job_session} js INNER JOIN {content_type_job} j ON j.nid = js.field_session_job_nid_value
         INNER JOIN {content_type_client} c ON j.field_job_client_name_value = c.field_client_id_value WHERE js.vid = %d LIMIT 1", $vid));
@@ -146,39 +146,255 @@ function _crew_allocation_top_form(&$form_state) {
 
     //Default crew allocation window (show all groupings)
     if($_emp_type_value == NULL || $_emp_type_value == 'All' ) {
+      // then get all type.
+      $emp_types = _crew_allocation_get_all_employment_type();
+      array_shift($emp_types);
 
-        // then get all type.
-        $emp_types = _crew_allocation_get_all_employment_type();
-        array_shift($emp_types);
+
+      /**
+       * Full Time Available
+       */
+
+      //Create fieldset for full time available
+      $form['emp_type']['Full Time Available'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Full Time Available Crew'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Full Time Available",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        null,
+        $unavailable_users,
+        $unavailable_120_61
+      );
+
+      /**
+       * Part Time Available
+       */
+
+      //Create fieldset for full time available
+      $form['emp_type']['Part Time Available'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Part Time Available Crew'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Part Time Available",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        null,
+        $unavailable_users,
+        $unavailable_120_61
+      );
 
 
+
+      /**
+       * Full Time Unavailable
+       */
+
+      //Create fieldset for full time unavailable
+      $form['emp_type']['Full Time Unavailable'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Full Time Unavailable Crew'
+      );
+
+      //Create fieldset for full time unavailable (120-61)
+      $form['emp_type']['Full Time Unavailable']['120-61'] = array(
+        '#type' => 'fieldset',
+        '#title' => '120-61'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Full Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        '120-61',
+        $unavailable_120_61
+      );
+
+      //Create fieldset for full time unavailable (60-1)
+      $form['emp_type']['Full Time Unavailable']['60-1'] = array(
+        '#type' => 'fieldset',
+        '#title' => '60-1'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Full Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        '60-1',
+        $unavailable_60_1
+      );
+
+      //Create fieldset for full time unavailable (normal)
+      $form['emp_type']['Full Time Unavailable']['normal'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Normal'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Full Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        'normal',
+        $unavailable_normal
+      );
+
+      /**
+       * Part Time Unavailable
+       */
+
+      //Create fieldset for part time unavailable
+      $form['emp_type']['Part Time Unavailable'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Part Time Unavailable Crew'
+      );
+
+      //Create fieldset for part time unavailable (120-61)
+      $form['emp_type']['Part Time Unavailable']['120-61'] = array(
+        '#type' => 'fieldset',
+        '#title' => '120-61'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Part Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        '120-61',
+        $unavailable_120_61
+      );
+
+      //Create fieldset for part time unavailable (60-1)
+      $form['emp_type']['Part Time Unavailable']['60-1'] = array(
+        '#type' => 'fieldset',
+        '#title' => '60-1'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Part Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        '60-1',
+        $unavailable_60_1
+      );
+
+      //Create fieldset for part time unavailable (normal)
+      $form['emp_type']['Part Time Unavailable']['normal'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Normal'
+      );
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "Part Time Unavailable",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        'normal',
+        $unavailable_normal
+      );
+
+
+      /**
+       * Booked off
+       */
+
+      $form['bookedoff'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Booked off Crew'),
+      );
+
+      foreach ($booked_user_list as $key => $name) {
+        $crew_details = acecrew_get_bookoff_crews($date, $key);        
+
+        $output = '';
+
+        $output = '<div class="bookoff-container">'.t($name).
+          '<div class="bookoff-details">'.
+          '<label>Label:</label>'.
+          '<p>'.$crew_details[$key]['label'].'</p>';
+          $output .= '<label>Time:</label>';
+          if (sizeof($crew_details[$key]['time'])) {
+            $output .= '<p>'.implode(', ', $crew_details[$key]['time']).'</p>';
+          } else {            
+            $output .= '<p>Daylong</p>';
+          }
+
+
+          if (!empty($crew_details[$key]['comment'])) {
+            $output .= '<label>Comment:</label>'.
+          '<p>'.$crew_details[$key]['comment'].'</p>';
+          }
+          
+          $output .= '</div>'.
+          '</div>';
+
+        $form['bookedoff'][$name] = array(
+          '#type' => 'item',
+          '#id' => t('crew-'.$key),
+          '#value' => $output,          
+        );
+      }
+    } else {
+      if ($_emp_type_value == "Full Time Available") {
         /**
          * Full Time Available
          */
-
         //Create fieldset for full time available
         $form['emp_type']['Full Time Available'] = array(
-            '#type' => 'fieldset',
-            '#title' => 'Full Time Available Crew'
+          '#type' => 'fieldset',
+          '#title' => 'Full Time Available Crew'
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Full Time Available",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            null,
-            $unavailable_users,
-            $unavailable_120_61
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Full Time Available",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          null,
+          $unavailable_users,
+          $unavailable_120_61
         );
-
+      } else if ($_emp_type_value == "Part Time Available") {
         /**
          * Part Time Available
          */
-
         //Create fieldset for full time available
         $form['emp_type']['Part Time Available'] = array(
             '#type' => 'fieldset',
@@ -186,55 +402,52 @@ function _crew_allocation_top_form(&$form_state) {
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Part Time Available",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            null,
-            $unavailable_users,
-            $unavailable_120_61
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Part Time Available",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          null,
+          $unavailable_users,
+          $unavailable_120_61
         );
-
-
-
+      } else if ($_emp_type_value == "Full Time Unavailable") {
         /**
          * Full Time Unavailable
          */
-
         //Create fieldset for full time unavailable
         $form['emp_type']['Full Time Unavailable'] = array(
-            '#type' => 'fieldset',
-            '#title' => 'Full Time Unavailable Crew'
+          '#type' => 'fieldset',
+          '#title' => 'Full Time Unavailable Crew'
         );
 
         //Create fieldset for full time unavailable (120-61)
         $form['emp_type']['Full Time Unavailable']['120-61'] = array(
-            '#type' => 'fieldset',
-            '#title' => '120-61'
+          '#type' => 'fieldset',
+          '#title' => '120-61'
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Full Time Unavailable",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            '120-61',
-            $unavailable_120_61
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Full Time Unavailable",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          '120-61',
+          $unavailable_120_61
         );
 
         //Create fieldset for full time unavailable (60-1)
         $form['emp_type']['Full Time Unavailable']['60-1'] = array(
-            '#type' => 'fieldset',
-            '#title' => '60-1'
+          '#type' => 'fieldset',
+          '#title' => '60-1'
         );
 
-        crew_allocation_list_crew_members(
+          crew_allocation_list_crew_members(
             $form,
             $form_state,
             intval($_supplement_value),
@@ -244,15 +457,15 @@ function _crew_allocation_top_form(&$form_state) {
             $booked_user_list,
             '60-1',
             $unavailable_60_1
-        );
+          );
 
-        //Create fieldset for full time unavailable (normal)
-        $form['emp_type']['Full Time Unavailable']['normal'] = array(
+          //Create fieldset for full time unavailable (normal)
+          $form['emp_type']['Full Time Unavailable']['normal'] = array(
             '#type' => 'fieldset',
             '#title' => 'Normal'
-        );
+          );
 
-        crew_allocation_list_crew_members(
+          crew_allocation_list_crew_members(
             $form,
             $form_state,
             intval($_supplement_value),
@@ -262,285 +475,78 @@ function _crew_allocation_top_form(&$form_state) {
             $booked_user_list,
             'normal',
             $unavailable_normal
-        );
+          );
 
+
+      } else if ($_emp_type_value == "Part Time Unavailable") {
         /**
          * Part Time Unavailable
          */
-
         //Create fieldset for part time unavailable
         $form['emp_type']['Part Time Unavailable'] = array(
-            '#type' => 'fieldset',
-            '#title' => 'Part Time Unavailable Crew'
+          '#type' => 'fieldset',
+          '#title' => 'Part Time Unavailable Crew'
         );
 
         //Create fieldset for part time unavailable (120-61)
         $form['emp_type']['Part Time Unavailable']['120-61'] = array(
-            '#type' => 'fieldset',
-            '#title' => '120-61'
+          '#type' => 'fieldset',
+          '#title' => '120-61'
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Part Time Unavailable",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            '120-61',
-            $unavailable_120_61
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Part Time Unavailable",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          '120-61',
+          $unavailable_120_61
         );
 
         //Create fieldset for part time unavailable (60-1)
         $form['emp_type']['Part Time Unavailable']['60-1'] = array(
-            '#type' => 'fieldset',
-            '#title' => '60-1'
+          '#type' => 'fieldset',
+          '#title' => '60-1'
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Part Time Unavailable",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            '60-1',
-            $unavailable_60_1
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Part Time Unavailable",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          '60-1',
+          $unavailable_60_1
         );
 
         //Create fieldset for part time unavailable (normal)
         $form['emp_type']['Part Time Unavailable']['normal'] = array(
-            '#type' => 'fieldset',
-            '#title' => 'Normal'
+          '#type' => 'fieldset',
+          '#title' => 'Normal'
         );
 
         crew_allocation_list_crew_members(
-            $form,
-            $form_state,
-            intval($_supplement_value),
-            "Part Time Unavailable",
-            $call_id,
-            $vid,
-            $booked_user_list,
-            'normal',
-            $unavailable_normal
+          $form,
+          $form_state,
+          intval($_supplement_value),
+          "Part Time Unavailable",
+          $call_id,
+          $vid,
+          $booked_user_list,
+          'normal',
+          $unavailable_normal
         );
-
-
-        /**
-         * Booked off
-         */
-
-        $form['bookedoff'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('Booked off Crew'),
-        );
-
-        foreach($booked_user_list as $key => $name) {
-
-            $form['bookedoff'][$name] = array(
-                '#type' => 'item',
-                '#id' => t('crew-'.$key),
-                '#value' => t($name),
-            );
-
-        }
-    } else {
-
-        if($_emp_type_value == "Full Time Available") {
-
-            /**
-             * Full Time Available
-             */
-
-            //Create fieldset for full time available
-            $form['emp_type']['Full Time Available'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Full Time Available Crew'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Full Time Available",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                null,
-                $unavailable_users,
-                $unavailable_120_61
-            );
-
-        } else if ($_emp_type_value == "Part Time Available") {
-
-            /**
-             * Part Time Available
-             */
-
-            //Create fieldset for full time available
-            $form['emp_type']['Part Time Available'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Part Time Available Crew'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Part Time Available",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                null,
-                $unavailable_users,
-                $unavailable_120_61
-            );
-
-        } else if ($_emp_type_value == "Full Time Unavailable") {
-
-            /**
-             * Full Time Unavailable
-             */
-
-            //Create fieldset for full time unavailable
-            $form['emp_type']['Full Time Unavailable'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Full Time Unavailable Crew'
-            );
-
-            //Create fieldset for full time unavailable (120-61)
-            $form['emp_type']['Full Time Unavailable']['120-61'] = array(
-                '#type' => 'fieldset',
-                '#title' => '120-61'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Full Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                '120-61',
-                $unavailable_120_61
-            );
-
-            //Create fieldset for full time unavailable (60-1)
-            $form['emp_type']['Full Time Unavailable']['60-1'] = array(
-                '#type' => 'fieldset',
-                '#title' => '60-1'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Full Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                '60-1',
-                $unavailable_60_1
-            );
-
-            //Create fieldset for full time unavailable (normal)
-            $form['emp_type']['Full Time Unavailable']['normal'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Normal'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Full Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                'normal',
-                $unavailable_normal
-            );
-
-
-        } else if ($_emp_type_value == "Part Time Unavailable") {
-
-            /**
-             * Part Time Unavailable
-             */
-
-            //Create fieldset for part time unavailable
-            $form['emp_type']['Part Time Unavailable'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Part Time Unavailable Crew'
-            );
-
-            //Create fieldset for part time unavailable (120-61)
-            $form['emp_type']['Part Time Unavailable']['120-61'] = array(
-                '#type' => 'fieldset',
-                '#title' => '120-61'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Part Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                '120-61',
-                $unavailable_120_61
-            );
-
-            //Create fieldset for part time unavailable (60-1)
-            $form['emp_type']['Part Time Unavailable']['60-1'] = array(
-                '#type' => 'fieldset',
-                '#title' => '60-1'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Part Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                '60-1',
-                $unavailable_60_1
-            );
-
-            //Create fieldset for part time unavailable (normal)
-            $form['emp_type']['Part Time Unavailable']['normal'] = array(
-                '#type' => 'fieldset',
-                '#title' => 'Normal'
-            );
-
-            crew_allocation_list_crew_members(
-                $form,
-                $form_state,
-                intval($_supplement_value),
-                "Part Time Unavailable",
-                $call_id,
-                $vid,
-                $booked_user_list,
-                'normal',
-                $unavailable_normal
-            );
-
-        }
-
-
-
+      }
     }
 
     $form['update'] = array(
-        '#type' => 'submit',
-        '#value' => t('Update'),
+      '#type' => 'submit',
+      '#value' => t('Update'),
     );
 
     return $form;

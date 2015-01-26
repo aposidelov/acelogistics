@@ -1169,15 +1169,21 @@ function acecrew_ajax_check_bookoff_by_date($date = '') {
   exit;
 }
 
-function acecrew_get_bookoff_crews($date) {
-  $query = "SELECT ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name, DATE(ub.field_ub_date_start_value) AS date_start, DATE(ub.field_ub_date_end_value) AS date_end, TIME(ub.field_ub_date_start_value) AS time_start, TIME(ub.field_ub_date_end_value) AS time_end
+function acecrew_get_bookoff_crews($date, $uid = '') {
+  $uid_condition = !empty($uid) ? 'AND ub.field_ub_owner_uid = %d' : '';
+
+  $query = "SELECT ub.field_ub_label_value AS label, ub.field_comment_box_value AS comment, ub.field_ub_owner_uid AS crew_uid, u.name AS crew_name, DATE(ub.field_ub_date_start_value) AS date_start, DATE(ub.field_ub_date_end_value) AS date_end, TIME(ub.field_ub_date_start_value) AS time_start, TIME(ub.field_ub_date_end_value) AS time_end
   FROM `drupal_content_type_user_bookedoff` ub
   INNER JOIN `drupal_users_roles` ur ON ur.uid = ub.field_ub_owner_uid
   INNER JOIN `drupal_users` u ON ub.field_ub_owner_uid = u.uid
-  WHERE '%s' BETWEEN DATE(ub.field_ub_date_start_value) AND DATE(ub.field_ub_date_end_value)
+  WHERE '%s' BETWEEN DATE(ub.field_ub_date_start_value) AND DATE(ub.field_ub_date_end_value) $uid_condition
   AND ur.rid = 5  
   ORDER BY u.name ASC";
-  $result = db_query($query, $date); // GROUP BY ub.field_ub_owner_uid
+  if (!empty($uid)) {
+    $result = db_query($query, $date, $uid);
+  } else {
+    $result = db_query($query, $date); // GROUP BY ub.field_ub_owner_uid
+  }
   $crews = array();
   while ($crew = db_fetch_object($result)) {
     $crews[] = $crew;
@@ -1200,6 +1206,8 @@ function acecrew_get_bookoff_crews($date) {
   $bookoff_grouped_crews = array();
   foreach ($crews as $crew) {
       $bookoff_grouped_crews[$crew->crew_uid]['name'] = $crew->crew_name;
+      $bookoff_grouped_crews[$crew->crew_uid]['label'] = $crew->label;
+      $bookoff_grouped_crews[$crew->crew_uid]['comment'] = $crew->comment;
       if ($crew->date_start == $crew->date_end) {
           $time_start = date('H:i', strtotime($crew->time_start));
           $time_end   = date('H:i', strtotime($crew->time_end));                    

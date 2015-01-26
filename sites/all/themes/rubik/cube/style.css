@@ -1147,3 +1147,29 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 #ub-list .comment-col {
     width: 200px;
 }
+
+.bookoff-container { 
+    position: relative;
+
+    cursor: pointer;
+}
+
+.bookoff-container .bookoff-details { 
+    display: none;
+}
+
+.bookoff-container:hover .bookoff-details { 
+    display: block;
+
+    border: 1px solid #aaa;
+
+    padding: 5px;
+}
+
+.bookoff-container .bookoff-details label { 
+
+}
+
+.bookoff-container .bookoff-details p { 
+
+}

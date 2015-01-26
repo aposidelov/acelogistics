@@ -2282,7 +2282,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 <div class="call-third-row"><strong>Skills Required:</strong>'. $event['supplement'] . '</div>
                 <div class="call-fourth-row"><strong>Crew Names:</strong> ' . $crew_placeholder . '</div>
                 <div class="call-buttons">
-                    <a href="#" class="loadbtn" id="'.$event['job_session_id'].'">Load Call</a>
+                    <a href="#" class="loadbtn" id="'.$event['job_session_id'].'" data-date="'.$date.'">Load Call</a>
                     <!-- a href="/supplement/allocation/'.$event['job_session_id'].'">Allocate Skills</a -->
 
                     <a href="javascript:void(0)" onclick="Drupal.modalFrame.open({url: \'/supplement/allocation/'.$event['job_session_id']. '\', onSubmit: onSubmitCallbackSkills, width: ($(window).width() * 0.8) });onClickCallbackSkills($(this))">Allocate Skills</a>
@@ -2353,6 +2353,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 });
             }
             $(".loadbtn").click(function() {
+                var date = $(this).attr("data-date");
+                
                 $("ul.call-listing li").removeClass("active-load-call");
                 $(this).closest("li.call-listing-item").addClass("active-load-call");
                 var id = $(this).attr("id");
@@ -2412,7 +2414,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 }
 
                 sidebar_widget += "<div class=\"call-buttons\">";
-                sidebar_widget += "<a href=\"javascript:void(0)\" onclick=\"Drupal.modalFrame.open({url: \'/crew-allocation/" + id + "/" + call_id + "/0/All\', onSubmit: onSubmitCallback, width: 700, height: 500})\">";
+                sidebar_widget += "<a href=\"javascript:void(0)\" onclick=\"Drupal.modalFrame.open({url: \'/crew-allocation/" + id + "/" + call_id + "/" + date + "/0/All\', onSubmit: onSubmitCallback, width: 700, height: 500})\">";
                 sidebar_widget += "Allocate Crew";
                 sidebar_widget += "</a>";
                 sidebar_widget += "<a href=\"#\" onclick=\"udpate_status_onclick()\">";
