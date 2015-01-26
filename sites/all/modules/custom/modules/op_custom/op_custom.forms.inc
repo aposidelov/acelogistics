@@ -1,27 +1,27 @@
 <?php
 
 function op_custom_bookoff_repeat_form(&$form_state) {
-  	$form = array();  	
+	$form = array();  	
 
-  	jquery_ui_add('ui.core');
-  	jquery_ui_add('ui.datepicker');
+	jquery_ui_add('ui.core');
+	jquery_ui_add('ui.datepicker');
 
-  	drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/datetimepicker.js');    
-  	drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/jquery.blockui.js');
-   	drupal_add_js(drupal_get_path('module', 'op_custom') . '/js/bookoff.js');
-  
-  	$form['label'] = array(
-  		'#type' => 'textfield',
-  		'#default_value' => 'Bookoff reason',
-  		'#title' => t('Label'),
-  		'#description' => t(''),
-  	);
-  	$form['crew_uid'] = array(
-  		'#type' => 'textfield',
-  		'#default_value' => 304,
-  		'#title' => t('Crew uid'),
-  		'#description' => t(''),
-  	);
+	drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/datetimepicker.js');    
+	drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/jquery.blockui.js');
+ 	drupal_add_js(drupal_get_path('module', 'op_custom') . '/js/bookoff.js');
+
+	$form['label'] = array(
+		'#type' => 'textfield',
+		'#default_value' => 'Bookoff reason',
+		'#title' => t('Label'),
+		'#description' => t(''),
+	);
+	$form['crew_uid'] = array(
+		'#type' => 'textfield',
+		'#default_value' => 304,
+		'#title' => t('Crew uid'),
+		'#description' => t(''),
+	);
 	$form['start_datetime'] = array(
 		'#type' => 'textfield',
 		'#default_value' => isset($form_state['values']) ? $form_state['values']['start_datetime'] : '',
@@ -58,11 +58,11 @@ function op_custom_bookoff_repeat_form(&$form_state) {
 		'#options' => $numbers,				
 	);
 	$form['periodicity_type'] = array(
-	    '#type' => 'select',
-	    '#default_value' => isset($form_state['values']) ? $form_state['values']['periodicity_type'] : 'weeks',
-	    '#title' => t('Type'),
-	    '#description' => t(''),
-	    '#options' => $type,
+    '#type' => 'select',
+    '#default_value' => isset($form_state['values']) ? $form_state['values']['periodicity_type'] : 'weeks',
+    '#title' => t('Type'),
+    '#description' => t(''),
+    '#options' => $type,
 	);
 
 	$form['range'] = array(
@@ -121,14 +121,6 @@ function op_custom_bookoff_repeat_form_submit($form, &$form_state) {
 	}
 }
 
-function acecrew_bookoff_is_date_valid($date = '') {
-	$output = '';
-	
-		
-
-	return $output;
-}
-
 /**
  * Function convert number of input days, weeks, months to output number depending on passed parameters.
  * For example: 
@@ -167,9 +159,7 @@ function acecrew_add_bookoff(
 	$periodicity_type = '', 
 	$range_number = 0, 
 	$range_type = '', 
-	$timezone = 'Europe/London') {
-
-	watchdog('dd1', '<pre>'.print_r('yes', TRUE).'</pre>');
+	$timezone = 'Europe/London') {	
 
 	// если задана только начальная дата то растягиваем локальный промежуток 
 	// на весь текущий день вне зависимости от выбранного времени
@@ -188,12 +178,7 @@ function acecrew_add_bookoff(
 		$range_number = acecrew_get_date_items_by_type($range_number, $range_type, $periodicity_type);
 	}
 	// вычисляем количество	line item которые должны быть сгенерены
-	$iterations = $periodicity_number ? floor($range_number / $periodicity_number) : 0;
-	
-	// if periodicity > range - don't do anything
-	/*if (!$iterations) { 
-		return; 
-	}*/
+	$iterations = $periodicity_number ? floor($range_number / $periodicity_number) : 0;	
 
 	// cоздаем промежутки для каждого line item	
 	$line_items[] = array(
@@ -223,16 +208,16 @@ function acecrew_add_bookoff(
 		}
 
 		$node = new StdClass();
-	    $node->title = $node->field_ub_label[0]['value'] 	= $label;
-	    $node->field_ub_date_start[0]['value'] 				= $line_item['start_date'];
-	    $node->field_ub_date_start[0]['value2'] 			= $line_item['start_date'];
-	    $node->field_ub_date_start[0]['timezone'] 			= $timezone;	   
-	    $node->field_ub_date_end[0]['value'] 				= $line_item['end_date'];
-	    $node->field_ub_date_end[0]['value2'] 				= $line_item['end_date'];
-	    $node->field_ub_date_end[0]['timezone'] 			= $timezone;
-	    $node->field_ub_owner 								= array(0 => array('uid' => $line_item['crew_uid']));
-	    $node->type 										= 'user_bookedoff';	    
-	    node_save($node);		    
+    $node->title = $node->field_ub_label[0]['value'] 	= $label;
+    $node->field_ub_date_start[0]['value'] 						= $line_item['start_date'];
+    $node->field_ub_date_start[0]['value2'] 					= $line_item['start_date'];
+    $node->field_ub_date_start[0]['timezone'] 				= $timezone;	   
+    $node->field_ub_date_end[0]['value'] 							= $line_item['end_date'];
+    $node->field_ub_date_end[0]['value2'] 						= $line_item['end_date'];
+    $node->field_ub_date_end[0]['timezone'] 					= $timezone;
+    $node->field_ub_owner 														= array(0 => array('uid' => $line_item['crew_uid']));
+    $node->type 																			= 'user_bookedoff';	    
+    node_save($node);		    
 	}	
 }
 
@@ -245,3 +230,4 @@ function is_bookoff_exists($crew_uid, $start_date, $end_date) {
 
 	return $is_exists;
 }
+

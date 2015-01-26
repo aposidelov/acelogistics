@@ -4,29 +4,29 @@ require_once dirname(__FILE__) .'/acecrew_func.inc';
 
 // Delete node using ajax call
 function acecrew_del_user_bookedoff($nid){
-    node_delete($nid);
-    drupal_json(array('result' => '1', 'msg'=>'Successfully deleted'));
-    exit();
+  node_delete($nid);
+  drupal_json(array('result' => '1', 'msg'=>'Successfully deleted'));
+  exit();
 }
 
 // Add node which has type = 'user_bookedoff' using ajax call
 function acecrew_add_user_bookedoff(){
-    $query = file_get_contents('php://input');
-    extract($_POST);
-    module_load_include('inc', 'op_custom', 'op_custom.forms');
+  $query = file_get_contents('php://input');
+  extract($_POST);
+  module_load_include('inc', 'op_custom', 'op_custom.forms');
 
     //$ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
     //$ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);    
-    acecrew_add_bookoff(
-        $uid,
-        $ub_date_start,
-        $ub_date_end,
-        $ub_label,
-        $ub_periodicity_number,
-        $ub_periodicity_type,
-        $ub_range_number,
-        $ub_range_type
-    );
+  acecrew_add_bookoff(
+    $uid,
+    $ub_date_start,
+    $ub_date_end,
+    $ub_label,
+    $ub_periodicity_number,
+    $ub_periodicity_type,
+    $ub_range_number,
+    $ub_range_type
+  );
 
     /*$node = new StdClass();
     $node->field_ub_label[0]['value']= $ub_label;
@@ -52,22 +52,22 @@ function acecrew_add_user_bookedoff(){
         drupal_json(array('result' => '0', 'msg'=>'bookoff operatio failed'));
     }
     */
-    drupal_json(array('result' => '1'));
-    exit();
+  drupal_json(array('result' => '1'));
+  exit();
 }
 
 /**
  * Implementaiton of hook_perm()
  */
 function acecrew_perm() {
-    return array('acecrew calendar', 'acecrew access user payrate', 'acecrew access reports', 'acecrew access sms', 'acecrew time sheets');
+  return array('acecrew calendar', 'acecrew access user payrate', 'acecrew access reports', 'acecrew access sms', 'acecrew time sheets');
 }
 
 /**
  * Implementaiton of hook_theme_registry_alter()
  */
 function acecrew_theme_registry_alter(&$theme_registry) {
-    $theme_registry['node']['theme paths'][] = drupal_get_path('module', 'acecrew') . '/theme';
+  $theme_registry['node']['theme paths'][] = drupal_get_path('module', 'acecrew') . '/theme';
 }
 
 /**
@@ -75,17 +75,17 @@ function acecrew_theme_registry_alter(&$theme_registry) {
  */
 function acecrew_form_alter(&$form, $form_state, $form_id) {
     //?? saf modified
-    if ($form_id  == 'job_session_node_form' || $form_id  == 'admin_settings_node_form' ) {
-        unset($form['buttons']['preview']);
-        unset($form['buttons']['delete']);
-    }
-    if ($form_id  == 'admin_settings_node_form' ){
-        $form['#redirect'] = false;
-    }
+  if ($form_id  == 'job_session_node_form' || $form_id  == 'admin_settings_node_form' ) {
+    unset($form['buttons']['preview']);
+    unset($form['buttons']['delete']);
+  }
+  if ($form_id  == 'admin_settings_node_form' ){
+    $form['#redirect'] = false;
+  }
 
-    if ($form_id == 'user_register' || $form_id == 'user_profile_form'){
-        unset($form['Supplement']['profile_payrateid']);
-    }
+  if ($form_id == 'user_register' || $form_id == 'user_profile_form'){
+    unset($form['Supplement']['profile_payrateid']);
+  }
 }
 
 
@@ -93,249 +93,249 @@ function acecrew_form_alter(&$form, $form_state, $form_id) {
  * Implementaiton of hook_menu()
  */
 function acecrew_menu() {
-    $items = array();
-    //??saf
-    $items['acecrew/ajax/usr/delbookedoff/%'] = array(
-        'title' => 'Ace Crew AJAX Delete User\s Booked-off',
-        'page callback' => 'acecrew_del_user_bookedoff',
-        'page arguments' => array(4),
-        'access arguments' => array('delete any user_bookedoff content'),
-        'type' => MENU_CALLBACK,
-    );
-    //??saf
-    $items['acecrew/ajax/usr/addbookedoff/%'] = array(
-        'title' => 'Ace Crew AJAX Create User\'s Booked-off',
-        'page callback' => 'acecrew_add_user_bookedoff',
-        'page arguments' => array(3),
-        'access arguments' => array('create user_bookedoff content'),
-        'type' => MENU_CALLBACK,
-    );
+  $items = array();
+  //??saf
+  $items['acecrew/ajax/usr/delbookedoff/%'] = array(
+    'title' => 'Ace Crew AJAX Delete User\s Booked-off',
+    'page callback' => 'acecrew_del_user_bookedoff',
+    'page arguments' => array(4),
+    'access arguments' => array('delete any user_bookedoff content'),
+    'type' => MENU_CALLBACK,
+  );
+  //??saf
+  $items['acecrew/ajax/usr/addbookedoff/%'] = array(
+    'title' => 'Ace Crew AJAX Create User\'s Booked-off',
+    'page callback' => 'acecrew_add_user_bookedoff',
+    'page arguments' => array(3),
+    'access arguments' => array('create user_bookedoff content'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/ajax/delsession/%'] = array(
-        'title' => 'Ace Crew AJAX Delete Session',
-        'page callback' => 'acecrew_del_job_session',
-        'page arguments' => array(3),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/ajax/status-session/%'] = array(
-        'title' => 'Ace Crew AJAX Toggle Status of Job Session',
-        'page callback' => 'acecrew_toogle_status_job_session',
-        'page arguments' => array(3),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/ajax/delsession/%'] = array(
+    'title' => 'Ace Crew AJAX Delete Session',
+    'page callback' => 'acecrew_del_job_session',
+    'page arguments' => array(3),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/ajax/status-session/%'] = array(
+    'title' => 'Ace Crew AJAX Toggle Status of Job Session',
+    'page callback' => 'acecrew_toogle_status_job_session',
+    'page arguments' => array(3),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/ajax/session/sms/%'] = array(
-        'title' => 'Ace Crew send sms to session crews',
-        'page callback' => 'acecrew_session_sms',
-        'page arguments' => array(4),
-        'access arguments' => array('acecrew access sms'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/ajax/session/sms/%'] = array(
+    'title' => 'Ace Crew send sms to session crews',
+    'page callback' => 'acecrew_session_sms',
+    'page arguments' => array(4),
+    'access arguments' => array('acecrew access sms'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/generateinvoice/%'] = array(
-        'title' => 'Ace Crew Generate Invoice',
-        'page callback' => 'acecrew_generate_invoice',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/delinvoice/%'] = array(
-        'title' => 'Ace Crew  Delete Invoice',
-        'page callback' => 'acecrew_delete_invoice',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/emailinvoice/%'] = array(
-        'title' => 'Ace Crew Email Invoice',
-        'page callback' => 'acecrew_email_invoice',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/generateinvoice/%'] = array(
+    'title' => 'Ace Crew Generate Invoice',
+    'page callback' => 'acecrew_generate_invoice',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/delinvoice/%'] = array(
+    'title' => 'Ace Crew  Delete Invoice',
+    'page callback' => 'acecrew_delete_invoice',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/emailinvoice/%'] = array(
+    'title' => 'Ace Crew Email Invoice',
+    'page callback' => 'acecrew_email_invoice',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/generatequote/%'] = array(
-        'title' => 'Ace Crew Generate quote',
-        'page callback' => 'acecrew_generate_quote',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/delquote/%'] = array(
-        'title' => 'Ace Crew  Delete quote',
-        'page callback' => 'acecrew_delete_quote',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/emailquote/%'] = array(
-        'title' => 'Ace Crew Email quote',
-        'page callback' => 'acecrew_email_quote',
-        'page arguments' => array(2),
-        'access arguments' => array('delete any job_session content'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/generatequote/%'] = array(
+    'title' => 'Ace Crew Generate quote',
+    'page callback' => 'acecrew_generate_quote',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/delquote/%'] = array(
+    'title' => 'Ace Crew  Delete quote',
+    'page callback' => 'acecrew_delete_quote',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/emailquote/%'] = array(
+    'title' => 'Ace Crew Email quote',
+    'page callback' => 'acecrew_email_quote',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/calendar'] = array(
-        'title' => 'Ace Crew Calendar',
-        'page callback' => 'acecrew_calendar',
-        'access arguments' => array('acecrew calendar'),
-        'type' => MENU_NORMAL_ITEM,
-    );
-    // added by anton
-    $items['admin/reports/timesheets'] = array(
-        'title' => 'Timesheets',
-        'description' => "Ace Crew Time Sheets Reports.",
-        'page callback' => 'acecrew_report_timesheets',
-        'page arguments' => array('access denied'),
-        'access arguments' => array('acecrew time sheets'),
-        'file' => 'acecrew.admin.inc',
-    );
-    $items['timesheets/generate/csv'] = array(
-        'title' => 'Generate CSV',
-        'page callback' => 'timesheets_reports_generate',
-        'page arguments' => array('access denied'),
-        'access arguments' => array('generate each crews csv'),
-        'type' => MENU_CALLBACK,
-        'file' => 'acecrew.admin.inc'
-    );
-    //?? sasya added
-    $items['acecrew/calendar-popup/sms/%'] = array(
-        'title' => 'Ace Crew SMS',
-        'page callback' => 'acecrew_calendar_popup_sms',
-        'page arguments' => array(3),
-        'access arguments' => array('acecrew calendar'),
-        'type' => MENU_NORMAL_ITEM,
-    );
-    $items['acecrew/calendar/%'] = array(
-        'title' => 'Ace Crew Calendar Date',
-        'page callback' => 'acecrew_calendar_date',
-        'page arguments' => array(2),
-        'access arguments' => array('acecrew calendar'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['js/acecrew/calendar/%'] = array(
-        'title' => 'Diary page JS-module-Callback',
-        'page callback' => 'acecrew_calendar_date',
-        'page arguments' => array(3),
-        'access arguments' => array('acecrew calendar'),
-        'type' => MENU_CALLBACK,
-      );
-    $items['acecrew/calendar/set-status/%'] = array(
-        'title' => 'Ace Crew Set Status',
-        'page callback' => 'acecrew_calendar_set_supplements_status',
-        'page arguments' => array(3),
-        'access arguments' => array('acecrew calendar'),
-        'type' => MENU_CALLBACK,
-    );
-    $items['acecrew/ajax/report/%/%/%'] = array(
-        'title' => 'Ace Crew report',
-        'page callback' => 'acecrew_report_date_ajax',
-        'page arguments' => array(3, 4, 5),
-        'access arguments' => array('acecrew access reports'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/calendar'] = array(
+    'title' => 'Ace Crew Calendar',
+    'page callback' => 'acecrew_calendar',
+    'access arguments' => array('acecrew calendar'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  // added by anton
+  $items['admin/reports/timesheets'] = array(
+    'title' => 'Timesheets',
+    'description' => "Ace Crew Time Sheets Reports.",
+    'page callback' => 'acecrew_report_timesheets',
+    'page arguments' => array('access denied'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acecrew.admin.inc',
+  );
+  $items['timesheets/generate/csv'] = array(
+    'title' => 'Generate CSV',
+    'page callback' => 'timesheets_reports_generate',
+    'page arguments' => array('access denied'),
+    'access arguments' => array('generate each crews csv'),
+    'type' => MENU_CALLBACK,
+    'file' => 'acecrew.admin.inc'
+  );
+  //?? sasya added
+  $items['acecrew/calendar-popup/sms/%'] = array(
+    'title' => 'Ace Crew SMS',
+    'page callback' => 'acecrew_calendar_popup_sms',
+    'page arguments' => array(3),
+    'access arguments' => array('acecrew calendar'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['acecrew/calendar/%'] = array(
+    'title' => 'Ace Crew Calendar Date',
+    'page callback' => 'acecrew_calendar_date',
+    'page arguments' => array(2),
+    'access arguments' => array('acecrew calendar'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['js/acecrew/calendar/%'] = array(
+    'title' => 'Diary page JS-module-Callback',
+    'page callback' => 'acecrew_calendar_date',
+    'page arguments' => array(3),
+    'access arguments' => array('acecrew calendar'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/calendar/set-status/%'] = array(
+    'title' => 'Ace Crew Set Status',
+    'page callback' => 'acecrew_calendar_set_supplements_status',
+    'page arguments' => array(3),
+    'access arguments' => array('acecrew calendar'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/ajax/report/%/%/%'] = array(
+    'title' => 'Ace Crew report',
+    'page callback' => 'acecrew_report_date_ajax',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array('acecrew access reports'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/report/print/%/%/%'] = array(
-        'title' => 'Ace Crew report',
-        'page callback' => 'acecrew_report_date_print',
-        'page arguments' => array(3, 4, 5),
-        'access arguments' => array('acecrew access reports'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/report/print/%/%/%'] = array(
+    'title' => 'Ace Crew report',
+    'page callback' => 'acecrew_report_date_print',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array('acecrew access reports'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/report/csv/%/%/%'] = array(
-        'title' => 'Ace Crew CSV report',
-        'page callback' => 'acecrew_report_date_csv',
-        'page arguments' => array(3, 4, 5),
-        'access arguments' => array('acecrew access reports'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/report/csv/%/%/%'] = array(
+    'title' => 'Ace Crew CSV report',
+    'page callback' => 'acecrew_report_date_csv',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array('acecrew access reports'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/ajax/fines/%'] = array(
-        'title' => 'Ace Crew Fines Ajax',
-        'page callback' => 'acecrew_addfines_ajax',
-        'page arguments' => array(3),
-        'access arguments' => array('create fines content'),
-        'type' => MENU_CALLBACK,
-    );    
+  $items['acecrew/ajax/fines/%'] = array(
+    'title' => 'Ace Crew Fines Ajax',
+    'page callback' => 'acecrew_addfines_ajax',
+    'page arguments' => array(3),
+    'access arguments' => array('create fines content'),
+    'type' => MENU_CALLBACK,
+  );    
 
-    $items['acecrew/ajax/client_contacts'] = array(
-        'title' => 'Ace Crew Client Contacts For Create Job Page',
-        'page callback' => 'acecrew_ajax_client_contacts',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_client_name'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/ajax/client_contacts'] = array(
+    'title' => 'Ace Crew Client Contacts For Create Job Page',
+    'page callback' => 'acecrew_ajax_client_contacts',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_client_name'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/ajax/client_contacts/%'] = array(
-        'title' => 'Ace Crew Client Contacts For Create Job Page',
-        'page callback' => 'acecrew_ajax_client_contacts',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_client_name'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/ajax/client_contacts/%'] = array(
+    'title' => 'Ace Crew Client Contacts For Create Job Page',
+    'page callback' => 'acecrew_ajax_client_contacts',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_client_name'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/set_crew_session_status/%/%/%'] = array(
-        'title' => 'Set crew session status',
-        'page callback' => 'acecrew_set_crew_session_status',
-        'page arguments' => array(2, 3, 4),
-        'access arguments' => array('edit field_crew_job_session_status'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/set_crew_session_status/%/%/%'] = array(
+    'title' => 'Set crew session status',
+    'page callback' => 'acecrew_set_crew_session_status',
+    'page arguments' => array(2, 3, 4),
+    'access arguments' => array('edit field_crew_job_session_status'),
+    'type' => MENU_CALLBACK,
+  );
 
-    // added by anton
-    $items['acecrew/quote/pdf/%'] = array(
-        'title' => 'Del crew from session',
-        'page callback' => 'acecrew_quote_view_pdf',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_session_crews'),
-        'type' => MENU_CALLBACK,
-    );
+  // added by anton
+  $items['acecrew/quote/pdf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_quote_view_pdf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/invoice/pdf/%'] = array(
-        'title' => 'Del crew from session',
-        'page callback' => 'acecrew_invoice_view_pdf',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_session_crews'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/invoice/pdf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_invoice_view_pdf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/quote/rtf/%'] = array(
-        'title' => 'Del crew from session',
-        'page callback' => 'acecrew_quote_view_rtf',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_session_crews'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/quote/rtf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_quote_view_rtf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/invoice/rtf/%'] = array(
-        'title' => 'Del crew from session',
-        'page callback' => 'acecrew_invoice_view_rtf',
-        'page arguments' => array(3),
-        'access arguments' => array('edit field_job_session_crews'),
-        'type' => MENU_CALLBACK,
-    );
+  $items['acecrew/invoice/rtf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_invoice_view_rtf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
 
-    $items['acecrew/client/autocomplete'] = array(
-        'title' => 'Acecrew Client autocomplete',
-        'page callback' => 'client_autocomplete',
-        'access arguments' => array('access content'),
-        'type' => MENU_CALLBACK,
-        'file' => 'acecrew.pages.inc',
-    );
+  $items['acecrew/client/autocomplete'] = array(
+    'title' => 'Acecrew Client autocomplete',
+    'page callback' => 'client_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'acecrew.pages.inc',
+  );
 
-    $items['acecrew/venue/autocomplete'] = array(
-        'title' => 'Acecrew Venue autocomplete',
-        'page callback' => 'venue_autocomplete',
-        'access arguments' => array('access content'),
-        'type' => MENU_CALLBACK,
-        'file' => 'acecrew.pages.inc',
-    );
+  $items['acecrew/venue/autocomplete'] = array(
+    'title' => 'Acecrew Venue autocomplete',
+    'page callback' => 'venue_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'acecrew.pages.inc',
+  );
 
-    return $items;
+  return $items;
 }
 
 /**

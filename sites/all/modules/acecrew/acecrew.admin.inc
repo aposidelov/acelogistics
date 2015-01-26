@@ -1,205 +1,196 @@
 <?php
 
 function acecrew_report_timesheets() {
-    $my_settings = array(
-        'basepath' => drupal_get_path('module', 'acecrew'),
-    );
-    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-timesheets.js');
+  $my_settings = array(
+      'basepath' => drupal_get_path('module', 'acecrew'),
+  );
+  drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-timesheets.js');
 
-    $output = drupal_get_form('acecrew_reports_timesheets_from', $users);
-    return $output;
+  $output = drupal_get_form('acecrew_reports_timesheets_from', $users);
+  return $output;
 }
 
 function acecrew_reports_timesheets_from(){
-    $users = getCrewMembers();
-    $users_active = getActiveCrewMembers();
-    $users_non_active = getInactiveActiveCrewMembers();
+  $users = getCrewMembers();
+  $users_active = getActiveCrewMembers();
+  $users_non_active = getInactiveActiveCrewMembers();
 
-    $form['#action'] = url("timesheets/generate/csv");
+  $form['#action'] = url("timesheets/generate/csv");
 
-    $form['timesheets'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Please Select'),
-        '#tree' => TRUE,
-    );
+  $form['timesheets'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Please Select'),
+    '#tree' => TRUE,
+  );
 
-    $form['timesheets']['start_date'] = array(
-        '#type' => 'date_popup',
-        '#title' => t('Start Date'),
-        '#date_format' => 'Y-m-d',
-        '#default_value' => date ("Y-m-d"),
-        '#attributes' => array('id' => 'timesheets_start'),
-    );
+  $form['timesheets']['start_date'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('Start Date'),
+    '#date_format' => 'Y-m-d',
+    '#default_value' => date ("Y-m-d"),
+    '#attributes' => array('id' => 'timesheets_start'),
+  );
 
-    $form['timesheets']['end_date'] = array(
-        '#type' => 'date_popup',
-        '#title' => t('End Date'),
-        '#date_format' => 'Y-m-d',
-        '#default_value' => date ("Y-m-d"),
-        '#attributes' => array('id' => 'timesheets_end'),
-    );
+  $form['timesheets']['end_date'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('End Date'),
+    '#date_format' => 'Y-m-d',
+    '#default_value' => date ("Y-m-d"),
+    '#attributes' => array('id' => 'timesheets_end'),
+  );
 
-    $form['timesheets']['crews'] = array(
-        '#type' => 'select',
-        '#title' => t('All Crew Members'),
-        '#default_value' => $users,
-        '#options' => $users,
-        '#multiple' => true,
-        '#attributes' => array('size'=>10),
-    );
+  $form['timesheets']['crews'] = array(
+    '#type' => 'select',
+    '#title' => t('All Crew Members'),
+    '#default_value' => $users,
+    '#options' => $users,
+    '#multiple' => true,
+    '#attributes' => array('size'=>10),
+  );
 
-    $form['timesheets']['crews_active'] = array(
-        '#type' => 'select',
-        '#title' => t('Active Crew Members'),
-        '#options' => $users_active,
-        '#multiple' => true,
-        '#attributes' => array('size'=>10),
-    );
-    $form['timesheets']['crews_inactive'] = array(
-        '#type' => 'select',
-        '#title' => t('Inactive Crew Members'),
-        '#options' => $users_non_active,
-        '#multiple' => true,
-        '#attributes' => array('size'=>10),
-    );
+  $form['timesheets']['crews_active'] = array(
+    '#type' => 'select',
+    '#title' => t('Active Crew Members'),
+    '#options' => $users_active,
+    '#multiple' => true,
+    '#attributes' => array('size'=>10),
+  );
+  $form['timesheets']['crews_inactive'] = array(
+    '#type' => 'select',
+    '#title' => t('Inactive Crew Members'),
+    '#options' => $users_non_active,
+    '#multiple' => true,
+    '#attributes' => array('size'=>10),
+  );
 
-    $form['timesheets']['show'] = array(
-        '#type' => 'radios',
-        '#title' => t('Filter Crew'),
-        '#options' => array(1 => "Show all", 2 => "Show active only", 3 => "Show non active"),
-        '#default_value' => 1
-    );
+  $form['timesheets']['show'] = array(
+    '#type' => 'radios',
+    '#title' => t('Filter Crew'),
+    '#options' => array(1 => "Show all", 2 => "Show active only", 3 => "Show non active"),
+    '#default_value' => 1
+  );
 
-    $form['timesheets']['submit'] = array(
-        '#type' => 'button',
-        '#value' => t('Submit'),
-        '#attributes' => array('id' => 'acecrew_timesheets_submit'),
-    );
+  $form['timesheets']['submit'] = array(
+    '#type' => 'button',
+    '#value' => t('Submit'),
+    '#attributes' => array('id' => 'acecrew_timesheets_submit'),
+  );
 
-    return $form;
+  return $form;
 }
 
 function getCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
+  $users = array();
+  $query = "SELECT users.uid AS uid, users.name AS users_name
+          FROM drupal_users users
+          INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+          WHERE users_roles.rid = 5 ORDER BY users_name ASC";
+  $results = db_query($query);
+  while($row = db_fetch_object($results)) {
+      $users[(int) $row->uid] = $row->users_name;
+  }
 
-    return $users;
+  return $users;
 }
 
 function getActiveCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users.status = 1
-            AND users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
+  $users = array();
+  $query = "SELECT users.uid AS uid, users.name AS users_name
+          FROM drupal_users users
+          INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+          WHERE users.status = 1
+          AND users_roles.rid = 5 ORDER BY users_name ASC";
+  $results = db_query($query);
+  while($row = db_fetch_object($results)) {
+      $users[(int) $row->uid] = $row->users_name;
+  }
 
-    return $users;
+  return $users;
 }
 
 function getInactiveActiveCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users.status = 0
-            AND users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
+  $users = array();
+  $query = "SELECT users.uid AS uid, users.name AS users_name
+          FROM drupal_users users
+          INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+          WHERE users.status = 0
+          AND users_roles.rid = 5 ORDER BY users_name ASC";
+  $results = db_query($query);
+  while($row = db_fetch_object($results)) {
+      $users[(int) $row->uid] = $row->users_name;
+  }
 
-    return $users;
+  return $users;
 }
 
 function timesheets_reports_generate() {
-    define (REPORT_DIR, 'sites/default/files/');
-    define (CSV, '.csv');
-    define (ZIP, '.zip');
+  define (REPORT_DIR, 'sites/default/files/');
+  define (CSV, '.csv');
+  define (ZIP, '.zip');
 
-    // get selected dates and crew members
-    $start = $_POST['timesheets']['start_date']['date'];
-    $end = $_POST['timesheets']['end_date']['date'];
+  // get selected dates and crew members
+  $start = $_POST['timesheets']['start_date']['date'];
+  $end = $_POST['timesheets']['end_date']['date'];
 
-    $all = $_POST['timesheets']['crews'] ? $_POST['timesheets']['crews'] : array();
-    $active = $_POST['timesheets']['crews_active'] ? $_POST['timesheets']['crews_active'] : array();
-    $inactive = $_POST['timesheets']['crews_inactive'] ? $_POST['timesheets']['crews_inactive'] : array();
+  $all = $_POST['timesheets']['crews'] ? $_POST['timesheets']['crews'] : array();
+  $active = $_POST['timesheets']['crews_active'] ? $_POST['timesheets']['crews_active'] : array();
+  $inactive = $_POST['timesheets']['crews_inactive'] ? $_POST['timesheets']['crews_inactive'] : array();
 
-    $crews = array_merge($all, $active, $inactive);
+  $crews = array_merge($all, $active, $inactive);
 
-    // create csv files
-    foreach ($crews as $crew) {
-        $user = user_load($crew);
-        $fname = $user->name . "(" . $crew . ")" . CSV;
-        $path = REPORT_DIR . $fname;
-        $fp = fopen($path, 'w+');
+  // create csv files
+  foreach ($crews as $crew) {
+    $user = user_load($crew);
+    $fname = $user->name . "(" . $crew . ")" . CSV;
+    $path = REPORT_DIR . $fname;
+    $fp = fopen($path, 'w+');
 
-        // get payment data
-        $content = get_payment_of_crew($start, $end, $crew);
-        $extr = array_splice($content, 4, -1);
-        usort($extr, "cmp_timesheet_time");
-        array_splice($content, 4, -1, $extr);
+    // get payment data
+    $content = get_payment_of_crew($start, $end, $crew);
+    $extr = array_splice($content, 4, -1);
+    usort($extr, "cmp_timesheet_time");
+    array_splice($content, 4, -1, $extr);
 
-        //echo "<pre>";
-        //die(var_dump($content));
-        //echo "</pre>";
+    //echo "<pre>";
+    //die(var_dump($content));
+    //echo "</pre>";
 
-        foreach ($content as $fields) {
-            fputcsv($fp, $fields, ';');
-        }
-        $content = array();
-
-        fclose($fp);
-
-        $csvs[$path] = $fname;
+    foreach ($content as $fields) {
+        fputcsv($fp, $fields, ';');
     }
+    $content = array();
 
-    // create zip file
-    $zip_file = new ZipArchive();
-    $zip_path = REPORT_DIR . 'timesheets(' . date('Y-m-d') . ')'. ZIP;
-    $zip_name = 'timesheets(' . date('Y-m-d') . ')'. ZIP;
+    fclose($fp);
 
-    if ($zip_file->open($zip_path, ZIPARCHIVE::CREATE)!==TRUE) {
-        exit("cannot open <$zip_path>\n");
-    }
+    $csvs[$path] = $fname;
+  }
 
-    foreach ($csvs as $csvpath => $name) {
-        $zip_file->addFile($csvpath, $name);
-    }
-    $zip_file->close();
+  // create zip file
+  $zip_file = new ZipArchive();
+  $zip_path = REPORT_DIR . 'timesheets(' . date('Y-m-d') . ')'. ZIP;
+  $zip_name = 'timesheets(' . date('Y-m-d') . ')'. ZIP;
 
-    // delete csv files
-    foreach ($csvs as $csvpath => $name) {
-        unlink($csvpath);
-    }
+  if ($zip_file->open($zip_path, ZIPARCHIVE::CREATE)!==TRUE) {
+    exit("cannot open <$zip_path>\n");
+  }
 
-    header("Content-type: application/zip");
-    header("Content-Disposition: attachment; filename=$zip_name");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-    readfile("$zip_path");
+  foreach ($csvs as $csvpath => $name) {
+    $zip_file->addFile($csvpath, $name);
+  }
+  $zip_file->close();
 
-    unlink($zip_path);
+  // delete csv files
+  foreach ($csvs as $csvpath => $name) {
+    unlink($csvpath);
+  }
 
-    /*header("Content-type: application/zip");
-    header("Content-Disposition: attachment; filename=$zip_name");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-    // output data to the browser
-    readfile("$zip_name");*/
+  header("Content-type: application/zip");
+  header("Content-Disposition: attachment; filename=$zip_name");
+  header("Pragma: no-cache");
+  header("Expires: 0");
+  readfile("$zip_path");
 
-//    drupal_goto($_SERVER['HTTP_REFERER']);
+  unlink($zip_path);
 }
 
 function get_payment_of_crew($start, $end, $crew_id) {
@@ -217,7 +208,7 @@ function get_payment_of_crew($start, $end, $crew_id) {
     $end_date = date_parse($end);
 
     for ($m = $start_date['month']; $m < $end_date['month']; $m++) {
-        $months .= $m . ' , ';
+      $months .= $m . ' , ';
     }
 
     $months .= $end_date['month'];
@@ -230,7 +221,7 @@ function get_payment_of_crew($start, $end, $crew_id) {
     $query = "SELECT value FROM {profile_values} WHERE fid=41 AND uid=$crew_id";
     $results = db_query($query);
     while ($row = db_fetch_object($results)) {
-        $supplement = $row->value;
+      $supplement = $row->value;
     }
     $supplement = explode(',', $supplement);
 
@@ -241,18 +232,18 @@ function get_payment_of_crew($start, $end, $crew_id) {
 
     $query = "SELECT node.nid AS nid, node.title AS node_title FROM {node} node  WHERE node.type in ('supplements') AND (";
     for ($i = 0; $i < count($supplement); $i++) {
-        $query .= "nid=$supplement[$i]";
-        if ($i < count($supplement) - 1) $query .= " OR ";
+      $query .= "nid=$supplement[$i]";
+      if ($i < count($supplement) - 1) $query .= " OR ";
     }
     $query .= ")";
     $results = db_query($query);
     $supplements = array();
     while ($row = db_fetch_object($results)) {
-        $supplements[] = $row;
+      $supplements[] = $row;
     }
     foreach ($supplements as $supp) {
-        $fields[] = $supp->node_title;
-        $field_count++;
+      $fields[] = $supp->node_title;
+      $field_count++;
     }
 
     $fields[] = 'Boundary Charge';

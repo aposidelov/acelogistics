@@ -18,7 +18,7 @@ a {
 #top { background:url(images/header.png) 0px 0 repeat-x; height: 191px; position: relative; }
 
 .client {
-    
+
 }
 
 .client.client-credit-warning, .client.client-credit-warning a, .call-status-canceled, .call-status-canceled a {
@@ -1139,3 +1139,11 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 }
 
 #block-block-2.scroller-static {max-width: 300px !important;}
+
+#ub-list {
+
+}
+
+#ub-list .comment-col {
+    width: 200px;
+}

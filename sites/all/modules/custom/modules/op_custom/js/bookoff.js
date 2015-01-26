@@ -6,7 +6,7 @@ $(document).ready(function() {
 			onSelect: function (e, t) {
 				var date = $(this).val();   
 		      	$.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {      		
-		      		if (data.message != '') {
+		      		if (data.message !== '') {
 		      			alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
 		      		}
 		      	});
@@ -20,7 +20,7 @@ $(document).ready(function() {
 			onSelect: function (e, t) {
 				var date = $(this).val();   
 		      	$.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {      		
-		      		if (data.message != '') {
+		      		if (data.message !== '') {
 		      			alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
 		      		}
 		      	});
@@ -35,7 +35,7 @@ $(document).ready(function() {
 	      onSelect: function (e, t) {
 	      	var date = $(this).val();   
 	      	$.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {      		
-	      		if (data.message != '') {
+	      		if (data.message !== '') {
 	      			alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
 	      		}
 	      	});
@@ -50,7 +50,7 @@ $(document).ready(function() {
 	      onSelect: function (e, t) {
 	      	var date = $(this).val();   
 	      	$.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {      		
-	      		if (data.message != '') {
+	      		if (data.message !== '') {
 	      			alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
 	      		}
 	      	});

@@ -1,5 +1,5 @@
 <?php
-
+                    
 define('AWAITING_PO', 1);
 define('QUOTE', 2);
 define('CONFIRMED', 3);

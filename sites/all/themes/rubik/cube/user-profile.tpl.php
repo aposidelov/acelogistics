@@ -308,7 +308,7 @@ $(document).ready(function(){
       onSelect: function (e, t) {
         var date = $(this).val();   
         $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
-          if (data.message != '') {
+          if (data.message !== '') {
             alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
           }
         });
@@ -320,7 +320,7 @@ $(document).ready(function(){
       onSelect: function (e, t) {
         var date = $(this).val();   
         $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
-          if (data.message != '') {
+          if (data.message !== '') {
             alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
           }
         });
@@ -340,11 +340,11 @@ $(document).ready(function(){
   });
 
   function formValidate() {
-	  if ($('#ub_label').val() == '') {
+	  if ($('#ub_label').val() === '') {
       return 'Label is required';
     }
 
-    if ($('#ub_date_start').val() == '') {
+    if ($('#ub_date_start').val() === '') {
       return 'Start Date+Time is required';
     }
 
@@ -537,6 +537,7 @@ $(document).ready(function(){
       <th>Label</th>
       <th>Date and time from</th>
       <th>Date and time to</th>
+      <th class="comment-col">Comment</th>
       <th></th>
   </tr>
   <?php foreach ($account->bookoff_list as $row) {
@@ -548,6 +549,7 @@ $(document).ready(function(){
     <td>$row[field_ub_label_value] </td>
     <td>$row[field_ub_date_start_value]</td>
     <td>$row[field_ub_date_end_value]</td>
+    <td>$row[field_comment_box_value]</td>
     <td>$link <a href="#" onclick="delBookedOff('$nid')">delete</a></td>
   </tr>
 TABLE_ROW;
