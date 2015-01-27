@@ -800,7 +800,8 @@ function crew_allocation_get_all_users($supplement, $emp_type) {
     }
 
     foreach($users as $user) {
-        if(in_array($user->uid, $crew_usrs)) {
+        if (in_array($user->uid, $crew_usrs)) {
+            $user->name = $user->name. ' ' . acecrew_get_hours_by_crew($user->uid);
             $filtered_users[] = $user;
         }
     }

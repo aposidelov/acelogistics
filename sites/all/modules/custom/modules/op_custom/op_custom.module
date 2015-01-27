@@ -1230,3 +1230,61 @@ function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job
 
   return $price;
 }
+
+function acecrew_get_hours_by_crew($crew_uid, $str_result = TRUE) {   
+  $timezone = 'Europe/London';
+  $current_time = time();
+  // get day number 1 - Monday, 2 - Tuesday, ... 7 - Sunday
+  $day_number = ((date("w", $current_time) + 6) % 7);
+  $current_week_date_to = $current_day = date('Y-m-d', $current_time);    
+
+  $current_week_date_from = date_make_date($current_day . ' 00:00', $timezone);
+  date_modify($current_week_date_from, '-'.($day_number).' days');
+  $current_week_date_from = date_format($current_week_date_from, 'Y-m-d');
+  $last_week_date_to = date_make_date($current_day . ' 00:00', $timezone);
+  date_modify($last_week_date_to, '-'.($day_number + 1).' days');
+  $last_week_date_to = date_format($last_week_date_to, 'Y-m-d');
+  $last_week_date_from = date_make_date($current_day . ' 00:00', $timezone);
+  date_modify($last_week_date_from, '-'.($day_number + 7).' days');
+  $last_week_date_from = date_format($last_week_date_from, 'Y-m-d');
+
+  /*
+  drupal_set_message('current_week_date_from = ' . $current_week_date_from);
+  drupal_set_message('current_week_date_to = ' . $current_week_date_to);
+  drupal_set_message('last_week_date_from = ' . $last_week_date_from);
+  drupal_set_message('last_week_date_to = ' . $last_week_date_to);
+  */
+
+  $current_hours = acecrew_get_crew_hours_by_date($crew_uid, $current_week_date_from, $current_week_date_to);
+  $last_hours = acecrew_get_crew_hours_by_date($crew_uid, $last_week_date_from, $last_week_date_to);
+  //drupal_set_message('<pre>'.print_r($current_hours, TRUE).'</pre>');
+  //drupal_set_message('<pre>'.print_r($last_hours, TRUE).'</pre>');
+
+  if ($str_result) {
+    return t('(%last_week_hours, %current_week_hours)', 
+      array(
+        '%last_week_hours' => $last_hours, 
+        '%current_week_hours' => $current_hours
+      )
+    );
+  } else {
+    return array(
+      'last_week_hours' => $last_hours, 
+      'current_week_hours' => $current_hours
+    );
+  } 
+}
+
+function acecrew_get_crew_hours_by_date($crew_uid, $date_from, $date_to) {
+  $date_from .= ' 00:00';
+  $date_to   .= ' 23:59';
+  //$hours_count 
+  $result = db_result(db_query("SELECT SUM(js.field_job_session_hours_value)
+    FROM `drupal_content_type_job_session` js 
+    INNER JOIN `drupal_crew_call` cc ON js.vid = cc.jsid
+    WHERE cc.uid = %d AND js.field_job_session_date_time_value BETWEEN '%s' AND '%s'", $crew_uid, $date_from, $date_to));   
+
+  $result = !empty($result) ? $result : 0;
+
+  return $result;
+}

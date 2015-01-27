@@ -88,7 +88,7 @@ class acecrewmodule {
 
 }
 //saf added
-function _acecrew_get_jobclient_contacts(){
+function _acecrew_get_jobclient_contacts() {
     $curClientId = acecrewmodule::getInstance()->getCurrentClientId();
 
     $client = node_load($curClientId);
@@ -105,10 +105,10 @@ function _acecrew_get_jobclient_contacts(){
     return $contacts;
 }
 
-function _acecrew_get_assigned_job_sessions_iterator($nid){
+function _acecrew_get_assigned_job_sessions_iterator($nid) {
     $query = "SELECT js.nid FROM {content_type_job_session} js
         JOIN {node} n ON js.field_session_job_nid_value = n.nid
-        WHERE n.nid = '%d'";
+        WHERE n.nid = '%d' ORDER BY js.field_job_session_date_time_value";
     $query_result =  db_query($query, $nid);
 
     return $query_result;

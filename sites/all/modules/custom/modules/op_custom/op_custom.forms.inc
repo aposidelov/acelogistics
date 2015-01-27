@@ -116,8 +116,9 @@ function op_custom_bookoff_repeat_form_submit($form, &$form_state) {
 			$periodicity_number, $periodicity_type, 
 			$range_number, $range_type,	$timezone);
 
-	} elseif ($form_state['clicked_button']['#parents'][0] == 'crews_overload') {
-		drupal_set_message(t('over load'));
+	} elseif ($form_state['clicked_button']['#parents'][0] == 'crews_overload') {		
+		
+		acecrew_get_hours_by_crew(303);
 	}
 }
 
