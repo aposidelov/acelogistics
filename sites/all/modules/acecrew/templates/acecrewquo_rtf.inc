@@ -162,10 +162,14 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     foreach ($callings as $data) {
         $row++;
 
+        $call = $data['data'];
+        $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
+        $venue_name = $venue->field_venue_name[0]['value'];
+
         $li_table->addRow(1);
 
         $li_table->mergeCellRange($row,1,$row,11);;
-        $li_table->writeToCell($row, 1, 'Call: ' . $call_index, $bold);
+        $li_table->writeToCell($row, 1, 'Call: ' . $call_index . '. @ ' . $venue_name, $bold);
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
         $cell->setCellPaddings(0.2, 0, 0, 0);
@@ -173,7 +177,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $row++;
         $li_table->addRow(0.7);
 
-        $call = $data['data'];
+
         $supplements = $data['supplements'];
         $call_amount = _get_call_client_charge_amount($job, $client, $call);
         $total = $call_amount * $call->field_job_session_crew_value;
