@@ -174,9 +174,11 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     echo '<tr><td colspan=9></td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
     $call_index = 1;
     $sum = 0;
-    watchdog('calli', '<pre>'.print_r($callings, TRUE).'</pre>');
+    //watchdog('calli', '<pre>'.print_r($callings, TRUE).'</pre>');
     foreach ($callings as $data) {
         $call = $data['data'];
+        $call_number = explode('-', $call->field_session_callid_value);
+        $call_number = $call_number[1];
         $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
         $venue_name = $venue->field_venue_name[0]['value'];
         $supplements = $data['supplements'];
@@ -224,9 +226,13 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $inc++;
         }
 
+        if ($call->field_job_session_plus_call_value === '1') {
+          $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
+        } 
+
         echo '
         <tr>
-            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . ($call_index) . '. @ '. $venue_name . '</td>
+            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . '</td>
             <td width=4% valign=top>Date: </td>
             <td width=10% valign=top>' . substr($call->field_job_session_date_time_value, 0, 10) . '</td>
             <td width=4% valign=top>Time: </td>

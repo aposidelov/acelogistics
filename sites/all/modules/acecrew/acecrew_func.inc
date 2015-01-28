@@ -817,7 +817,8 @@ function _get_callings_by_job($job) {
     INNER JOIN `drupal_content_type_job_session` ctjs ON ctjs.field_session_job_nid_value = ctj.nid
     LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctjs.nid
     INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
-    WHERE jsn.status = 1 AND ctj.vid ='%d'"; // 
+    WHERE jsn.status = 1 AND ctj.vid ='%d'
+    ORDER BY ctjs.field_job_session_date_time_value"; // 
     
    
     //$query = "SELECT * FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
@@ -840,7 +841,8 @@ function _get_callings_for_invoice_by_job($job) {
     INNER JOIN `drupal_content_type_job_session` ctjs ON ctjs.field_session_job_nid_value = ctj.nid
     LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctjs.nid
     INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
-    WHERE jsn.status = 1 AND ctj.vid ='%d'";
+    WHERE jsn.status = 1 AND ctj.vid ='%d'
+    ORDER BY ctjs.field_job_session_date_time_value";
 
     //$query = "SELECT ctjs.* FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
     $query_result = db_query($query, $job->vid);

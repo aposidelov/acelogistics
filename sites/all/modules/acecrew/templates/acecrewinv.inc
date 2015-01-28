@@ -27,7 +27,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $venue = $quote['venue'];
     $callings = $quote['callings'];
 
-    watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
+    //watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
 
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_inv_footer_text_value;
@@ -166,6 +166,16 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $call_amount = 0;
       $call = $data['data'];
 
+      $call_number = explode('-', $call->field_session_callid_value);
+      $call_number = $call_number[1];
+
+      $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
+      $venue_name = $venue->field_venue_name[0]['value'];
+
+      if ($call->field_job_session_plus_call_value === '1') {
+        $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
+      } 
+
       // get call data from crew call table
       $call_data = _get_call_data($call);
 
@@ -287,7 +297,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
       echo '
         <tr>
-          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . ($call_index) . '</td>
+          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . '</td>
           <td width=4% valign=top>Date: </td>
           <td width=10% valign=top>' . $date . '</td>
           <td width=4% valign=top>Time: </td>

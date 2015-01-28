@@ -185,15 +185,27 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $call_index = 1;
     $sum = 0;
     $row = 0;
-    watchdog('jj', '<pre>'.print_r($job, TRUE).'</pre>');
-    watchdog('ccc', '<pre>'.print_r($callings, TRUE).'</pre>');
+    //watchdog('jj', '<pre>'.print_r($job, TRUE).'</pre>');
+    //watchdog('ccc', '<pre>'.print_r($callings, TRUE).'</pre>');
     foreach ($callings as $data) {
+        $call = $data['data'];
+
+        $call_number = explode('-', $call->field_session_callid_value);
+        $call_number = $call_number[1];
+
+        $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
+        $venue_name = $venue->field_venue_name[0]['value'];
+
+        if ($call->field_job_session_plus_call_value === '1') {
+          $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
+        } 
+
         $row++;
 
         $li_table->addRow(1);
 
         $li_table->mergeCellRange($row,1,$row,11);
-        $li_table->writeToCell($row, 1, 'Call: ' . $call_index, $bold);
+        $li_table->writeToCell($row, 1, 'Call: ' . $call_number. '. @ '. $venue_name, $bold);
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
         $cell->setCellPaddings(0.2, 0, 0, 0);
@@ -202,9 +214,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         $li_table->addRow(0.7);
 
         $call_amount = 0;
-
-        $call = $data['data'];        
-
+        
         // get call data from crew call table
         $call_data = _get_call_data($call);
 
