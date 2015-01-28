@@ -1,0 +1,5 @@
+; $Id$
+name = Ace Crew Report
+description = A module that handles different reports as Fines & No Shows
+core = 6.x
+package = "Ace Crew"

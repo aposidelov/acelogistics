@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ * Main module file for Ace Crew Report module
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function acereport_menu() {
+  $items['admin/reports/fines'] = array(
+    'title' => 'Fines Report',    
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_report_fines_form'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereport.fines.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/reports/noshows'] = array(
+    'title' => 'No-Shows Report',    
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_report_noshows_form'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereport.noshows.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
