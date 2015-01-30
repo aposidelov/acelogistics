@@ -1,5 +1,7 @@
 <?php
 
+define ('CREW_SKILLS', 41);
+
 /**
  * Implements hook_update_N().
  */
@@ -16,6 +18,17 @@ function supplement_allocation_update_6001() {
   db_change_field($ret, 'crew_call', 'crew_total_reduce', 'crew_total_reduce', array('type' => 'float'));
   db_change_field($ret, 'crew_call', 'client_total_add', 'client_total_add', array('type' => 'float'));
   db_change_field($ret, 'crew_call', 'client_total_reduce', 'client_total_reduce', array('type' => 'float'));
+
+  return $ret;
+}
+
+function supplement_allocation_update_6002() {
+  $ret = array();
+
+  db_change_field($ret, 'crew_js_supplement', 'crew_ph', 'crew_ph', array('type' => 'float'));
+  db_change_field($ret, 'crew_js_supplement', 'crew_of', 'crew_of', array('type' => 'float'));
+  db_change_field($ret, 'crew_js_supplement', 'client_ph', 'client_ph', array('type' => 'float'));
+  db_change_field($ret, 'crew_js_supplement', 'client_of', 'client_of', array('type' => 'float'));
 
   return $ret;
 }
@@ -60,14 +73,14 @@ function supplement_allocation_form(&$form_state) {
 }
 
 function supplement_allocation_form_submit($form, &$form_state) {
+    watchdog('fp', '<pre>'.print_r($form['#post'], TRUE).'</pre>');
     $clone = $form['#post'];
     $tmp = explode('/',$form['#action']);
     $js_id = intval($tmp[3]);
     $standard_crew = 0;
     // how can ?
     // first, delete all record what have js id 2785
-    db_query("DELETE FROM {crew_js_supplement} WHERE jsid = %d", $js_id);
-    //watchdog('$clo', '<pre>'.print_r($clone, TRUE).'</pre>');
+    db_query("DELETE FROM {crew_js_supplement} WHERE jsid = %d", $js_id);    
     foreach ($clone as $key => $value) {
         if (strpos($key, 'additional_charge') !== FALSE) {
             // get 122 - crew id, 2785 - js_id and set crew_call from them.
@@ -177,277 +190,345 @@ function _supplement_allocation_getFieldString($crew_payrate, $hourKind) {
     }
 }
 function template_preprocess_supplement_allocation(&$variables) {
-    // 'to be confirmed' short name
-    $tbc_short = 'TBC';
-    // in this function, variable's sub-argument means the variable that displayed on tpl.
-    // need to get all info by call-id and set to variable
-    $js_id = $variables['js_id'];
-    $results = db_query("SELECT * FROM {content_type_job_session} WHERE vid=%d", $js_id);
-    $row = db_fetch_object($results);
-    $call = node_load($row->nid);
-    $default_hours = $row->field_job_session_hours_value;
-    //... get all info from call_id
-    $job_statuses = array(1 => 'Awaiting PO', 2 => 'Quote', 3 => 'Confirmed', 4 => 'Cancelled', 5 => 'Pencil', 6 => 'Invoiced', 7 => 'Invoice Sent');
+  // 'to be confirmed' short name
+  $tbc_short = 'TBC';
+  // in this function, variable's sub-argument means the variable that displayed on tpl.
+  // need to get all info by call-id and set to variable
+  $js_id = $variables['js_id'];
+  $results = db_query("SELECT * FROM {content_type_job_session} WHERE vid=%d", $js_id);
+  $row = db_fetch_object($results);
+  $call = node_load($row->nid);
+  $default_hours = $row->field_job_session_hours_value;
+  //... get all info from call_id
+  $job_statuses = array(1 => 'Awaiting PO', 2 => 'Quote', 3 => 'Confirmed', 4 => 'Cancelled', 5 => 'Pencil', 6 => 'Invoiced', 7 => 'Invoice Sent');
 
-    // first, get call-id
-    $session_node = node_load(array("vid" => $js_id));
-    $field_call_crew_tbc     = !empty($session_node->field_call_crew_tbc[0]['value']) ? $session_node->field_call_crew_tbc[0]['value'] : 0;
-    $field_call_hours_tbc    = !empty($session_node->field_call_hours_tbc[0]['value']) ? $session_node->field_call_hours_tbc[0]['value'] : 0;
-    $field_call_time_tbc     = !empty($session_node->field_call_time_tbc[0]['value']) ? $session_node->field_call_time_tbc[0]['value'] : 0;
-    $field_call_contract_tbc = !empty($session_node->field_call_contract_tbc[0]['value']) ? $session_node->field_call_contract_tbc[0]['value'] : 0;
+  // first, get call-id
+  $session_node = node_load(array("vid" => $js_id));
+  $field_call_crew_tbc     = !empty($session_node->field_call_crew_tbc[0]['value']) ? $session_node->field_call_crew_tbc[0]['value'] : 0;
+  $field_call_hours_tbc    = !empty($session_node->field_call_hours_tbc[0]['value']) ? $session_node->field_call_hours_tbc[0]['value'] : 0;
+  $field_call_time_tbc     = !empty($session_node->field_call_time_tbc[0]['value']) ? $session_node->field_call_time_tbc[0]['value'] : 0;
+  $field_call_contract_tbc = !empty($session_node->field_call_contract_tbc[0]['value']) ? $session_node->field_call_contract_tbc[0]['value'] : 0;
 
+  $variables['call_id'] = $session_node->field_session_callid[0]['value'];
+  $datetime = $session_node->field_job_session_date_time[0]['value'];
+  $tmp = explode(' ', $datetime);
+  $variables['date_time']      = $field_call_time_tbc ? $tbc_short : substr($tmp[1], 0, 5);
+  $variables['count_crews']    = $field_call_crew_tbc ? $tbc_short : $session_node->field_job_session_crew[0]['value'];
+  if (is_numeric($variables['count_crews'])) {
+    $variables['count_crews'] .= ($variables['count_crews'] < 2) ? '&nbsp;crew' : '&nbsp;crews';
+  }
 
-    $variables['call_id'] = $session_node->field_session_callid[0]['value'];
-    $datetime = $session_node->field_job_session_date_time[0]['value'];
-    $tmp = explode(' ', $datetime);
-    $variables['date_time']      = $field_call_time_tbc ? $tbc_short : substr($tmp[1], 0, 5);
-    $variables['count_crews']    = $field_call_crew_tbc ? $tbc_short : $session_node->field_job_session_crew[0]['value'];
-    if (is_numeric($variables['count_crews'])) {
-        $variables['count_crews'] .= ($variables['count_crews'] < 2) ? '&nbsp;crew' : '&nbsp;crews';
-    }
+  $variables['count_hours']    = $field_call_hours_tbc ? $tbc_short : $session_node->field_job_session_hours[0]['value'].'&nbsp;hours';
+  $hours_quoted = $session_node->field_job_session_hours[0]['value'];
 
-    $variables['count_hours']    = $field_call_hours_tbc ? $tbc_short : $session_node->field_job_session_hours[0]['value'].'&nbsp;hours';
-    $hours_quoted = $session_node->field_job_session_hours[0]['value'];
+  $job = node_load($session_node->field_session_job_nid[0]['value']);
+  if ($field_call_crew_tbc || $field_call_hours_tbc || $field_call_time_tbc || $field_call_contract_tbc) {
+    $variables['job_status'] = t('To be confirmed');
+  } else {
+    $variables['job_status'] = $job_statuses[$job->field_job_status[0]['value']];
+  }
+  $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
+  $client_id = $job->field_job_client_name[0]['value'];
+  $client_credit_exists = acecrew_client_is_credit_exists($client_id);
+  $client_warning_class = !$client_credit_exists ? 'client-credit-warning' : ''; 
+  $variables['client_warning_class'] = $client_warning_class;
+  $variables['call_status_canceled'] = !$call->status ? 'call-status-canceled' : '';
 
-    $job = node_load($session_node->field_session_job_nid[0]['value']);
-    if ($field_call_crew_tbc || $field_call_hours_tbc || $field_call_time_tbc || $field_call_contract_tbc) {
-        $variables['job_status'] = t('To be confirmed');
+  $variables['client_name'] = $client->field_client_name[0]['value'];
+  $variables['client_rate'] = $session_node->field_job_session_client_rate[0]['value'];//$client->field_client_rate[0]['value'];
+  $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
+  //$variables['venue_name'] = $venue->field_venue_name[0]['value'];
+
+  if(acecrew_get_call_venue_by_call_id($call->nid)) {
+    $variables['venue_name'] = acecrew_get_call_venue_by_call_id($call->nid);
+  } else {
+    $variables['venue_name'] = $venue->field_venue_name[0]['value'];
+  }
+
+  $option = acecrew_get_ads('field_admins_crewrates');
+  $default_crew_rate = intval(substr(reset($option), 0,1));
+  // need to calculate default to use when special is nothing
+  /*
+  $result7 = db_query("SELECT * FROM {content_type_supplements}");
+  while ($row7 = db_fetch_object($result7)) {    
+    // Set supplement default price for specified hours
+    //
+    // Supplement "per hour" or "single payment" values are pulled from content
+    // type: content_type_supplements. Based on quoted hours for this call, we
+    // check which default supplement payments to use.
+    //
+    if ($hours_quoted <= 4) {
+      //hours 0-4
+      $variables['supp_default'][$row7->nid] = array(
+        'client_single' => $row7->field_supp_0to4_client_single_value,
+        'client_hour' => $row7->field_supp_0to4_client_hour_value,
+        'crew_single' => $row7->field_supp_0to4_crew_single_value,
+        'crew_hour' => $row7->field_supp_0to4_crew_hour_value,
+      );
+    } else if ($hours_quoted <= 8) {
+      //hours 5-8
+      $variables['supp_default'][$row7->nid] = array(
+        'client_single' => $row7->field_supp_5to8_client_single_value,
+        'client_hour' => $row7->field_supp_5to8_client_hour_value,
+        'crew_single' => $row7->field_supp_5to8_crew_single_value,
+        'crew_hour' => $row7->field_supp_5to8_crew_hour_value,
+      );
+    } else if ($hours_quoted <= 12) {
+      //hours 8-12
+      $variables['supp_default'][$row7->nid] = array(
+        'client_single' => $row7->field_supp_9to12_client_single_value,
+        'client_hour' => $row7->field_supp_9to12_client_hour_value,
+        'crew_single' => $row7->field_supp_9to12_crew_single_value,
+        'crew_hour' => $row7->field_supp_9to12_crew_hour_value,
+      );
     } else {
-        $variables['job_status'] = $job_statuses[$job->field_job_status[0]['value']];
+      //hours 12+
+      $variables['supp_default'][$row7->nid] = array(
+        'client_single' => $row7->field_supp_12plus_client_single_value,
+        'client_hour' => $row7->field_supp_12plus_client_hour_value,
+        'crew_single' => $row7->field_supp_12plus_crew_single_value,
+        'crew_hour' => $row7->field_supp_12plus_crew_hour_value,
+      );
     }
-    $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
-    $client_id = $job->field_job_client_name[0]['value'];
-    $client_credit_exists = acecrew_client_is_credit_exists($client_id);
-    $client_warning_class = !$client_credit_exists ? 'client-credit-warning' : ''; 
-    $variables['client_warning_class'] = $client_warning_class;
-    $variables['call_status_canceled'] = !$call->status ? 'call-status-canceled' : '';
+  }
+  */
+  // get crews from js_id
+  $sql = db_query("SELECT uid FROM {crew_call} WHERE jsid = %d", $js_id);
+  while ($row = db_fetch_object($sql)) {
+    $user = db_query("SELECT * FROM {users} WHERE uid = %d", $row->uid);
+    while ($user_record = db_fetch_object($user)) {
+      $variables['crew_name'][] = $user_record->name;
+    }
+  }
+  $supp_name = '';
+  foreach ($session_node->field_call_supplements as $item) {
+    $supp_node = node_load($item['nid']);
+    $supp_title = $supp_node->title;
+    $fields = $item['fields'];
+    $tmp = explode("\"", $fields);
+    $quantity = $tmp[3];
+    $supp_name .= '<span>' . $supp_title . " (" . $quantity . ")" . '</span>';
+  }
+  $variables['supps'] =  $supp_name;
 
-    $variables['client_name'] = $client->field_client_name[0]['value'];
-    $variables['client_rate'] = $session_node->field_job_session_client_rate[0]['value'];//$client->field_client_rate[0]['value'];
-    $venue = acecrew_get_venue_by_id($job->field_job_venue[0]['value']);
-    //$variables['venue_name'] = $venue->field_venue_name[0]['value'];
+  $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
+  $query_result1 =  db_query($query1, $js_id);
+  while ($crew = db_fetch_object($query_result1)) {
+    $crew = user_load($crew->uid);
+    $total_crew = 0;
+    $total_client = 0;
 
-    if(acecrew_get_call_venue_by_call_id($call->nid)) {
-        $variables['venue_name'] = acecrew_get_call_venue_by_call_id($call->nid);
+    $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $crew->uid);
+    $row8 = db_fetch_object($result8);
+    // if $row8 is false, then use default payrate for crew.
+    if ($row8 == false) {
+      $crew_payrate = $default_crew_rate;
     } else {
-        $variables['venue_name'] = $venue->field_venue_name[0]['value'];
+      $crew_payrate = $row8->value;
     }
 
-    $option = acecrew_get_ads('field_admins_crewrates');
-    $default_crew_rate = intval(substr(reset($option), 0,1));
-    // need to calculate default to use when special is nothing
-    $result7 = db_query("SELECT * FROM {content_type_supplements}");
-    while ($row7 = db_fetch_object($result7)) {
-        /**
-         * Set supplement default price for specified hours
-         *
-         * Supplement "per hour" or "single payment" values are pulled from content
-         * type: content_type_supplements. Based on quoted hours for this call, we
-         * check which default supplement payments to use.
-         */
-        if ($hours_quoted <= 4) {
-            //hours 0-4
-            $variables['supp_default'][$row7->nid] = array(
-                'client_single' => $row7->field_supp_0to4_client_single_value,
-                'client_hour' => $row7->field_supp_0to4_client_hour_value,
-                'crew_single' => $row7->field_supp_0to4_crew_single_value,
-                'crew_hour' => $row7->field_supp_0to4_crew_hour_value,
-            );
-        } else if ($hours_quoted <= 8) {
-            //hours 5-8
-            $variables['supp_default'][$row7->nid] = array(
-                'client_single' => $row7->field_supp_5to8_client_single_value,
-                'client_hour' => $row7->field_supp_5to8_client_hour_value,
-                'crew_single' => $row7->field_supp_5to8_crew_single_value,
-                'crew_hour' => $row7->field_supp_5to8_crew_hour_value,
-            );
-        } else if ($hours_quoted <= 12) {
-            //hours 8-12
-            $variables['supp_default'][$row7->nid] = array(
-                'client_single' => $row7->field_supp_9to12_client_single_value,
-                'client_hour' => $row7->field_supp_9to12_client_hour_value,
-                'crew_single' => $row7->field_supp_9to12_crew_single_value,
-                'crew_hour' => $row7->field_supp_9to12_crew_hour_value,
-            );
-        } else {
-            //hours 12+
-            $variables['supp_default'][$row7->nid] = array(
-                'client_single' => $row7->field_supp_12plus_client_single_value,
-                'client_hour' => $row7->field_supp_12plus_client_hour_value,
-                'crew_single' => $row7->field_supp_12plus_crew_single_value,
-                'crew_hour' => $row7->field_supp_12plus_crew_hour_value,
-            );
-        }
+    $query2 = "SELECT * FROM {crew_call} WHERE uid='%s' AND jsid='%s'";
+    $query_result2 = db_query($query2, $crew->uid, $js_id);
+    $row2 = db_fetch_object($query_result2);
 
+    $additional_charge      = $row2->additional_charge; //intval($row2->additional_charge);
+    $additional_crew_pay    = $row2->additional_crew_pay; //intval($row2->additional_crew_pay);
+    $comment                = $row2->comment;
+    $additional_hours       = $row2->additional_hours;
+    $hours_worked           = $hours_quoted + $additional_hours;
+    $standard_crew          = $row2->standard_crew;
+    // Fine
+    $fine                   = $row2->fine;
+    $fine_desc              = $row2->fine_desc;
+    // No show
+    $no_show                = $row2->no_show;
+    $no_show_desc           = $row2->no_show_desc;
+    // Crew total add
+    $crew_total_add         = $row2->crew_total_add;
+    // Crew total reduce
+    $crew_total_reduce      = $row2->crew_total_reduce;
+    // Client total add
+    $client_total_add       = $row2->client_total_add;
+    // Client total reduce
+    $client_total_reduce    = $row2->client_total_reduce;
+    $crew_rate              = _get_crew_payrate($call->vid, $crew->uid);
+    //
+    if ($hours_quoted <= 2) {
+      $_2hrs_call_amount = _get_2hrs_call_crew_payment_amount($job, $crew, $call);      
+      $total_crew += $_2hrs_call_amount;
+      //watchdog('tot_cr', '<pre>'.print_r($total_crew, TRUE).'</pre>');
+    } else if ($hours_quoted <= 3) {
+      $_3hrs_call_amount = _get_3hrs_call_crew_payment_amount($job, $crew, $call);
+      $total_crew += $_3hrs_call_amount;
+    } else {
+      $total_crew += $crew_rate * $hours_quoted;
     }
-    // get crews from js_id
-    $sql = db_query("SELECT uid FROM {crew_call} WHERE jsid = %d", $js_id);
-    while ($row = db_fetch_object($sql)) {
-        $user = db_query("SELECT * FROM {users} WHERE uid = %d", $row->uid);
-        while ($user_record = db_fetch_object($user)) {
-            $variables['crew_name'][] = $user_record->name;
-        }
+    // Client additional charge amount
+    $additional_client_charge = (float) $call->field_additional_charge_ammount[0]['value'];
+    // Additional Crew Pay + Additional hours charge
+    $total_crew += $additional_crew_pay + ($crew_payrate * $additional_hours);
+
+    $client_quoted_amount = __get_call_client_charge_amount($job, $client, $call);    
+    $total_client += ($additional_charge + $variables['client_rate'] * $additional_hours + $client_quoted_amount) + $additional_client_charge;
+
+    $total_crew      = $total_crew - $fine - $no_show + $crew_total_add - $crew_total_reduce;
+    $total_client   += $client_total_add - $client_total_reduce;
+
+    if (!$standard_crew) {
+      $total_crew     = 0;
+      $total_client   = 0;
     }
-    $supp_name = '';
-    foreach ($session_node->field_call_supplements as $item) {
-        $supp_node = node_load($item['nid']);
-        $supp_title = $supp_node->title;
-        $fields = $item['fields'];
-        $tmp = explode("\"", $fields);
-        $quantity = $tmp[3];
-        $supp_name .= '<span>' . $supp_title . " (" . $quantity . ")" . '</span>';
+    
+    $result4 = db_query("SELECT * FROM {profile_values} WHERE fid=" . CREW_SKILLS . " AND uid=$crew->uid");
+    while ($r = db_fetch_object($result4)) {
+      $skills = explode(",", $r->value);
     }
-    $variables['supps'] =  $supp_name;
 
-    $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
-    $query_result1 =  db_query($query1, $js_id);
-    while ($row1 = db_fetch_object($query_result1)) {
-        $crew = user_load($row1->uid);
-        $total_crew = 0;
-        $total_client = 0;
+    foreach ($skills as $skill) {
+      $row4 = node_load($skill);
+      $result5 = db_query("SELECT * FROM {node} WHERE type='supplements' AND nid='$skill'");
+      $skill_data = db_fetch_object($result5);
+      if ($skill_data == null) {
+        continue;
+      }
 
-        $result8 = db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $row1->uid);
-        $row8 = db_fetch_object($result8);
-        // if $row8 is false, then use default payrate for crew.
-        if ($row8 == false) {
-            $crew_payrate = $default_crew_rate;
-        } else {
-            $crew_payrate = $row8->value;
+      $supplement = array();
+      $supplement['title'] = $skill_data->title;
+      $supplement['nid'] = $skill_data->nid;
+      $supplement_item = acecrew_supplement_get_item($skill_data->nid, $hours_worked);
+
+      $result6 = db_query("SELECT * FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d AND supplement_id = %d", $crew->uid, $js_id, $skill_data->nid);
+      $skill_crew = db_fetch_object($result6);
+      if ($skill_crew != null) { // use special
+        $supplement['crew_ph']    = !empty($skill_crew->crew_ph) ? $skill_crew->crew_ph : $supplement_item['crew_hour'];
+        $supplement['crew_of']    = !empty($skill_crew->crew_of) ? $skill_crew->crew_of : $supplement_item['crew_single']; // $skill_crew->crew_of;
+        $supplement['client_ph']  = !empty($skill_crew->client_ph) ? $skill_crew->client_ph : $supplement_item['client_hour']; // $skill_crew->client_ph;
+        $supplement['client_of']  = !empty($skill_crew->client_of) ? $skill_crew->client_of : $supplement_item['client_single']; // $skill_crew->client_of;
+        $supplement['comment']    = $skill_crew->comment;
+        $supplement['checked']    = 1;
+
+        // if both of ph and of are -1 , use default value.
+        
+          
+        if ($supplement['crew_ph'] == NULL && $supplement['crew_of'] == NULL) {
+          $total_crew += $supplement_item['crew_hour'] > 0 ? 
+          $supplement_item['crew_hour'] * $hours_worked : 
+          $supplement_item['crew_single'];          
+        } else { // else use special value
+          $total_crew += $supplement['crew_ph'] > 0 ?
+          $supplement['crew_ph'] * $hours_worked :
+          $supplement['crew_of'];          
         }
 
-        $query2 = "SELECT * FROM {crew_call} WHERE uid='%s' AND jsid='%s'";
-        $query_result2 = db_query($query2, $row1->uid, $js_id);
-        $row2 = db_fetch_object($query_result2);
-
-        $additional_charge      = $row2->additional_charge; //intval($row2->additional_charge);
-        $additional_crew_pay    = $row2->additional_crew_pay; //intval($row2->additional_crew_pay);
-        $comment                = $row2->comment;
-        $additional_hours       = $row2->additional_hours;
-        $hours_worked           = $hours_quoted + $additional_hours;
-        $standard_crew          = $row2->standard_crew;
-        // Fine
-        $fine                   = $row2->fine;
-        $fine_desc              = $row2->fine_desc;
-        // No show
-        $no_show                = $row2->no_show;
-        $no_show_desc           = $row2->no_show_desc;
-        // Crew total add
-        $crew_total_add         = $row2->crew_total_add;
-        // Crew total reduce
-        $crew_total_reduce      = $row2->crew_total_reduce;
-        // Client total add
-        $client_total_add       = $row2->client_total_add;
-        // Client total reduce
-        $client_total_reduce    = $row2->client_total_reduce;
-        $crew_rate              = _get_crew_payrate($call->vid, $crew->uid);
-        //
-        if ($hours_quoted <= 2) {
-          $_2hrs_call_amount = _get_2hrs_call_crew_payment_amount($job, $crew, $call);
-          $total_crew += $_2hrs_call_amount;
-        } else if ($hours_quoted <= 3) {
-          $_3hrs_call_amount = _get_3hrs_call_crew_payment_amount($job, $crew, $call);
-          $total_crew += $_3hrs_call_amount;
-        } else {
-          $total_crew += $crew_rate * $hours_quoted;
-        }
-        // Client additional charge amount
-        $additional_client_charge = (float) $call->field_additional_charge_ammount[0]['value'];
-        // Additional Crew Pay + Additional hours charge
-        $total_crew += $additional_crew_pay + ($crew_payrate * $additional_hours);
-
-        $client_quoted_amount = __get_call_client_charge_amount($job, $client, $call);
-        $total_client += ($additional_charge + $variables['client_rate'] * $additional_hours + $client_quoted_amount) + $additional_client_charge;
-
-        $total_crew      = $total_crew - $fine - $no_show + $crew_total_add - $crew_total_reduce;
-        $total_client   += $client_total_add - $client_total_reduce;
-
-        if (!$standard_crew) {
-            $total_crew     = 0;
-            $total_client   = 0;
+        if ($supplement['client_ph'] == NULL && $supplement['client_of'] == NULL) {
+          $total_client += $supplement_item['client_hour'] > 0 ? 
+          $supplement_item['client_hour'] * $hours_worked : 
+          $supplement_item['client_single'];          
+        } else { // else use special value
+          $total_client += $supplement['client_ph'] > 0 ?
+          $supplement['client_ph'] * $hours_worked :
+          $supplement['client_of'];          
         }
 
-        define ('CREW_SKILLS', 41);
-        $result4 = db_query("SELECT * FROM {profile_values} WHERE fid=" . CREW_SKILLS . " AND uid=$row1->uid");
-        while ($r = db_fetch_object($result4)) {
-            $skills = explode(",", $r->value);
+        /*
+        if ($supplement['crew_ph'] == NULL && $supplement['crew_of'] == NULL) {
+          $total_crew += $variables['supp_default'][$supplement['nid']]['crew_hour'] > 0 ?
+          $variables['supp_default'][$supplement['nid']]['crew_hour'] * $hours_worked :
+          $variables['supp_default'][$supplement['nid']]['crew_single'];
+        }
+        else { // else use special value
+          $total_crew += $supplement['crew_ph'] > 0 ?
+          $supplement['crew_ph'] * $hours_worked :
+          $supplement['crew_of'];
         }
 
-        foreach ($skills as $skill) {
-            $row4 = node_load($skill);
-            $result5 = db_query("SELECT * FROM {node} WHERE type='supplements' AND nid='$skill'");
-            $row5 = db_fetch_object($result5);
-            if ($row5 == null) {
-                continue;
-            }
-
-            $supplement = array();
-            $supplement['title'] = $row5->title;
-            $supplement['nid'] = $row5->nid;
-
-            $result6 = db_query("SELECT * FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d AND supplement_id = %d", $row1->uid, $js_id, $row5->nid);
-            $row6 = db_fetch_object($result6);
-            if ($row6 != null) { // use special
-                $supplement['crew_ph'] = $row6->crew_ph;
-                $supplement['crew_of'] = $row6->crew_of;
-                $supplement['client_ph'] = $row6->client_ph;
-                $supplement['client_of'] = $row6->client_of;
-                $supplement['comment'] = $row6->comment;
-                $supplement['checked'] = 1;
-
-                // if both of ph and of are -1 , use default value.
-                if ($supplement['crew_ph'] == NULL && $supplement['crew_of'] == NULL) {
-                    $total_crew += $variables['supp_default'][$supplement['nid']]['crew_hour'] > 0 ?
-                    $variables['supp_default'][$supplement['nid']]['crew_hour'] * $hours_worked :
-                    $variables['supp_default'][$supplement['nid']]['crew_single'];
-                }
-                else { // else use special value
-                    $total_crew += $supplement['crew_ph'] > 0 ?
-                    $supplement['crew_ph'] * $hours_worked :
-                    $supplement['crew_of'];
-                }
-
-                if ($supplement['client_ph'] == NULL && $supplement['client_of'] == NULL) {
-                    $total_client += $variables['supp_default'][$supplement['nid']]['client_hour'] > 0 ?
-                    $variables['supp_default'][$supplement['nid']]['client_hour'] * $hours_worked :
-                    $variables['supp_default'][$supplement['nid']]['client_single'];
-                } else { // else use special value
-                    $total_client += $supplement['client_ph'] > 0 ?
-                    $supplement['client_ph'] * $hours_worked :
-                    $supplement['client_of'];
-                }
-            }
-            else {
-                $supplement['checked'] = 0;
-            }
-            $supplements[] = $supplement;
+        if ($supplement['client_ph'] == NULL && $supplement['client_of'] == NULL) {
+          $total_client += $variables['supp_default'][$supplement['nid']]['client_hour'] > 0 ?
+          $variables['supp_default'][$supplement['nid']]['client_hour'] * $hours_worked :
+          $variables['supp_default'][$supplement['nid']]['client_single'];
+        } else { // else use special value
+          $total_client += $supplement['client_ph'] > 0 ?
+          $supplement['client_ph'] * $hours_worked :
+          $supplement['client_of'];
         }
-
-         $crew = array(
-             'name' => $row1->name,
-             'uid' => $row1->uid,
-             'additional_charge' => $additional_charge,
-             'additional_crew_pay' => $additional_crew_pay,
-             'comment' => $comment,
-             'standard_crew' => $standard_crew,
-             'fine' => $fine,
-             'fine_desc' => $fine_desc,
-             'no_show' => $no_show,
-             'no_show_desc' => $no_show_desc,
-             'crew_total_add' => $crew_total_add,
-             'crew_total_reduce' => $crew_total_reduce,
-             'client_total_add' => $client_total_add,
-             'client_total_reduce' => $client_total_reduce,
-             'additional_hours' => $additional_hours,
-             'total_crew' => $total_crew,
-             'total_client' => $total_client,
-             'supplements' => $supplements
-         );
-        unset($supplements);
-        $variables['crews'][] = $crew;
+        */
+      }
+      else {
+        $supplement['checked'] = 0;
+      }
+      $supplements[] = $supplement;
     }
-    // calculate total
-    jquery_ui_add('ui.accordion');
-    $module_path = drupal_get_path('module', 'supplement_allocation');
-    drupal_add_css($module_path .'/css/supplement.css');
-    drupal_add_js($module_path .'/js/supplement.js');
+
+    $crew = array(
+      'name' => $crew->name,
+      'uid' => $crew->uid,
+      'additional_charge' => $additional_charge,
+      'additional_crew_pay' => $additional_crew_pay,
+      'comment' => $comment,
+      'standard_crew' => $standard_crew,
+      'fine' => $fine,
+      'fine_desc' => $fine_desc,
+      'no_show' => $no_show,
+      'no_show_desc' => $no_show_desc,
+      'crew_total_add' => $crew_total_add,
+      'crew_total_reduce' => $crew_total_reduce,
+      'client_total_add' => $client_total_add,
+      'client_total_reduce' => $client_total_reduce,
+      'additional_hours' => $additional_hours,
+      'total_crew' => $total_crew,
+      'total_client' => $total_client,
+      'supplements' => $supplements
+    );
+    unset($supplements);
+    $variables['crews'][] = $crew;
+  }
+  // calculate total
+  jquery_ui_add('ui.accordion');
+  $module_path = drupal_get_path('module', 'supplement_allocation');
+  drupal_add_css($module_path .'/css/supplement.css');
+  drupal_add_js($module_path .'/js/supplement.js');
+}
+
+/**
+ * get skill item data
+ * @param  integer $skill_nid [description]
+ * @param  integer $hours     [description]
+ * @return array            array('crew_ph' => '', 'crew_of' => '', 'client_ph' => '', 'client_of' => '')
+ */
+function acecrew_supplement_get_item($skill_nid, $hours) {
+  $skill = node_load($skill_nid);  
+  
+  if ($hours <= 4) {
+    //hours 0-4
+    return array(
+      'client_single' => $skill->field_supp_0to4_client_single[0]['value'],
+      'client_hour' => $skill->field_supp_0to4_client_hour[0]['value'],
+      'crew_single' => $skill->field_supp_0to4_crew_single[0]['value'],
+      'crew_hour' => $skill->field_supp_0to4_crew_hour[0]['value'],
+    );
+  } else if ($hours <= 8) {
+    //hours 5-8
+    return array(
+      'client_single' => $skill->field_supp_5to8_client_single[0]['value'],
+      'client_hour' => $skill->field_supp_5to8_client_hour[0]['value'],
+      'crew_single' => $skill->field_supp_5to8_crew_single[0]['value'],
+      'crew_hour' => $skill->field_supp_5to8_crew_hour[0]['value'],
+    );
+  } else if ($hours <= 12) {
+    //hours 8-12
+    return array(
+      'client_single' => $skill->field_supp_9to12_client_single[0]['value'],
+      'client_hour' => $skill->field_supp_9to12_client_hour[0]['value'],
+      'crew_single' => $skill->field_supp_9to12_crew_single[0]['value'],
+      'crew_hour' => $skill->field_supp_9to12_crew_hour[0]['value'],
+    );
+  } else {
+    //hours 12+
+    return array(
+      'client_single' => $skill->field_supp_12plus_client_single[0]['value'],
+      'client_hour' => $skill->field_supp_12plus_client_hour[0]['value'],
+      'crew_single' => $skill->field_supp_12plus_crew_single[0]['value'],
+      'crew_hour' => $skill->field_supp_12plus_crew_hour[0]['value'],
+    );
+  }  
 }

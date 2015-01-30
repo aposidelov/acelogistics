@@ -818,9 +818,8 @@ function _get_callings_by_job($job) {
     LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctjs.nid
     INNER JOIN `drupal_node` jsn ON jsn.nid = ctjs.nid
     WHERE jsn.status = 1 AND ctj.vid ='%d'
-    ORDER BY ctjs.field_job_session_date_time_value"; // 
-    
-   
+    ORDER BY ctjs.field_job_session_date_time_value"; //     
+       
     //$query = "SELECT * FROM {content_type_job} ctj, {content_type_job_session} ctjs WHERE ctjs.field_session_job_nid_value = ctj.nid and ctj.vid='%d'";
     $query_result = db_query($query, $job->vid);
     while($row = db_fetch_object($query_result)) {
@@ -1024,8 +1023,7 @@ function _get_admin_settings() {
 }
 
 function _get_2hrs_call_crew_payment_amount($job, $crew, $call) {
-  $saved_2hrs_default = db_result(db_query('SELECT pay_default_2h FROM `drupal_crew_call` WHERE uid = %d AND jsid = %d', $crew->uid, $call->vid));
-  //watchdog('ss_2h_1', '<pre>'.print_r($saved_2hrs_default, TRUE).'</pre>');
+  $saved_2hrs_default = db_result(db_query('SELECT pay_default_2h FROM `drupal_crew_call` WHERE uid = %d AND jsid = %d', $crew->uid, $call->vid));  
   if ($saved_2hrs_default != 0) {
     return $saved_2hrs_default;
   }
@@ -1033,10 +1031,8 @@ function _get_2hrs_call_crew_payment_amount($job, $crew, $call) {
   //watchdog('ss_2h_c', '<pre>'.print_r($crew, TRUE).'</pre>');
 
   if ($call->field_job_session_hours[0]['value'] > 2) return NULL;
-  $rate = $crew->profile_payrateid == NULL ? 1 : $crew->profile_payrateid;
-  $_2hrs_call_override = $crew->profile_2_hour_default == NULL ? _get_2_hours_call_crew_default($crew) : $crew->profile_2_hour_default;
-
-  //watchdog('ss_2h_2', '<pre>'.print_r($_2hrs_call_override, TRUE).'</pre>');
+  $rate = $crew->profile_payrateid == NULL ? 1 : $crew->profile_payrateid;  
+  $_2hrs_call_override = $crew->profile_2_hour_default == NULL ? _get_2_hours_call_crew_default($crew) : $crew->profile_2_hour_default;  
 
   return $_2hrs_call_override;
 }
@@ -1062,25 +1058,30 @@ function _get_3hrs_call_crew_payment_amount($job, $crew, $call) {
 
 function _get_2_hours_call_crew_default($crew) {
   $admin_settings = _get_admin_settings();
-  //watchdog('crew', '<pre>'.print_r($crew, TRUE).'</pre>');
+  /*
   if (isset($crew->profile_payrateid)) {
     $rate = $crew->profile_payrateid;
-  } else {
+    watchdog('rr1', '<pre>'.print_r($rate, TRUE).'</pre>');
+  } else {    
     $rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $crew->uid));
-  }  
-  //watchdog('rr', '<pre>'.print_r($rate, TRUE).'</pre>');
+  } 
+  */ 
+  $rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $crew->uid));  
+  
   $overrided_value = $crew->profile_2_hour_default == NULL ? $admin_settings['field_' . preg_replace('/\./', '_', $rate) . '_per_hour_value'] : $crew->profile_2_hour_default;
   return $overrided_value == NULL ? $crew->profile_payrateid * 2 : $overrided_value;
 }
 
 function _get_3_hours_call_crew_default($crew) {
   $admin_settings = _get_admin_settings();
+  /*
   if (isset($crew->profile_payrateid)) {
     $rate = $crew->profile_payrateid;
   } else {
     $rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $crew->uid));
   }
-  //$rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $crew->uid));
+  */
+  $rate = db_result(db_query('SELECT value FROM {profile_values} WHERE uid = %d AND fid = 28 LIMIT 1', $crew->uid));
   $overrided_value = $crew->profile_3_hour_default == NULL ? $admin_settings['field_' . preg_replace('/\./', '_', $rate) . '_per_hour_3_value'] : $crew->profile_3_hour_default;
   return $overrided_value == NULL ? $crew->profile_payrateid * 3 : $overrided_value;
 }

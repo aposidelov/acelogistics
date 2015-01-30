@@ -335,8 +335,7 @@ function tao_menu_local_tasks($type = '') {
     $primary = "<ul class='links primary-tabs'>{$primary}</ul>";
   }
   if ($secondary = menu_secondary_local_tasks()) {    
-    $secondary = "<ul class='links secondary-tabs'>$secondary</ul>";
-    watchdog('sec', '<pre>'.print_r(htmlspecialchars($secondary), TRUE).'</pre>');  
+    $secondary = "<ul class='links secondary-tabs'>$secondary</ul>";    
   }
   switch ($type) {
     case 'primary':
