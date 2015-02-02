@@ -18,9 +18,12 @@
   * The above will guarantee that you'll always get the correct data,
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
-  */
- $job = node_load($row->node_data_field_job_session_date_time_field_session_job_nid_value);
- $client_id = $job->field_job_client_name[0]['value'];
- $client_name = db_result(db_query("SELECT field_client_name_value FROM {content_type_client} WHERE field_client_id_value = %d", $client_id));
+  */ 
+ $job_nid = $row->node_data_field_job_session_date_time_field_session_job_nid_value; 
+ $client_name = db_result(db_query("SELECT field_client_name_value 
+  FROM {content_type_client} c 
+  INNER JOIN {content_type_job} j ON c.field_client_id_value = j.field_job_client_name_value
+  WHERE j.nid = %d", $job_nid));
  ?>
+ 
 <?php print $client_name; ?>

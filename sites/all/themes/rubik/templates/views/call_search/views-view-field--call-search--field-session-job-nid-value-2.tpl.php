@@ -19,20 +19,10 @@
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
   */
-
-$job_nid = $row->node_data_field_job_session_date_time_field_session_job_nid_value; 
-$client = db_fetch_object(db_query("SELECT field_client_id_value, field_client_name_value 
-  FROM {content_type_client} c 
-  INNER JOIN {content_type_job} j ON c.field_client_id_value = j.field_job_client_name_value
-  WHERE j.nid = %d", $job_nid));
-$client_id = $client->field_client_id_value;
-$client_name = $client->field_client_name_value;
-
-$client_credit_exists = acecrew_client_is_credit_exists($client_id);
-$red_class = !$client_credit_exists ? 'client-credit-warning' : '';
-
+$job_nid = $row->node_data_field_job_session_date_time_field_session_job_nid_value;
+$job_number = db_result(db_query("SELECT j.field_job_number_value FROM {content_type_job} j WHERE j.nid = %d", $job_nid));
 ?>
-<div class="client <?php print $red_class; ?>">
-  <?php print $client_name; ?>
-</div>
+
+<?php print _get_invoice_number($job_number); ?>
+
 

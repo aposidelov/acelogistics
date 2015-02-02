@@ -19,9 +19,8 @@
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
   */
- //watchdog('rrr2', '<pre>'.print_r($row, TRUE).'</pre>');
- $node    = node_load($row->nid);
- $status  = $node->status;
+ $status = db_result(db_query('SELECT status FROM {node} WHERE nid = %d', $row->nid));
  $red_class = !$status ? 'call-status-canceled' : '';
-?>
+ 
+ ?>
 <span class="<?php print $red_class; ?>"><?php print $output; ?></span>
