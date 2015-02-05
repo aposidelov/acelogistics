@@ -72,8 +72,7 @@ function supplement_allocation_form(&$form_state) {
     return $form;
 }
 
-function supplement_allocation_form_submit($form, &$form_state) {
-    watchdog('fp', '<pre>'.print_r($form['#post'], TRUE).'</pre>');
+function supplement_allocation_form_submit($form, &$form_state) {    
     $clone = $form['#post'];
     $tmp = explode('/',$form['#action']);
     $js_id = intval($tmp[3]);
@@ -352,7 +351,7 @@ function template_preprocess_supplement_allocation(&$variables) {
     // Client total reduce
     $client_total_reduce    = $row2->client_total_reduce;
     $crew_rate              = _get_crew_payrate($call->vid, $crew->uid);
-    //
+    //    
     if ($hours_quoted <= 2) {
       $_2hrs_call_amount = _get_2hrs_call_crew_payment_amount($job, $crew, $call);      
       $total_crew += $_2hrs_call_amount;
@@ -360,7 +359,7 @@ function template_preprocess_supplement_allocation(&$variables) {
     } else if ($hours_quoted <= 3) {
       $_3hrs_call_amount = _get_3hrs_call_crew_payment_amount($job, $crew, $call);
       $total_crew += $_3hrs_call_amount;
-    } else {
+    } else {      
       $total_crew += $crew_rate * $hours_quoted;
     }
     // Client additional charge amount
@@ -375,7 +374,7 @@ function template_preprocess_supplement_allocation(&$variables) {
     $total_client   += $client_total_add - $client_total_reduce;
 
     if (!$standard_crew) {
-      $total_crew     = 0;
+      $total_crew     = -$fine - $no_show;
       $total_client   = 0;
     }
     

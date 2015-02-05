@@ -280,7 +280,7 @@ function get_payment_of_crew($start, $end, $crew_id) {
     $results = db_query($query);
     while ($row = db_fetch_object($results)) {
         // get job
-        //$job = node_load($row->nid);
+        //$job = node_load($row->nid);        
         $job = acecrew_get_job_row_by_id($row->nid);
 
         //$job_no = $job->field_job_number[0]['value']; // job no
@@ -393,13 +393,17 @@ function get_payment_of_crew($start, $end, $crew_id) {
             }
             $data[] = $boundary_charge;
             $call_amount += $boundary_charge;
-            $data[] = $fine;
-            $call_amount -= $fine;
-            $data[] = $no_show;
-
-            $call_amount -= $no_show;
+            $data[] = $fine;            
+            $data[] = $no_show;            
 
             $call_amount = $call_amount + $total_add - $total_reduce;
+
+            if ($row2->standard_crew != 1) {
+              $call_amount = 0;
+            }
+
+            $call_amount -= $fine;
+            $call_amount -= $no_show;
 
             $data[] = $call_amount;
             $total_amount += $call_amount;

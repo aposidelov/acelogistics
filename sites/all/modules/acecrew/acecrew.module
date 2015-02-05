@@ -75,11 +75,11 @@ function acecrew_theme_registry_alter(&$theme_registry) {
  */
 function acecrew_form_alter(&$form, $form_state, $form_id) {
     //?? saf modified
-  if ($form_id  == 'job_session_node_form' || $form_id  == 'admin_settings_node_form' ) {
+  if ($form_id == 'job_session_node_form' || $form_id == 'admin_settings_node_form') {
     unset($form['buttons']['preview']);
     unset($form['buttons']['delete']);
   }
-  if ($form_id  == 'admin_settings_node_form' ){
+  if ($form_id == 'admin_settings_node_form' ){
     $form['#redirect'] = false;
   }
 

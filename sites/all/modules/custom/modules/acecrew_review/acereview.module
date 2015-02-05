@@ -115,7 +115,7 @@ function acereview_send_review_contract_popup_form($form_state, $job_id) {
   );
 
   $form['contracts'] = array(
-    '#title' => 'Contracts',
+    '#title' => 'Contacts',
     '#type' => 'select',
     '#options' => $names,
   );

@@ -151,6 +151,9 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
     $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';    
   } elseif ($form_id == 'job_node_form') {    
     drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');
+    //watchdog('j', '<pre>'.print_r($form['field_job_number'], TRUE).'</pre>');
+    //$form['field_job_number'][0]['#disabled'] = TRUE;
+    //$form['field_job_number']['#attributes'] = array('disabled' => 'disabled');
   } elseif ($form_id == 'job_session_node_form') {              
       $form['buttons']['submit']['#submit'][] = 'op_custom_call_duplicate_submit';
       $form['duplications'] = array(
