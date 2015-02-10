@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield.module,v 1.1.2.11 2009/07/07 23:19:16 effulgentsia Exp $
 
 /**
  * @file
@@ -356,6 +355,12 @@ function _flexifield_item_invoke_flexifield($sOperation, &$aItem, $oNode, $bTeas
         $oRecord = (object) array('item_id' => $aItem['item_id']);
         drupal_write_record('flexifield_items', $oRecord);
       }
+      // Fields within a flexifield may end up invoking a premature node_load()
+      // causing premature data to be cached. An example is filefield.module.
+      // See http://drupal.org/node/583852.
+      if ($oNode->nid) {
+        cache_clear_all('content:'. $oNode->nid .':', content_cache_tablename(), TRUE);
+      }
     break;
     case 'delete':
     case 'delete revision':
@@ -625,9 +630,7 @@ function flexifield_default_widget_process($aElement, $aSubmittedElementData, $a
   // @todo: This is a temporary hack. Solve this better or document it!!
   if (($nTypes > 1) && module_exists('wysiwyg')) {
     foreach (filter_formats() as $format => $object) {
-      if ($profile = wysiwyg_get_profile($format)) {
-        wysiwyg_load_editor($profile);
-      }
+      wysiwyg_get_profile($format);
     }
   }
 

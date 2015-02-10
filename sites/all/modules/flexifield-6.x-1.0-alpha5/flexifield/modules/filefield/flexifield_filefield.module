@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield_filefield.module $
 
 /**
  * @file
@@ -89,17 +88,7 @@ function flexifield_filefield_js($type_name, $field_name, $delta, $parents) {
   foreach (explode(':', $parents) as $parent) {
     $form_element = $form_element[$parent];
   }
-  if (module_exists('fieldgroup') && ($group_name = _fieldgroup_field_get_group($type_name, $field_name))) {
-    if (isset($form_element['#multigroups']) && isset($form_element['#multigroups'][$group_name][$field_name])) {
-      $form_element = $form_element[$group_name][$delta][$field_name];
-    }
-    else {
-      $form_element = $form_element[$group_name][$field_name][$delta];
-    }
-  }
-  else {
-    $form_element = $form_element[$field_name][$delta];
-  }
+  $form_element = $form_element[$field_name][$delta];
 
   if (isset($form_element['_weight'])) {
     unset($form_element['_weight']);

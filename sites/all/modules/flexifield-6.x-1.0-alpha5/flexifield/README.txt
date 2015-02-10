@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.1.2.6 2009/03/04 02:33:42 effulgentsia Exp $
 
 This module is in early development and still needs a lot of work before it's ready for prime time. But please check it out as a proof of concept.
 

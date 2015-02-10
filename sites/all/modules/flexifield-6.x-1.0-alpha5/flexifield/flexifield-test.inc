@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield-test.inc $
 
 /**
  * @file

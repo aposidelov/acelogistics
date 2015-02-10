@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield.views.inc $
 /**
  * @file
  * Provide views data for flexifield.module.

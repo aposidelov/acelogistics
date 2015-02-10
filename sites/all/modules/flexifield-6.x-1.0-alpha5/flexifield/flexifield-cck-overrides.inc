@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield-cck-overides.inc $
 
 /**
  * @file
@@ -16,9 +15,9 @@
  *  //<flexifield->   Indicates start of code that is part of the CCK function, but that is commented out of this function
  *  //</flexifield->  Indicates end of code that is part of the CCK function, but that is commented out of this function
  * 
- * These functions were cloned from CCK version 6.x-2.3. As new releases of CCK
- * become available, we should check to see if the below functions need updating
- * as a result.
+ * These functions were cloned from CCK version 6.x-2.3, and remain valid through 6.x-2.6. 
+ * As new releases of CCK become available, we should check to see if the below functions 
+ * need updating as a result.
  * 
  * My long term goal is to submit these patches (or appropriate patch alternatives)
  * to the CCK project so that I do not have to maintain redundant code.
@@ -81,10 +80,7 @@ function theme_flexifield_multiple_values($element) {
         'data' => t('!title: !required', array('!title' => $element['#title'], '!required' => $required)),
         'colspan' => 2
       ),
-      array(
-        'data' => t('Order'),
-        'class' => 'delta-order-header'
-      ),
+      t('Order'),
     );
     $rows = array();
 

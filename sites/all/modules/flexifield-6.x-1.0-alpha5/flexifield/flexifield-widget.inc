@@ -1,5 +1,4 @@
 <?php
-// $Id: flexifield-widget.inc $
 
 /**
  * @file
@@ -247,7 +246,7 @@ function flexifield_ahah_addmore($sTypeNameUrl, $sFieldName, $sParents, $sDataPa
   
   // If this is the root flexifield, then use content.module's way of
   // adding another item (with a small modification).
-  if (!count($aParents)) {
+  if (!count($aParents) || (count($aParents) == 1 && module_exists('fieldgroup') && ($aParents[0] == _fieldgroup_field_get_group(str_replace('-', '_', $sTypeNameUrl), $sFieldName)))) {
     module_load_include('inc', 'flexifield', 'flexifield-cck-overrides');
     return flexifield_add_more_js($sTypeNameUrl, $sFieldName);
   }
@@ -267,13 +266,17 @@ function flexifield_ahah_addmore($sTypeNameUrl, $sFieldName, $sParents, $sDataPa
   // want one field item from it. Perhaps this can be optimized.
   $aFormCopy = $aForm;
   $aFormCopy['#post'] = $_POST;
-  $aFormPostReference =& $aFormCopy['#post'];
+  $aFormPostReference = &$aFormCopy['#post'];
   foreach ($aDataParents as $sParent) {
-    $aFormPostReference =& $aFormPostReference[$sParent];
+    $aTempReference = &$aFormPostReference[$sParent];
+    unset($aFormPostReference);
+    $aFormPostReference = &$aTempReference;
+    unset($aTempReference);
   }
   $aFormPostReference[$sFieldName][] = array();
+  unset($aFormPostReference);
   $aBuiltForm = form_builder($_POST['form_id'], $aFormCopy, $aFormState);
-  
+
   // Get just the element that needs re-rendering.
   $aElement = $aBuiltForm;
   foreach ($aParents as $sParent) {
