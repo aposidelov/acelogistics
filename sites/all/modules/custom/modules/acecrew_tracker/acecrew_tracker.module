@@ -14,6 +14,15 @@ require_once './'. $module_path .'/rules/acecrew_tracker.uploadcrew.inc';
 require_once './'. $module_path .'/rules/acecrew_tracker.supplement.inc';
 
 /**
+ * Implementation of hook_perm().
+ */
+function acecrew_tracker_perm() {
+  return array(
+    'admin log tracking'
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function acecrew_tracker_menu() {  
