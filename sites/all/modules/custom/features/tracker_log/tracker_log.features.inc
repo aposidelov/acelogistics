@@ -708,17 +708,7 @@ function tracker_log_rules_defaults() {
         '#status' => 'default',
         '#conditions' => array(
           '0' => array(
-            '#type' => 'condition',
-            '#settings' => array(
-              'roles' => array(
-                '0' => 5,
-              ),
-              'operation' => 'OR',
-              '#argument map' => array(
-                'user' => 'user',
-              ),
-            ),
-            '#name' => 'rules_condition_user_hasrole',
+            '#weight' => 0,
             '#info' => array(
               'label' => 'User has role(s)',
               'arguments' => array(
@@ -729,12 +719,28 @@ function tracker_log_rules_defaults() {
               ),
               'module' => 'User',
             ),
-            '#weight' => 0,
+            '#name' => 'rules_condition_user_hasrole',
+            '#settings' => array(
+              'roles' => array(
+                '0' => 5,
+              ),
+              'operation' => 'OR',
+              '#argument map' => array(
+                'user' => 'account',
+              ),
+            ),
+            '#type' => 'condition',
           ),
         ),
         '#actions' => array(
           '0' => array(
-            '#weight' => 0,
+            '#type' => 'action',
+            '#settings' => array(
+              '#argument map' => array(
+                'crew' => 'account',
+              ),
+            ),
+            '#name' => 'at_crew_delete_action',
             '#info' => array(
               'label' => 'Crew Delete log',
               'arguments' => array(
@@ -745,13 +751,7 @@ function tracker_log_rules_defaults() {
               ),
               'module' => 'Acecrew Tracker',
             ),
-            '#name' => 'at_crew_delete_action',
-            '#settings' => array(
-              '#argument map' => array(
-                'crew' => 'account',
-              ),
-            ),
-            '#type' => 'action',
+            '#weight' => 0,
           ),
         ),
         '#version' => 6003,
