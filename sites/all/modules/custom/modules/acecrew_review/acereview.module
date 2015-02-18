@@ -136,6 +136,7 @@ function acereview_send_review_contract_popup_form_submit($form, &$form_state) {
   $contract_email  = $form_state['values']['contracts'];
   $contact_names  = $form_state['values']['contact_names'];
   acereview_sent_email_to_client($contract_email, $url, $job->field_job_number[0]['value'], $contact_names[$contract_email], $job_details);
+  module_invoke_all('send_review', $job, $contract_email, $contact_names[$contract_email]);
 
   // Tell the parent window to close the modal frame dialog.
   modalframe_close_dialog();

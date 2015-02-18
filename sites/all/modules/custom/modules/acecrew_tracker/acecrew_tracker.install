@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function acecrew_tracker_install() {
+  drupal_install_schema('acecrew_tracker');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function acecrew_tracker_uninstall() {
+  drupal_uninstall_schema('acecrew_tracker');
+}
+
+/**
+ * Implementation of hook_schema() 
+ */
+function acecrew_tracker_schema() {
+  $schema = array();
+
+  $schema['acecrew_tracker_log'] = array(
+    'fields' => array(
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'type' => array('type' => 'varchar', 'length' => 16, 'not null' => TRUE),
+      'message' => array('type' => 'text', 'not null' => FALSE),
+      'created' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),      
+      'field_name' => array('type' => 'varchar', 'length' => 26, 'not null' => TRUE),     
+      'item1_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE),
+      'item2_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE),
+      'item3_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE),
+    ),
+    'primary key' => array('id'),    
+    'indexes' => array(
+      'uid' => array('uid'),
+      'type' => array('type'),
+      'item_id' => array('item1_id'),
+      'search' => array('uid', 'item1_id'),
+    ),
+  );
+
+  return $schema;
+}

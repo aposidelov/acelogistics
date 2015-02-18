@@ -14,7 +14,7 @@ function acecrew_add_user_bookedoff(){
   $query = file_get_contents('php://input');
   extract($_POST);
   module_load_include('inc', 'op_custom', 'op_custom.forms');
-
+  
     //$ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
     //$ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);    
   acecrew_add_bookoff(
@@ -22,6 +22,7 @@ function acecrew_add_user_bookedoff(){
     $ub_date_start,
     $ub_date_end,
     $ub_label,
+    $ub_comment,
     $ub_periodicity_number,
     $ub_periodicity_type,
     $ub_range_number,
@@ -540,6 +541,8 @@ function acecrew_generate_invoice($job_id) {
     _acecrew_add_invoice_job_relate($job_id);
     _acecrew_invoice_raised_job_status($job_id);
 
+    module_invoke_all('invoice_generate', $job_id);
+
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
@@ -626,6 +629,8 @@ function acecrew_generate_quote($job_id)
     }*/
 
     _acecrew_add_quote_job_relate($job_id);
+    module_invoke_all('quote_generate', $job_id);
+
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
@@ -2760,4 +2765,99 @@ function acecrew_is_plus_call($nid) {
     $result = db_query("SELECT field_job_session_plus_call_value FROM {content_type_job_session} WHERE nid = %d", $nid);
     $result = db_fetch_object($result);
     return !!$result->field_job_session_plus_call_value;
+}
+
+function acecrew_get_cancellations() {
+  return array(
+    '' => 'N/A',
+    1 => 'Cancellation <12hrs Notice',
+    2 => 'Cancellation <24hrs Notice',
+  );
+}
+
+function acecrew_get_job_clients() {
+  $result = db_query(db_rewrite_sql("SELECT `nid`, `field_client_name_value`,  `field_client_id_value` FROM `drupal_content_type_client` WHERE 1 ORDER BY `field_client_name_value` ASC"));
+  while ($item = db_fetch_object($result)) {
+    $items[$item->field_client_id_value] = $item->field_client_name_value;
+  }
+  return $items;
+}
+
+function acecrew_get_job_client_contacts() {
+  $result = db_query(db_rewrite_sql("SELECT `vid`, `field_client_contact_name_value` FROM {content_type_client_contact}"));
+  $items[0] = 'D';
+  while ($item = db_fetch_object($result)) {
+    $items[$item->vid] = $item->field_client_contact_name_value;
+  }
+  return $items;
+}
+
+function acecrew_get_job_venue() {
+  $result = db_query(db_rewrite_sql("SELECT `nid`, `field_venue_name_value`,  `field_venue_id_value` FROM `drupal_content_type_venue` WHERE 1 ORDER BY `field_venue_name_value` ASC"));
+  while ($item = db_fetch_object($result)) {
+    $items[$item->field_venue_id_value] = $item->field_venue_name_value;
+  }
+  return $items;
+}
+
+function get_node_title($nid) {
+  return check_plain(db_result(db_query('SELECT title FROM {node} WHERE nid = %d',$nid)));
+}
+
+function getCrewMembers() {
+    $users = array();
+    $query = "SELECT users.uid AS uid, users.name AS users_name
+            FROM drupal_users users
+            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+            WHERE users_roles.rid = 5 ORDER BY users_name ASC";
+    $results = db_query($query);
+    while($row = db_fetch_object($results)) {
+        $users[(int) $row->uid] = $row->users_name;
+    }
+
+    return $users;
+}
+
+function getAdmins() {
+    $users = array();
+    $query = "SELECT users.uid AS uid, users.name AS users_name
+            FROM drupal_users users
+            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+            WHERE users_roles.rid = 4 ORDER BY users_name ASC";
+    $results = db_query($query);
+    while($row = db_fetch_object($results)) {
+        $users[(int) $row->uid] = $row->users_name;
+    }
+
+    return $users;
+}
+
+function getActiveCrewMembers() {
+    $users = array();
+    $query = "SELECT users.uid AS uid, users.name AS users_name
+            FROM drupal_users users
+            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+            WHERE users.status = 1
+            AND users_roles.rid = 5 ORDER BY users_name ASC";
+    $results = db_query($query);
+    while($row = db_fetch_object($results)) {
+        $users[(int) $row->uid] = $row->users_name;
+    }
+
+    return $users;
+}
+
+function getInactiveActiveCrewMembers() {
+    $users = array();
+    $query = "SELECT users.uid AS uid, users.name AS users_name
+            FROM drupal_users users
+            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
+            WHERE users.status = 0
+            AND users_roles.rid = 5 ORDER BY users_name ASC";
+    $results = db_query($query);
+    while($row = db_fetch_object($results)) {
+        $users[(int) $row->uid] = $row->users_name;
+    }
+
+    return $users;
 }

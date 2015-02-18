@@ -97,11 +97,14 @@ function _acecrew_get_jobclient_contacts() {
     // If Default Contact is set - add it as first option to the list;
     // 0 (zero) is an index of Default Contact
     if (!empty($client->field_client_company_contact[0]['value'])) {
-        $contacts[0] = $client->field_client_company_contact[0]['value'];
+      $contacts[0] = $client->field_client_company_contact[0]['value'];
     }    
-    foreach ($client->field_client_contact as $contact) {
+    if (isset($client->field_client_contact)) {
+      foreach ($client->field_client_contact as $contact) {
         $contacts[$contact['item_id']] = $contact['value']['field_client_contact_name']['0']['value'];
+      }
     }
+    
     return $contacts;
 }
 
@@ -292,15 +295,21 @@ function _acecrew_get_supplement($supp_id){
     return node_load(array('nid' => $supp_id));
 }
 
-function _acecrew_get_job_node_by_id($job_id){
-    $job = false;
-    $query = "SELECT ctj.nid FROM {content_type_job} ctj WHERE ctj.field_job_number_value = '%d'";
-    $query_result =  db_query($query, $job_id);
-    $row = db_fetch_object($query_result);
-    if (!empty($row)){
-        $job = node_load(array('nid' => $row->nid));
-    }
-    return $job;
+function _acecrew_get_job_node_by_id($job_id) {
+  $job = false;
+  $query = "SELECT ctj.nid FROM {content_type_job} ctj WHERE ctj.field_job_number_value = '%d'";
+  $query_result =  db_query($query, $job_id);
+  $row = db_fetch_object($query_result);
+  if (!empty($row)){
+    $job = node_load(array('nid' => $row->nid));
+  }
+  return $job;
+}
+
+function _acecrew_get_job_id_by_number($job_number) {
+  $query = "SELECT ctj.nid FROM {content_type_job} ctj WHERE ctj.field_job_number_value = '%d'";
+  $job_nid =  db_result(db_query($query, $job_number));
+  return $job_nid;
 }
 
 function acecrew_get_client_by_id($client_id)
@@ -385,6 +394,12 @@ function acecrew_get_invoice_number_by_id($invoice_id) {
     $result = db_result(db_query($query, $invoice_id));
 
     return $result;
+}
+
+function acecrew_get_quote_by_job_number($job_number) {
+  $query = "SELECT jq.acecrew_job_quote_id FROM {acecrew_job_quotes} jq WHERE jq.job_id = %d";
+  $quote_number = db_result(db_query($query, $job_number));
+  return $quote_number;
 }
 
 function acecrew_get_client_by_quote_id($quote_id) {

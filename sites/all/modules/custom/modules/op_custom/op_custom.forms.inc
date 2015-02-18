@@ -155,7 +155,8 @@ function acecrew_add_bookoff(
 	$crew_uid, 
 	$start_date, 
 	$end_date, 
-	$label, 
+	$label,
+	$comment, 
 	$periodicity_number = 0, 
 	$periodicity_type = '', 
 	$range_number = 0, 
@@ -210,6 +211,7 @@ function acecrew_add_bookoff(
 
 		$node = new StdClass();
     $node->title = $node->field_ub_label[0]['value'] 	= $label;
+    $node->field_comment_box[0]['value'] 							= $comment;
     $node->field_ub_date_start[0]['value'] 						= $line_item['start_date'];
     $node->field_ub_date_start[0]['value2'] 					= $line_item['start_date'];
     $node->field_ub_date_start[0]['timezone'] 				= $timezone;	   

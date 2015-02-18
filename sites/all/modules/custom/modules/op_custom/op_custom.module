@@ -129,6 +129,13 @@ function op_custom_rules_action_info() {
   return $actions;
 }
 
+function op_custom_readonly_after_build($form, &$form_state) {                           
+  $field = 'field_job_number';                                         
+  $form[$field][0]['value']['#attributes']['readonly'] = 'readonly';          
+  $form_state['values'][$field][0]['value'] = $form[$field]['#default_value']['value'];
+  return $form;                                                               
+}
+
 /**
  * Implements hook_form_alter().
  */
@@ -150,8 +157,11 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
     $form['buttons']['submit']['#submit'][1] = 'node_form_submit';
     $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';    
   } elseif ($form_id == 'job_node_form') {    
-    drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');
-    //watchdog('j', '<pre>'.print_r($form['field_job_number'], TRUE).'</pre>');
+    drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');    
+    //$form['field_job_number'][0]['value']['#attributes']['readonly'] = 'readonly';
+    if (!empty($form['nid']['#value'])) {
+      $form['#after_build'][] = 'op_custom_readonly_after_build';
+    }    
     //$form['field_job_number'][0]['#disabled'] = TRUE;
     //$form['field_job_number']['#attributes'] = array('disabled' => 'disabled');
   } elseif ($form_id == 'job_session_node_form') {              

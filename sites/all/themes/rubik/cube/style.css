@@ -35,6 +35,10 @@ a {
     margin-bottom: 5px;
 }
 
+.profile #ub_comment {
+    vertical-align: top;
+}
+
 .periodicity, .range { 
     display: inline-block;
 }
@@ -888,7 +892,9 @@ table.ui-datepicker-calendar {margin: 0 !important;}
     clear: both;
 }
 
-.node-type-job .field-type-text, .page-node .field-type-datestamp  {float: left; width: 30%; overflow: hidden; margin-right: 30px !important; background: #f7f7f7; border: 1px solid #D5D5D5; padding: 8px 0; text-align: center; margin-bottom: 10px;}
+.node-type-job .field-type-text, 
+.node-job > .column-main > .column-wrapper > .node-content > .field-field-cancellation-status, 
+.page-node .field-type-datestamp { float: left; width: 30%; overflow: hidden; margin-right: 30px !important; background: #f7f7f7; border: 1px solid #D5D5D5; padding: 8px 0; text-align: center; margin-bottom: 10px;}
 .node-type-job .field-type-text.field-field-job-comments {}
 .node-job  {position: relative; padding-top: 0px;}
 .node-job .column-side {display: none;}
@@ -1172,4 +1178,46 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 
 .bookoff-container .bookoff-details p { 
 
+}
+
+#acecrew-tracker-log-form #edit-admins-wrapper, 
+#acecrew-tracker-log-form #edit-type-wrapper {
+    width: 252px;
+}
+
+#acecrew-tracker-log-form { 
+
+}
+
+#acecrew-tracker-log-form #edit-type-wrapper { 
+    display: inline-block;
+
+    margin-bottom: 0px;
+
+    vertical-align: top;
+}
+
+#acecrew-tracker-log-form #edit-admins-wrapper { 
+    display: inline-block;
+
+    margin-bottom: 0px;
+
+    vertical-align: top;
+}
+
+#acecrew-tracker-log-form #edit-filter-by-date-wrapper { 
+    margin-bottom: 2px;
+}
+
+#acecrew-tracker-log-form #edit-start-date-wrapper { 
+    
+}
+
+#acecrew-tracker-log-form #edit-end-date-wrapper { 
+    
+}
+
+
+#acecrew-tracker-log-form .form-submit { 
+    margin-top: 7px;
 }

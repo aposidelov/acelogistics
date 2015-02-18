@@ -1,0 +1,474 @@
+<?php
+
+$module_path = drupal_get_path('module', 'acecrew_tracker');
+require_once './'. $module_path .'/acecrew_tracker.api.inc';
+require_once './'. $module_path .'/acecrew_tracker.field_log.inc';
+require_once './'. $module_path .'/acecrew_tracker.db_log.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.job.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.call.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.client.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.venue.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.bookoff.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.crew.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.uploadcrew.inc';
+require_once './'. $module_path .'/rules/acecrew_tracker.supplement.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function acecrew_tracker_menu() {  
+  $items['admin/acecrew_tracker/logs'] = array(
+    'title' => 'Tracker: Logs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_tracker_log_form'),
+    'access arguments' => array('admin log tracking'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'acecrew_tracker.admin.inc',
+  );
+
+  return $items;
+}
+/**
+ * Implements hook_crew_supplement_skills().
+ */
+function acecrew_tracker_crew_supplement_skills($skills_before, $skills_after, $uid, $field_name = 'profile_crew_skills') {
+  acecrew_tracker_profile_supplement_skills_log($skills_before, $skills_after, $uid, $field_name);
+}
+
+/**
+ * Implements hook_crew_supplement_payrate().
+ */
+function acecrew_tracker_crew_supplement_payrate($payrate_before, $payrate_after, $uid, $field_name = 'profile_payrateid') {  
+  acecrew_tracker_profile_supplement_payrate_log($payrate_before, $payrate_after, $uid, $field_name);
+}
+
+/**
+ * Implements hook_send_review().
+ */
+function acecrew_tracker_send_review($job, $contact_email, $contact_name) {
+  $type = 'review';
+  $job_title = acecrew_get_title_field_by_type('job', $job);
+  $job_nid = $job->nid;
+
+  acecrew_tracker_review_log($type, $contact_email, $contact_name, $job_nid, $job_title);
+}
+
+/**
+ * Implements hook_invoice_generate().
+ */
+function acecrew_tracker_invoice_generate($job_number) {  
+  $type = 'invoice';
+  $job_title = $job_number;
+  $invoice_number = _get_invoice_number($job_number);
+  $job_nid = _acecrew_get_job_id_by_number($job_number);
+  
+  acecrew_tracker_iq_log($type, $invoice_number, $job_nid, $job_number);  
+}
+
+/**
+ * Implements hook_quote_generate().
+ */
+function acecrew_tracker_quote_generate($job_number) {  
+  $type = 'quote';
+  $job_title = $job_number;  
+  $quote_number = acecrew_get_quote_by_job_number($job_number);
+  $job_nid = _acecrew_get_job_id_by_number($job_number);
+  
+  acecrew_tracker_iq_log($type, $quote_number, $job_nid, $job_number);  
+}
+
+/**
+ * Implements hook_rules_action_info().
+ */
+function acecrew_tracker_rules_action_info() {
+  $actions = array();
+  // *******************
+  // UPLOAD-CREW ACTIONS
+  // *******************
+  $actions['at_uploadcrew_create_action'] = array(
+    'label' => t('Upload Crew Create log'),
+    'arguments' => array(
+      'uploadcrew' => array(
+        'type' => 'node',
+        'label' => 'Upload Crew',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_uploadcrew_edit_action'] = array(
+    'label' => t('Upload Crew Edit log'),
+    'arguments' => array(
+      'uploadcrew_before' => array(
+        'type' => 'node',
+        'label' => 'Upload Crew Before',
+      ),
+      'uploadcrew_after' => array(
+        'type' => 'node',
+        'label' => 'Upload Crew After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // CREW ACTIONS
+  // **************
+  $actions['at_crew_create_action'] = array(
+    'label' => t('Crew Create log'),
+    'arguments' => array(
+      'crew' => array(
+        'type' => 'user',
+        'label' => 'Crew',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_crew_edit_action'] = array(
+    'label' => t('Crew Edit log'),
+    'arguments' => array(
+      'crew_before' => array(
+        'type' => 'user',
+        'label' => 'Crew Before',
+      ),
+      'crew_after' => array(
+        'type' => 'user',
+        'label' => 'Crew After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_crew_delete_action'] = array(
+    'label' => t('Crew Delete log'),
+    'arguments' => array(
+      'crew' => array(
+        'type' => 'user',
+        'label' => 'Crew',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // BOOKOFF ACTIONS
+  // **************
+  $actions['at_bookoff_create_action'] = array(
+    'label' => t('Bookoff Create log'),
+    'arguments' => array(
+      'bookoff' => array(
+        'type' => 'node',
+        'label' => 'Bookoff',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_bookoff_edit_action'] = array(
+    'label' => t('Bookoff Edit log'),
+    'arguments' => array(
+      'bookoff_before' => array(
+        'type' => 'node',
+        'label' => 'Bookoff Before',
+      ),
+      'bookoff_after' => array(
+        'type' => 'node',
+        'label' => 'Bookoff After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_bookoff_delete_action'] = array(
+    'label' => t('Bookoff Delete log'),
+    'arguments' => array(
+      'bookoff' => array(
+        'type' => 'node',
+        'label' => 'Bookoff',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // ******************
+  // SUPPLEMENT ACTIONS
+  // ******************
+  $actions['at_supplement_create_action'] = array(
+    'label' => t('Supplement Create log'),
+    'arguments' => array(
+      'supplement' => array(
+        'type' => 'node',
+        'label' => 'Supplement',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_supplement_edit_action'] = array(
+    'label' => t('Supplement Edit log'),
+    'arguments' => array(
+      'supplement_before' => array(
+        'type' => 'node',
+        'label' => 'Supplement Before',
+      ),
+      'supplement_after' => array(
+        'type' => 'node',
+        'label' => 'Supplement After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_supplement_delete_action'] = array(
+    'label' => t('Supplement Delete log'),
+    'arguments' => array(
+      'supplement' => array(
+        'type' => 'node',
+        'label' => 'Supplement',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // CLIENT ACTIONS
+  // **************
+  $actions['at_client_create_action'] = array(
+    'label' => t('Client Create log'),
+    'arguments' => array(
+      'client' => array(
+        'type' => 'node',
+        'label' => 'Client',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_client_edit_action'] = array(
+    'label' => t('Client Edit log'),
+    'arguments' => array(
+      'client_before' => array(
+        'type' => 'node',
+        'label' => 'Client Before',
+      ),
+      'client_after' => array(
+        'type' => 'node',
+        'label' => 'Client After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_client_delete_action'] = array(
+    'label' => t('Client Delete log'),
+    'arguments' => array(
+      'client' => array(
+        'type' => 'node',
+        'label' => 'Client',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // VENUE ACTIONS
+  // **************
+  $actions['at_venue_create_action'] = array(
+    'label' => t('Venue Create log'),
+    'arguments' => array(
+      'venue' => array(
+        'type' => 'node',
+        'label' => 'Venue',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_venue_edit_action'] = array(
+    'label' => t('Venue Edit log'),
+    'arguments' => array(
+      'venue_before' => array(
+        'type' => 'node',
+        'label' => 'Venue Before',
+      ),
+      'venue_after' => array(
+        'type' => 'node',
+        'label' => 'Venue After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_venue_delete_action'] = array(
+    'label' => t('Venue Delete log'),
+    'arguments' => array(
+      'venue' => array(
+        'type' => 'node',
+        'label' => 'Venue',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // JOB ACTIONS
+  // **************
+  $actions['at_job_create_action'] = array(
+    'label' => t('Job Create log'),
+    'arguments' => array(
+      'job' => array(
+        'type' => 'node',
+        'label' => 'Job',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_job_edit_action'] = array(
+    'label' => t('Job Edit log'),
+    'arguments' => array(
+      'job_before' => array(
+        'type' => 'node',
+        'label' => 'Job Before',
+      ),
+      'job_after' => array(
+        'type' => 'node',
+        'label' => 'Job After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_job_delete_action'] = array(
+    'label' => t('Job Delete log'),
+    'arguments' => array(
+      'job' => array(
+        'type' => 'node',
+        'label' => 'Job',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  // **************
+  // CALL ACTIONS
+  // **************
+  $actions['at_call_create_action'] = array(
+    'label' => t('Call Create log'),
+    'arguments' => array(
+      'call' => array(
+        'type' => 'node',
+        'label' => 'Call',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );
+  $actions['at_call_edit_action'] = array(
+    'label' => t('Call Edit log'),
+    'arguments' => array(
+      'call_before' => array(
+        'type' => 'node',
+        'label' => 'Call Before',
+      ),
+      'call_after' => array(
+        'type' => 'node',
+        'label' => 'Call After',
+      ),
+    ),
+    'module' => 'Acecrew Tracker'
+  );  
+  $actions['at_call_delete_action'] = array(
+    'label' => t('Call Delete log'),
+    'arguments' => array(
+      'call' => array(
+        'type' => 'node',
+        'label' => 'Call',
+      ),      
+    ),
+    'module' => 'Acecrew Tracker'
+  );  
+
+  return $actions;
+}
+
+/**
+ * Implements hook_user().
+ */
+function acecrew_tracker_user($op, &$edit, &$account, $category = NULL) {
+  if ($op == 'submit') {    
+    $edit['uid']  = $account->uid;
+    $edit['name'] = $account->name;
+    $crew_before  = $account;    
+    $crew_after   = (object)$edit;
+    
+    switch ($category) {
+      case 'account':    
+        // username (CANNOT BE CHANGED BY SOME REASONS)
+        //acecrew_tracker_profile_text_log($type, 'name', $crew_before, $crew_after);
+        
+        // picture
+        acecrew_tracker_profile_picture_log($type, 'picture', $crew_before, $crew_after);
+        // password
+        acecrew_tracker_profile_pass_log($type, 'pass', $crew_before, $crew_after);
+        // mail
+        acecrew_tracker_profile_text_log($type, 'mail', $crew_before, $crew_after);
+        // roles
+        acecrew_tracker_profile_roles_log($type, 'roles', $crew_before, $crew_after);
+        // status
+        acecrew_tracker_profile_select_log($type, 'status', $crew_before, $crew_after, array(0 => 'Blocked', 1 => 'Active'));
+        break;
+      case 'Personal Information':
+        // nationality
+        acecrew_tracker_profile_text_log($type, 'profile_nationality', $crew_before, $crew_after);
+        // mothers name
+        acecrew_tracker_profile_text_log($type, 'profile_crew_mothers_name', $crew_before, $crew_after);
+        // ni number
+        acecrew_tracker_profile_text_log($type, 'profile_crew_ni_number', $crew_before, $crew_after);
+        // postcode
+        acecrew_tracker_profile_text_log($type, 'profile_crew_postcode', $crew_before, $crew_after);
+        // address
+        acecrew_tracker_profile_text_log($type, 'profile_crew_address', $crew_before, $crew_after);
+        // nok
+        acecrew_tracker_profile_text_log($type, 'profile_crew_nok', $crew_before, $crew_after);
+        // nok telephone
+        acecrew_tracker_profile_text_log($type, 'profile_crew_nok_telephone', $crew_before, $crew_after);
+        // fullname
+        acecrew_tracker_profile_text_log($type, 'profile_crew_fullname', $crew_before, $crew_after);
+        // dob DATE
+        acecrew_tracker_profile_date_log($type, 'profile_crew_dob', $crew_before, $crew_after);
+        // title
+        acecrew_tracker_profile_select_log($type, 'profile_title', $crew_before, $crew_after);
+        break;      
+      case 'Contact Information':
+        // telephone
+        acecrew_tracker_profile_text_log($type, 'profile_crew_telephone', $crew_before, $crew_after);
+        // mobile
+        acecrew_tracker_profile_text_log($type, 'profile_crew_mobile', $crew_before, $crew_after);
+        // nearest station
+        acecrew_tracker_profile_text_log($type, 'profile_crew_nearest_station', $crew_before, $crew_after);        
+        break;
+      case 'Default Payments':
+        // 2 hour default
+        acecrew_tracker_profile_text_log($type, 'profile_2_hour_default', $crew_before, $crew_after);
+        // 3 hour default
+        acecrew_tracker_profile_text_log($type, 'profile_3_hour_default', $crew_before, $crew_after);
+        break;
+      case 'Employment Type':
+        // employment type
+        acecrew_tracker_profile_select_log($type, 'profile_employment_type', $crew_before, $crew_after);
+        break;
+      case 'Miscellaneous':
+        // notes
+        acecrew_tracker_profile_text_log($type, 'profile_notes', $crew_before, $crew_after);
+        // profile strength
+        acecrew_tracker_profile_select_log($type, 'profile_strength', $crew_before, $crew_after);
+        break;
+      case 'Passport & Licence':
+        // profile passport number
+        acecrew_tracker_profile_text_log($type, 'profile_passport_number', $crew_before, $crew_after);
+        // profile licence
+        acecrew_tracker_profile_text_log($type, 'profile_licence', $crew_before, $crew_after);
+        break;
+      case 'Visa Details':
+        // Visa Type          
+        acecrew_tracker_profile_select_log($type, 'profile_visa_type', $crew_before, $crew_after);
+        // Visa Date Start        
+        acecrew_tracker_profile_date_log($type, 'profile_visa_start', $crew_before, $crew_after);
+        // Visa Date End            
+        acecrew_tracker_profile_date_log($type, 'profile_visa_end_date', $crew_before, $crew_after);
+        break;
+      case 'Crew Sizes':
+        // SHIRT SIZE
+        acecrew_tracker_profile_select_log($type, 'profile_crew_shirt', $crew_before, $crew_after);
+        // TROUSER SIZE
+        acecrew_tracker_profile_select_log($type, 'profile_crew_trouser', $crew_before, $crew_after);
+        // LENGTH OF LEG
+        acecrew_tracker_profile_select_log($type, 'profile_length_leg', $crew_before, $crew_after);
+        // HEIGHT
+        acecrew_tracker_profile_text_log($type, 'profile_crew_height', $crew_before, $crew_after);
+        break;      
+    }    
+  }
+}
+

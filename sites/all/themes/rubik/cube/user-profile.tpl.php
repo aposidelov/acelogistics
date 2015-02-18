@@ -366,7 +366,8 @@ $(document).ready(function(){
       uid : '<?php echo $account->uid?>',
       ub_label : $('#ub_label').val(),
       ub_date_start : $('#ub_date_start').val(),
-      ub_date_end : $('#ub_date_end').val()
+      ub_date_end : $('#ub_date_end').val(),
+      ub_comment : $('#ub_comment').val()
     }
       
     $.post(Drupal.settings.basePath + "acecrew/ajax/usr/addbookedoff/uid:<?php echo $account->uid?>",
@@ -507,6 +508,9 @@ $(document).ready(function(){
     <span><input type="text" id="ub_date_start" name="ub_date_start" class="ub-calendar"></span>
     <label>End Date+Time</label>
     <span><input type="text" id="ub_date_end" name="ub_date_end" class="ub-calendar"></span>
+    <br>
+    <label>Comment</label>
+    <span><textarea type="text" id="ub_comment" name="ub_comment" class="ub-text"></textarea></span>
     <div class="periodicity">
       <label>Periodicity</label>      
       <select name="ub_periodicity_number" class="form-select" id="ub_periodicity_number"><option value="0" selected="selected">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
@@ -517,6 +521,8 @@ $(document).ready(function(){
       <select name="ub_range_number" class="form-select" id="ub_range_number"><option value="0" selected="selected">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
       <select name="ub_range_type" class="form-select" id="ub_range_type"><option value="days">Days</option><option value="weeks" selected="selected">Weeks</option><option value="months">Months</option></select>
     </div>
+    <br>
+    <br>
     <span><input type="button" value="Add new line" class="form-submit" onclick="addBookedOff()"/></span>
     <span><input type="button" value="Add repeat lines" class="form-submit" onclick="addRepeatBookedOff()"/></span>
     </fieldset>

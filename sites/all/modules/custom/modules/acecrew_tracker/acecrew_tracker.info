@@ -1,0 +1,5 @@
+; $Id$
+name = Ace Crew Tracker
+description = A module that handles different actions of site administrator so for Acecrew system
+core = 6.x
+package = "Ace Crew"

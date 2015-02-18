@@ -2,71 +2,78 @@
 $params = explode('/', $_GET['q']);
 $uid = $params[1];
 
-watchdog('supp', '<pre>'.print_r('yes', TRUE).'</pre>'); 
-
 $skills = '';
 $payrate = 1;
 if (isset($_POST['edit_submit_save'])) {
-    foreach ($_POST as $key=>$value) {
-        $element = preg_replace('/profile_crew_skill_/', '', $key);
-        if (is_numeric($element))   $skills .= $element . ',';
-        else if ($element == 'acecrew_payrate_id')  $payrate = $value;
+  //watchdog('post', '<pre>'.print_r($_POST, TRUE).'</pre>');
+  foreach ($_POST as $key=>$value) {
+    $element = preg_replace('/profile_crew_skill_/', '', $key);
+    if (is_numeric($element)) {
+      $skills .= $element . ',';
+    } else if ($element == 'acecrew_payrate_id') {
+      $payrate = $value;
     }
-    if (strlen($skills) != 0)   $skills = substr($skills, 0, strlen($skills)-1);
-    // set supplement
-    $query = "SELECT * FROM {profile_values} WHERE fid=41 AND uid=$uid";
-    $results = db_query($query);
-    $isnew = TRUE;
-    while ($row = db_fetch_object($results)) {
-        $isnew = FALSE;
-    }
-    if ($isnew) {
-        $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('41', '$uid', '$skills');";
-        db_query($query);
-    } else {
-        $query = "UPDATE  {profile_values} SET `value` = '$skills'  WHERE fid=41 AND uid=$uid;";
-        db_query($query);
-    }
-    // set payrate
-    $query = "SELECT * FROM {profile_values} WHERE fid=28 AND uid=$uid";
-    $results = db_query($query);
-    $isnew = TRUE;
-    while ($row = db_fetch_object($results)) {
-        $isnew = FALSE;
-    }
-    if ($isnew) {
-        $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('28', '$uid', '$payrate');";
-        db_query($query);
-    } else {
-        $query = "UPDATE  {profile_values} SET `value` = '$payrate'  WHERE fid=28 AND uid=$uid;";
-        db_query($query);
-    }
+  }
+  if (strlen($skills) != 0) {
+    $skills = substr($skills, 0, strlen($skills)-1);
+  }
+  $skills_after = explode(',', $skills);  
+  $payrate_after = $payrate;
+  // get skills
+  $skills_before = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 41 AND uid = %d", $uid));
+  $skills_before = explode(',', $skills_before);
+  // set supplement
+  $query = "SELECT * FROM {profile_values} WHERE fid=41 AND uid=$uid";
+  $results = db_query($query);
+  $isnew = TRUE;
+  while ($row = db_fetch_object($results)) {
+    $isnew = FALSE;
+  }
+  if ($isnew) {
+    $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('41', '$uid', '$skills');";
+    db_query($query);
+  } else {
+    $query = "UPDATE  {profile_values} SET `value` = '$skills'  WHERE fid=41 AND uid=$uid;";
+    db_query($query);
+  }
+  // get payrate
+  $payrate_before = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $uid));
+  // set payrate
+  $query = "SELECT * FROM {profile_values} WHERE fid=28 AND uid=$uid";
+  $results = db_query($query);
+  $isnew = TRUE;
+  while ($row = db_fetch_object($results)) {
+    $isnew = FALSE;
+  }
+  if ($isnew) {
+    $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('28', '$uid', '$payrate');";
+    db_query($query);
+  } else {
+    $query = "UPDATE  {profile_values} SET `value` = '$payrate'  WHERE fid = 28 AND uid=$uid;";
+    db_query($query);
+  }  
+  module_invoke_all('crew_supplement_skills', $skills_before, $skills, $uid);
+  module_invoke_all('crew_supplement_payrate', $payrate_before, $payrate, $uid);
 }
-$query = "SELECT * FROM {profile_values} WHERE fid=41 AND uid=$uid";
-$results = db_query($query);
-$skills = array();
-while ($row=db_fetch_object($results)) {
-    $skl = $row->value;
-    $skills = explode(',', $skl);
-}
-$query = "SELECT * FROM {profile_values} WHERE fid=28 AND uid=$uid";
-$results = db_query($query);
-while ($row=db_fetch_object($results)) {
-    $payrate = $row->value;
-}
+
+$skills = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 41 AND uid = %d", $uid));
+$skills = explode(',', $skills);
+
+$payrate = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $uid));
+
 $query = "SELECT node.nid AS nid, node.title AS node_title FROM {node} node  WHERE node.type in ('supplements')";
 $results = db_query($query);
 $supplements = array();
 while ($row = db_fetch_object($results)) {
-    $supplements[] = $row;
+  $supplements[] = $row;
 }
 $options = acecrew_get_ads('field_admins_crewrates');
 
 function is_skill_checked($nid, $skills) {
-    foreach ($skills as $skill) {
-        if ($nid == $skill) return "checked='checked'";
-    }
-    return 0;
+  foreach ($skills as $skill) {
+      if ($nid == $skill) return "checked='checked'";
+  }
+  return 0;
 }
 ?>
 <div id="tabs">

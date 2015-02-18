@@ -200,7 +200,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $total_adjusted = false;
       $total_adjust_add = 0;
       $total_adjust_reduce = 0;
-
+      
       foreach ($call_data as $dat) {
         $additional_hours += $dat->additional_hours;
         $additional_charge += $dat->additional_charge;
@@ -219,7 +219,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         while ($row = db_fetch_object($result)) {
           $supp = node_load($row->supplement_id);
           $supplements[$row->supplement_id]['title'] = $supp->title;
-          $supplements[$row->supplement_id]['quantity']++;
+          $supplements[$row->supplement_id]['quantity']++;          
           if ($row->client_ph != NULL) {
             $supplements[$row->supplement_id]['amount'] += $row->client_ph * ($call->field_job_session_hours_value + $dat->additional_hours);
             $call_amount += $row->client_ph * ($call->field_job_session_hours_value + $dat->additional_hours);
@@ -348,9 +348,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                 <td width=7% valign=top>&nbsp;</td>
                 <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_client_charge, $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
-        }
-
-        foreach($supplements as $supplement) {
+        }        
+        foreach ($supplements as $supplement) {
 //            $sum += $supplement['amount'];
             if($supplement['amount']) {
                 echo '

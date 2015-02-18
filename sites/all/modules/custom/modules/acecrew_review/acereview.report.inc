@@ -449,46 +449,4 @@ function acecrew_review_report_generate($crews, $date_from, $date_to) {
   exit();
 }
 
-function getCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
 
-    return $users;
-}
-
-function getActiveCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users.status = 1
-            AND users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
-
-    return $users;
-}
-
-function getInactiveActiveCrewMembers() {
-    $users = array();
-    $query = "SELECT users.uid AS uid, users.name AS users_name
-            FROM drupal_users users
-            INNER JOIN drupal_users_roles users_roles ON users.uid = users_roles.uid
-            WHERE users.status = 0
-            AND users_roles.rid = 5 ORDER BY users_name ASC";
-    $results = db_query($query);
-    while($row = db_fetch_object($results)) {
-        $users[(int) $row->uid] = $row->users_name;
-    }
-
-    return $users;
-}
