@@ -783,9 +783,8 @@ function call_content_default_fields() {
     'suffix' => '',
     'min' => '',
     'max' => '',
-    'allowed_values' => '1|Cancellation <12hrs Notice
-2|Cancellation <24hrs Notice',
-    'allowed_values_php' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => 'return acecrew_get_cancellations();',
     'widget' => array(
       'mccr_width' => '1',
       'mccr_minimum-height' => '0',
@@ -1464,11 +1463,7 @@ return array( 0 => array(\'value\' => $vatRate));',
     'text_processing' => 0,
     'max_length' => '',
     'allowed_values' => '',
-    'allowed_values_php' => '$result = db_query(db_rewrite_sql("SELECT `nid`, `field_venue_name_value`,  `field_venue_id_value` FROM `drupal_content_type_venue` WHERE 1 ORDER BY `field_venue_name_value` ASC"));
-while ($item = db_fetch_object($result)) {
-$items[$item->field_venue_id_value] = $item->field_venue_name_value;
-}
-return $items;',
+    'allowed_values_php' => 'return acecrew_get_job_venue();',
     'widget' => array(
       'size' => '60',
       'autocomplete_match' => 'contains',

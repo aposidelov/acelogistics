@@ -70,9 +70,8 @@ function job_content_default_fields() {
     'suffix' => '',
     'min' => '',
     'max' => '',
-    'allowed_values' => '1|Cancellation <12hrs Notice
-2|Cancellation <24hrs Notice',
-    'allowed_values_php' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => 'return acecrew_get_cancellations();',
     'widget' => array(
       'mccr_width' => '1',
       'mccr_minimum-height' => '0',
@@ -386,12 +385,7 @@ function job_content_default_fields() {
     'text_processing' => '0',
     'max_length' => '',
     'allowed_values' => '',
-    'allowed_values_php' => '$result = db_query(db_rewrite_sql("SELECT `vid`, `field_client_contact_name_value` FROM {content_type_client_contact}"));
-$items[0] = \'D\';
-while ($item = db_fetch_object($result)) {
-$items[$item->vid] = $item->field_client_contact_name_value;
-}
-return $items;',
+    'allowed_values_php' => 'return acecrew_get_job_client_contacts();',
     'widget' => array(
       'default_value' => array(
         '0' => array(
@@ -467,11 +461,7 @@ return $items;',
     'text_processing' => 0,
     'max_length' => '',
     'allowed_values' => '',
-    'allowed_values_php' => '$result = db_query(db_rewrite_sql("SELECT `nid`, `field_client_name_value`,  `field_client_id_value` FROM `drupal_content_type_client` WHERE 1 ORDER BY `field_client_name_value` ASC"));
-while ($item = db_fetch_object($result)) {
-$items[$item->field_client_id_value] = $item->field_client_name_value;
-}
-return $items;',
+    'allowed_values_php' => 'return acecrew_get_job_clients();',
     'widget' => array(
       'default_value' => array(
         '0' => array(
