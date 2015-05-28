@@ -11,7 +11,7 @@ jQuery(document).ready(function() {
             
             $.getJSON('/admin/ajax/client-call-crew-is-blocked/' + call_vid + '/' + crew_id, function(data) {
                 if (!data.is_blocked) {
-                    var client_name = Drupal.settings.client_name;
+                    var client_name = Drupal.settings.client_name;                    
 
                     alert('"{0}" crew has been blocked for "{1}" client!'.format(crew_name, client_name));                    
                 }
@@ -19,7 +19,7 @@ jQuery(document).ready(function() {
 
             $.getJSON('/admin/ajax/venue-call-crew-is-blocked/' + call_vid + '/' + crew_id, function(data) {
                 if (!data.is_blocked) {
-                    var venue_name = Drupal.settings.venue_name;
+                    var venue_name = Drupal.settings.venue_name;                    
 
                     alert('"{0}" crew has been blocked for "{1}" venue!'.format(crew_name, venue_name));                    
                 }

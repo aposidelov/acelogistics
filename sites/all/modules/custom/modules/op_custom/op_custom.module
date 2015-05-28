@@ -1274,10 +1274,10 @@ function acecrew_get_hours_by_crew($crew_uid, $str_result = TRUE) {
   //drupal_set_message('<pre>'.print_r($last_hours, TRUE).'</pre>');
 
   if ($str_result) {
-    return t('(%last_week_hours, %current_week_hours)', 
+    return t('(!last_week_hours, !current_week_hours)', 
       array(
-        '%last_week_hours' => $last_hours, 
-        '%current_week_hours' => $current_hours
+        '!last_week_hours' => $last_hours, 
+        '!current_week_hours' => $current_hours
       )
     );
   } else {

@@ -1221,3 +1221,15 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 #acecrew-tracker-log-form .form-submit { 
     margin-top: 7px;
 }
+
+#field-document-items {
+    margin-bottom: 20px;
+}
+
+.node-type-job .field-field-document {
+    display: block;
+}
+
+.node-type-job .field-field-document .field-item {
+    margin-bottom: 10px;
+}

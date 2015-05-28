@@ -2770,8 +2770,9 @@ function acecrew_is_plus_call($nid) {
 function acecrew_get_cancellations() {
   return array(
     '' => 'N/A',
-    1 => 'Cancellation <12hrs Notice',
-    2 => 'Cancellation <24hrs Notice',
+    0 => 'Cancellation >24hrs Notice',
+    2 => 'Cancellation <24hrs & >12hrs Notice',
+    1 => 'Cancellation <12hrs Notice',    
   );
 }
 
