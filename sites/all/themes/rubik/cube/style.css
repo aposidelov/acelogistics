@@ -1228,8 +1228,9 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 
 .node-type-job .field-field-document {
     display: block;
+    clear: both;
 }
 
 .node-type-job .field-field-document .field-item {
-    margin-bottom: 10px;
+    margin-top: 10px;
 }
