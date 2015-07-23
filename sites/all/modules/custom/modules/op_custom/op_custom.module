@@ -5,6 +5,31 @@ define('CANCELLATION_12HOURS_NOTICE', 1);
 define('CANCELLATION_24HOURS_NOTICE', 2);
 define('BOOKOFF_DAILY_CREWS_COUNT', 5);
 
+
+/**
+ * Implements hook_update_N().
+ */
+function op_custom_update_6001() {
+  $fields = array(
+    'field_supp_0to4_client_single', 
+    'field_supp_0to4_crew_single', 
+    'field_supp_5to8_client_single', 
+    'field_supp_5to8_crew_single', 
+    'field_supp_9to12_client_single', 
+    'field_supp_9to12_crew_single', 
+    'field_supp_12plus_client_single', 
+    'field_supp_12plus_crew_single', 
+    'field_supp_single_payment'
+  );
+  $table_name = 'content_type_supplements';
+
+  foreach ($fields as $int_field_name) {
+    acecrew_update_cck_field_type($int_field_name, $table_name);
+  }
+
+  drupal_set_message(t('Supplements fields have been updated to decimal'));
+}
+
 /**
  * Implements hook_init().
  */
@@ -56,6 +81,15 @@ function op_custom_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'op_custom.admin_settings.inc',
     'title' => 'Add crew rate',
+  );
+
+  $items['admin/cck-field-type/update'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_field_type_update_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'op_custom.field_type_update.inc',
+    'title' => 'CCK Field Type Update',
   );
 
   $items['admin/invoice-update'] = array(
@@ -1300,4 +1334,58 @@ function acecrew_get_crew_hours_by_date($crew_uid, $date_from, $date_to) {
   $result = !empty($result) ? $result : 0;
 
   return $result;
+}
+
+/**
+ * Updates cck field from Integer to Decimal. Takes data
+ * of another existing decimal field ([field_fine_rate_amount] by default)
+ * @param  [type] $field_name     [description]
+ * @param  [type] $table_name     [description]
+ * @param  string $decimal_field_name Name of decimal field from which 
+ * the decimal settings will be taken for our field
+ * @return [type]                 [description]
+ */
+function acecrew_update_cck_field_type($int_field_name, $table_name, $decimal_field_name = 'field_fine_rate_amount') {
+  // we will copy decimal settings from another decimal field
+  $decimal_field_data = db_fetch_array(db_query('SELECT * 
+                                  FROM {content_node_field} 
+                                  WHERE field_name = "%s"', 
+                                  $decimal_field_name));
+
+  // we will copy decimal settings from another decimal field instance
+  $decimal_field_instance_data = db_fetch_array(db_query('SELECT * 
+                                  FROM {content_node_field_instance} 
+                                  WHERE field_name = "%s"', 
+                                  $decimal_field_name));
+  
+  // update field in content_node_field table with existing 
+  // data of another decimal field
+  db_query('UPDATE {content_node_field} 
+    SET type = "%s", 
+    global_settings = "%s", 
+    db_columns = "%s"
+    WHERE field_name = "%s"', 
+    $decimal_field_data['type'],
+    $decimal_field_data['global_settings'],
+    $decimal_field_data['db_columns'],
+    $int_field_name
+  );
+  
+  // update field in content_node_field_istance table with
+  // existing data of another decimal field
+  db_query('UPDATE {content_node_field_instance} 
+    SET display_settings = "%s"
+    WHERE field_name = "%s"', 
+    $decimal_field_instance_data['display_settings'],
+    $int_field_name
+  );
+  
+  $ret = array();
+  $field_name = $int_field_name . '_value';
+  
+  db_change_field($ret, $table_name, 
+    $field_name, $field_name, 
+    array('type' => 'numeric', 'precision' => 10, 
+      'scale' => 2, 'not null' => FALSE)
+  );      
 }
