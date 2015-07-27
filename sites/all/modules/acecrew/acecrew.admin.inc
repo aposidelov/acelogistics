@@ -79,6 +79,7 @@ function acecrew_reports_timesheets_from(){
   return $form;
 }
 
+/*
 function getCrewMembers() {
   $users = array();
   $query = "SELECT users.uid AS uid, users.name AS users_name
@@ -122,6 +123,7 @@ function getInactiveActiveCrewMembers() {
 
   return $users;
 }
+*/
 
 function timesheets_reports_generate() {
   define (REPORT_DIR, 'sites/default/files/');
