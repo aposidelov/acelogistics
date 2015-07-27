@@ -1,4 +1,4 @@
-jQuery(document).ready(function(){
+jQuery(document).ready(function() {
     /* $('#accordion .head').click(function() {
      $(this).next().toggle('slow');
      return false;
@@ -19,11 +19,11 @@ jQuery(document).ready(function(){
             $('#' + currId.replace('_use_', '_client_of_')).removeAttr("disabled");
             $('#' + currId.replace('_use_', '_comment_')).removeAttr("disabled");
 
-            $('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "white");
+            /*$('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_crew_of_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_client_ph_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_client_of_')).css("background-color", "white");
-            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "white");
+            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "white");*/
         }
         else{
             $('#' + currId.replace('_use_', '_crew_ph_')).attr("disabled","disabled");
@@ -32,11 +32,11 @@ jQuery(document).ready(function(){
             $('#' + currId.replace('_use_', '_client_of_')).attr("disabled","disabled");
             $('#' + currId.replace('_use_', '_comment_')).attr("disabled","disabled");
 
-            $('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "#cccccc");
+            /*$('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_crew_of_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_client_ph_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_client_of_')).css("background-color", "#cccccc");
-            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "#cccccc");
+            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "#cccccc");*/
         }
     });
     // $('.tr_crew_of').keyup(function() {
@@ -249,7 +249,7 @@ jQuery(document).ready(function(){
 
         }
     });
-    $('.tr_client_ph').bind("propertychange input paste", function()  {
+    $('.tr_client_ph').bind("propertychange input paste", function() {
         var currId = $(this).attr('id');
         var rivalId = currId.replace('_ph_', '_of_');
         if($('#'+ rivalId).val().length != 0 && $(this).val().length != 0)
@@ -259,45 +259,52 @@ jQuery(document).ready(function(){
 
         }
     });
-    $(".tr_check").click(function(){
-        var currId = $(this).attr('id');
-        if($(this).is(":checked")){
+    $(".tr_check").click(function() {    
+        var checkboxInput   = $(this);
+        var currId          = checkboxInput.attr('id');
+        var crewPH          = $('#' + currId.replace('_use_', '_crew_ph_'));
+        var crewOF          = $('#' + currId.replace('_use_', '_crew_of_'));
+        var clientPH        = $('#' + currId.replace('_use_', '_client_ph_'));
+        var clientOF        = $('#' + currId.replace('_use_', '_client_of_'));
+        var comment         = $('#' + currId.replace('_use_', '_comment_'));
 
-            $('#' + currId.replace('_use_', '_crew_ph_')).removeAttr("disabled");
-            $('#' + currId.replace('_use_', '_crew_of_')).removeAttr("disabled");
-            $('#' + currId.replace('_use_', '_client_ph_')).removeAttr("disabled");
-            $('#' + currId.replace('_use_', '_client_of_')).removeAttr("disabled");
-            $('#' + currId.replace('_use_', '_comment_')).removeAttr("disabled");
+        if ($(this).is(":checked")) {
+            
+            supplementRowRefresh(checkboxInput);
+            
 
-            $('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "white");
+            crewPH.removeAttr("disabled");
+            crewOF.removeAttr("disabled");
+            clientPH.removeAttr("disabled");
+            clientOF.removeAttr("disabled");
+            comment.removeAttr("disabled");
+
+            /*$('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_crew_of_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_client_ph_')).css("background-color", "white");
             $('#' + currId.replace('_use_', '_client_of_')).css("background-color", "white");
-            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "white");
-        }
-        else{
-            $('#' + currId.replace('_use_', '_crew_ph_')).attr("disabled","disabled");
+            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "white");*/
+        } else {
+
+            crewPH.attr("disabled","disabled");
+            crewOF.attr("disabled","disabled");
+            clientPH.attr("disabled","disabled");
+            clientOF.attr("disabled","disabled");
+            comment.attr("disabled","disabled");
+
+            /*$('#' + currId.replace('_use_', '_crew_ph_')).attr("disabled","disabled"); // .val('')
             $('#' + currId.replace('_use_', '_crew_of_')).attr("disabled","disabled");
             $('#' + currId.replace('_use_', '_client_ph_')).attr("disabled","disabled");
             $('#' + currId.replace('_use_', '_client_of_')).attr("disabled","disabled");
-            $('#' + currId.replace('_use_', '_comment_')).attr("disabled","disabled");
+            $('#' + currId.replace('_use_', '_comment_')).attr("disabled","disabled");*/
 
+            /*
             $('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_crew_of_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_client_ph_')).css("background-color", "#cccccc");
             $('#' + currId.replace('_use_', '_client_of_')).css("background-color", "#cccccc");
-            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "#cccccc");
-            /*
-             $('#' + currId.replace('_use_', '_crew_ph_'))attr("disabled","disabled");
-             $('#' + currId.replace('_use_', '_crew_of_'))attr("disabled","disabled");
-             $('#' + currId.replace('_use_', '_client_ph_'))attr("disabled","disabled");
-             $('#' + currId.replace('_use_', '_client_of_'))attr("disabled","disabled");
-
-             $('#' + currId.replace('_use_', '_crew_ph_')).css("background-color", "#ffff00");
-             $('#' + currId.replace('_use_', '_crew_of_')).css("background-color", "#ffff00");
-             $('#' + currId.replace('_use_', '_client_ph_')).css("background-color", "#ffff00");
-             $('#' + currId.replace('_use_', '_client_of_')).css("background-color", "#ffff00");
-             */
+            $('#' + currId.replace('_use_', '_comment_')).css("background-color", "#cccccc");            
+            */
         }
     });
 
@@ -305,116 +312,79 @@ jQuery(document).ready(function(){
         e.stopPropagation();
     });
 
-    //If standard crew is unticked, than untick/disable any supplements allocated for
-    //that crew member
-    /*
-    $(".crew_check").each(function(index){
-        var currId = $(this).attr('id');
-        if(!$(this).is(":checked")){
+    $('.additional_hours > input').keyup(function() {
+        var hrs = parseInt($(this).val());
 
-            var inputs = $(this).closest('h3').next().find('.tr_contents').eq(0).find('input');
-
-            //Disable all inputs
-            inputs.attr("disabled","disabled");
-            inputs.css("background-color", "#cccccc");
-            //Untick all ticket supplements
-            $(inputs).each(function(index,elem) {
-                if($(elem).is(':checkbox')) {
-                    $(elem).removeAttr("checked");
-                }
-            });
+        if (confirm("Would you like to refresh supplement values?")) {
+            delay(function() {
+                if (isInt(hrs)) {                
+                    $(".tr_check").each(function() {
+                        var checkboxInput = $(this);
+                        if (checkboxInput.is(":checked")) {            
+                            supplementRowRefresh(checkboxInput, true);
+                        }
+                    }); 
+                }            
+            }, 1000 );        
         }
     });
 
+    function supplementRowRefresh(checkboxInput, rewrite) {
+        rewrite = rewrite || false;
 
-    $(".crew_check").click(function(index){
-        var currId = $(this).attr('id'),
-            inputs = $(this).closest('h3').next().find('.tr_contents').eq(0).find('input');
-        if($(this).is(":checked")){
-            //Enable all inputs
-            $(inputs).each(function(index,elem) {
-                if($(elem).is(':checkbox')) {
-                    $(elem).removeAttr("disabled");
-                }
-            });
-        } else {
-            //Disable all inputs
-            inputs.attr("disabled","disabled");
-            inputs.css("background-color", "#cccccc");
-            $(inputs).each(function(index,elem) {
-                if($(elem).is(':checkbox')) {
-                    $(elem).removeAttr("checked");
-                }
-            });
+        var currId      = checkboxInput.attr('id');
+        var crewPH     = $('#' + currId.replace('_use_', '_crew_ph_'));
+        var crewOF     = $('#' + currId.replace('_use_', '_crew_of_'));
+        var clientPH   = $('#' + currId.replace('_use_', '_client_ph_'));
+        var clientOF   = $('#' + currId.replace('_use_', '_client_of_'));
+        var comment     = $('#' + currId.replace('_use_', '_comment_'));
+
+        var supplementId = currId.split('_')[3];
+        var callHours = Drupal.settings.callHours;
+        var additionalHours = $('.additional_hours > input').val();
+        var totalHours = parseInt(callHours) + parseInt(additionalHours);
+        //console.log(supplementId);
+        //console.log(callHours);
+        //console.log(additionalHours);
+        //
+        if (rewrite) {
+            crewPH.val('');
+            crewOF.val('');
+            clientPH.val('');
+            clientOF.val('');
         }
-    });
-    */
 
+        if ((crewPH.val() == '' && crewOF.val() == '') ||
+            (clientPH.val() == '' && clientOF.val() == '')) {
+            
+            $.getJSON('/admin/ajax/supplement/' + supplementId +'/'+ totalHours, 
+                function(data) {                        
+                    if (data.crewType !== '' && data.clientType !== '') {                                         
+                        var tr = checkboxInput.parent().parent().parent();                        
 
-    /*
-     function checkTextboxChanged() {
-     var currentValue = $(\'#yourTextboxId\').val();
-     if (currentValue != searchValue) {
-     searchValue = currentValue;
-     TextboxChanged();
-     }
-     }
+                        if (crewPH.val() == '' && crewOF.val() == '') {
+                            tr.find('.tr_crew_' + data.crewType).val(data.crewValue);
+                        }
 
-     function TextboxChanged() {
-     // do your magic here
-     }
+                        if (clientPH.val() == '' && clientOF.val() == '') {
+                            tr.find('.tr_client_' + data.clientType).val(data.clientValue);
+                        }
+                    }
+                }
+            );
+                            
+        } 
+    }
 
+    var delay = (function(){
+        var timer = 0;
+        return function(callback, ms){
+            clearTimeout (timer);
+            timer = setTimeout(callback, ms);
+        };
+    })();
 
-     $('.tr_crew_of').change(function(){
-     var currId = $(this).attr('id');
-     var rivalId = currId.replace('_of_', '_ph_');
-     if($('#'+ rivalId).val().length != 0)
-     {
-     //$('#supp_crew_of_122_647').text('');
-     // $('#'+ currId).text('');
-     alert("Cannot write both of ph and client!");
-     $(this).text('');
-     }
-     });
-     */
-    /*
-     setInterval(function() {
-     // Do something every 2 seconds
-
-     // alert($(this).attr("id") + " has focus!");
-     var currElement = $(':focus');
-     var currId = currElement.attr('id');
-     if(currId.search("tr_crew_") != -1 ||
-     currId.search("tr_client_") != -1)
-     {
-     alert("21323");
-     var rivalId = currId.replace('_ph_', '_of_');
-     if($('#'+ rivalId).val().length != 0 && currElement.val().length != 0)
-     {
-     alert("Cannot write both of ph and of!");
-     currElement.val('');
-     }
-     }
-     }, 100);
-     $(":focus").each(function() {
-     alert($(this).attr("id") + " has focus!");
-     }); */
-
-
-    /* $('#supp_use_122_647').mousedown(function() {
-     alert("dfads");
-     var currId = $(this).attr(id);
-     if($(this).is(:checked)){
-     $('#' + currId.replace('_use_', '_crew_ph_')).prop("disabled", false);
-     $('#' + currId.replace('_use_', '_crew_of_')).prop("disabled", false);
-     $('#' + currId.replace('_use_', '_client_ph_')).prop("disabled", false);
-     $('#' + currId.replace('_use_', '_client_of_')).prop("disabled", false);
-     }
-     else{
-     $('#' + currId.replace('_use_', '_crew_ph_')).prop("disabled", true);
-     $('#' + currId.replace('_use_', '_crew_of_')).prop("disabled", true);
-     $('#' + currId.replace('_use_', '_client_ph_')).prop("disabled", true);
-     $('#' + currId.replace('_use_', '_client_of_')).prop("disabled", true);
-     }
-     }); */
+    function isInt(n) {
+        return +n === n && !(n % 1);
+    }
 });

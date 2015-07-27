@@ -99,9 +99,14 @@ div.crew_name {
     margin-left: 10px;
 }
 
-#accordion input{
+#accordion input {
     background: white;
 }
+
+#accordion input:disabled {
+    background: #ccc;
+}
+
 .crew_record {
     border: 1px solid;
     padding: 10px;

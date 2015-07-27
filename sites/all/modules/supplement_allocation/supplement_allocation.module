@@ -42,13 +42,78 @@ function supplement_allocation_menu()
     module_load_include('inc', 'acecrew', 'acecrew_func');
     $items = array();
     $items['supplement/allocation/%'] = array(
-        'title' => 'Supplement Allocation',
-        'page callback' => 'supplement_allocation_disp_page',
-        'page arguments' => array(2),
-        'access arguments' => array('access supplement allocation'),
-        'type' => MENU_CALLBACK,
+      'title' => 'Supplement Allocation',
+      'page callback' => 'supplement_allocation_disp_page',
+      'page arguments' => array(2),
+      'access arguments' => array('access supplement allocation'),
+      'type' => MENU_CALLBACK,
+    );
+    $items['admin/ajax/supplement/%/%'] = array(
+      'page callback' => 'acecrew_ajax_get_supplement_data',
+      'page arguments' => array(3,4),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
     );
     return $items;
+}
+
+function acecrew_ajax_get_supplement_data($supplement_id, $hours) {
+  $status = false;
+  $crewType = '';
+  $crewValue = '';
+  $clientType = '';
+  $clientValue = '';
+  $spt = node_load($supplement_id);  
+  
+  if ($hours > 0 && $hours <= 4) {
+    $crewPH = trim($spt->field_supp_0to4_crew_hour[0]['value']);
+    $crewOF = trim($spt->field_supp_0to4_crew_single[0]['value']);
+    $clientPH = trim($spt->field_supp_0to4_client_hour[0]['value']);
+    $clientOF = trim($spt->field_supp_0to4_client_single[0]['value']);   
+  } elseif ($hours > 4 && $hours <= 8) {
+    $crewPH = trim($spt->field_supp_5to8_crew_hour[0]['value']);
+    $crewOF = trim($spt->field_supp_5to8_crew_single[0]['value']);
+    $clientPH = trim($spt->field_supp_5to8_client_hour[0]['value']);
+    $clientOF = trim($spt->field_supp_5to8_client_single[0]['value']);
+  } elseif ($hours > 8 && $hours <= 12) {
+    $crewPH = trim($spt->field_supp_9to12_crew_hour[0]['value']);
+    $crewOF = trim($spt->field_supp_9to12_crew_single[0]['value']);
+    $clientPH = trim($spt->field_supp_9to12_client_hour[0]['value']);
+    $clientOF = trim($spt->field_supp_9to12_client_single[0]['value']);
+  } elseif ($hours > 12) {
+    $crewPH = trim($spt->field_supp_12plus_crew_hour[0]['value']);
+    $crewOF = trim($spt->field_supp_12plus_crew_single[0]['value']);
+    $clientPH = trim($spt->field_supp_12plus_client_hour[0]['value']);
+    $clientOF = trim($spt->field_supp_12plus_client_single[0]['value']);
+  }
+
+  // PH - per hour - is more usual for crews
+  if (!empty($crewPH)) {
+    $crewType = 'ph';  
+    $crewValue = $crewPH;
+  } elseif (!empty($crewOF)) {
+    $crewType = 'of';
+    $crewValue = $crewOF;
+  }
+
+  // OF - single payment - is more usual for clients
+  if (!empty($clientOF)) {
+    $clientType = 'of';
+    $clientValue = $clientOF;  
+  } elseif (!empty($clientPH)) {
+    $clientType = 'ph';
+    $clientValue = $clientPH;
+  }     
+
+  print json_encode(
+    array(
+      'crewType' => $crewType, 
+      'crewValue' => $crewValue,
+      'clientType' => $clientType,
+      'clientValue' => $clientValue
+    )
+  );
+  exit;
 }
 
 function supplement_allocation_form(&$form_state) {
@@ -481,10 +546,15 @@ function template_preprocess_supplement_allocation(&$variables) {
     unset($supplements);
     $variables['crews'][] = $crew;
   }
+
+  //watchdog('vva', '<pre>'.print_r($variables, TRUE).'</pre>');
+
   // calculate total
   jquery_ui_add('ui.accordion');
   $module_path = drupal_get_path('module', 'supplement_allocation');
   drupal_add_css($module_path .'/css/supplement.css');
+
+  drupal_add_js(array('callHours' => $session_node->field_job_session_hours[0]['value']), 'setting');
   drupal_add_js($module_path .'/js/supplement.js');
 }
 
