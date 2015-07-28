@@ -1,8 +1,13 @@
 <?php
 
-define('CANCELLATION_NA', NULL);
-define('CANCELLATION_12HOURS_NOTICE', 1);
-define('CANCELLATION_24HOURS_NOTICE', 2);
+define('CANCELLATION_NA', '');
+//define('CANCELLATION_12HOURS_NOTICE', 1);
+//define('CANCELLATION_24HOURS_NOTICE', 2);
+
+define('CANCELLATION_24HOURS_MORE_NOTICE', 1);
+define('CANCELLATION_24HOURS_LESS_NOTICE', 2);
+define('CANCELLATION_12HOURS_LESS_NOTICE', 3);
+
 define('BOOKOFF_DAILY_CREWS_COUNT', 5);
 
 
@@ -1270,12 +1275,22 @@ function acecrew_get_bookoff_crews($date, $uid = '') {
 }
 
 function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job_status = CANCELLATION_NA) {  
-  if ( ($call_status == CANCELLATION_12HOURS_NOTICE) ||
+  /*if ( ($call_status == CANCELLATION_12HOURS_NOTICE) ||
        ($job_status == CANCELLATION_12HOURS_NOTICE AND $call_status == CANCELLATION_NA)) {
     $price = $price / 2;
   }
+  define('CANCELLATION_24HOURS_MORE_NOTICE', 1);
+  define('CANCELLATION_24HOURS_LESS_NOTICE', 2);
+  define('CANCELLATION_12HOURS_LESS_NOTICE', 3);
+  */
 
-  return $price;
+  if ($call_status == CANCELLATION_24HOURS_MORE_NOTICE) {
+    return 0;
+  } elseif ($call_status == CANCELLATION_24HOURS_LESS_NOTICE) {
+    return $price / 2;
+  } else {
+    return $price; 
+  }  
 }
 
 function acecrew_get_hours_by_crew($crew_uid, $str_result = TRUE) {   

@@ -27,12 +27,12 @@
 ?>
 
 <?php if (!$field_empty) : ?>
-<div class="field field-type-<?php print $field_type_css ?> field-<?php print $field_name_css ?>">
+<?php $call_status_class = !$node->status ? 'call-status-canceled' : ''; ?>
+<div class="field field-type-<?php print $field_type_css ?> field-<?php print $field_name_css ?> <?php print $call_status_class; ?>">
   <?php if ($label_display == 'above') : ?>
     <div class="field-label"><?php print t($label) ?>:&nbsp;</div>
   <?php endif;?>
-  <div class="field-items">
-    <?php $call_status = !$node->status ? 'call-status-canceled' : ''; ?>
+  <div class="field-items">    
     <?php $count = 1;
     foreach ($items as $delta => $item) :
       if (!$item['empty']) : ?>
@@ -41,7 +41,7 @@
             <div class="field-label-inline<?php print($delta ? '' : '-first')?>">
               <?php print t($label) ?>:&nbsp;</div>
           <?php } ?>
-          <span class="<?php print $call_status; ?>"><?php print $item['view'] ?></span>
+          <span class="<?php print $call_status_class; ?>"><?php print $item['view'] ?></span>
         </div>
       <?php $count++;
       endif;

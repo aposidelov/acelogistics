@@ -13,6 +13,9 @@ a {
     text-decoration:none;
 }
 
+
+
+
 .limiter { width: 98%; max-width: 1200px; }
 
 #top { background:url(images/header.png) 0px 0 repeat-x; height: 191px; position: relative; }
@@ -1233,4 +1236,12 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 
 .node-type-job .field-field-document .field-item {
     margin-top: 10px;
+}
+
+ul.call-listing li.cancel-notice, 
+ul.call-listing li.cancel-btn,
+.acecrew_session_content.cancel-btn,
+.acecrew_session_content.cancel-notice {
+    border: 2px solid #E72435 !important;
+    box-shadow: 0px 0px 5px #E72435;
 }
