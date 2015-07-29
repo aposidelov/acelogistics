@@ -809,14 +809,16 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         IF( js.field_call_hours_tbc_value IS NULL , 0, js.field_call_hours_tbc_value ) AS call_hours_tbc,
         IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc,
         jsn.status AS call_status,
-        IF(cs.field_cancellation_status_value IS NULL , '', cs.field_cancellation_status_value)  AS cancellation_status        
+        IF(csc.field_cancellation_status_value IS NULL , '', csc.field_cancellation_status_value) AS call_cancellation_status,
+        IF(csj.field_cancellation_status_value IS NULL , '', csj.field_cancellation_status_value) AS job_cancellation_status        
         FROM {content_type_job_session} js
         INNER JOIN {content_type_job} ctj ON ctj.nid = js.field_session_job_nid_value
         INNER JOIN {content_type_client} ctc ON ctc.field_client_id_value = ctj.field_job_client_name_value
         INNER JOIN {content_type_venue} ctv ON ctv.field_venue_id_value = ctj.field_job_venue_value
         INNER JOIN {node} jsn ON jsn.nid = js.nid
         INNER JOIN {users} u ON jsn.uid = u.uid
-        LEFT JOIN {content_field_cancellation_status} cs ON js.nid = cs.nid
+        LEFT JOIN {content_field_cancellation_status} csc ON js.nid = csc.nid
+        LEFT JOIN {content_field_cancellation_status} csj ON ctj.nid = csj.nid
         WHERE DATE(js.field_job_session_date_time_value) BETWEEN '%s' AND '%s'
         ORDER BY jsdate, jstime";
     $main_query_result =  db_query($main_query, $date, $max_date);
@@ -946,8 +948,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
                     'call_contract_tbc' => $row->call_contract_tbc,
-                    'is_call_canceled' => !$row->call_status,
-                    'is_call_notice_canceled' => $row->cancellation_status != CANCELLATION_NA,
+                    'is_call_cancelled' => !$row->call_status,
+                    'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
                 );
                 $tbc_scheduler_date[$date_item]['date'] = $date_item;
             } else {
@@ -976,8 +978,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
                     'call_contract_tbc' => $row->call_contract_tbc,
-                    'is_call_canceled' => !$row->call_status,
-                    'is_call_notice_canceled' => $row->cancellation_status != CANCELLATION_NA,
+                    'is_call_cancelled' => !$row->call_status,
+                    'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
                 );
             }
         } // dates foreach
@@ -2197,7 +2199,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
 
-        $is_call_canceled = $event['is_call_canceled'] ? 'call-status-canceled' : '';
+        $is_call_cancelled = $event['is_call_cancelled'] ? 'call-status-canceled' : '';
 
         $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
 
@@ -2248,7 +2250,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $data = '
                 <input type="hidden" name="job-session-id-' . $event['job_session_id'] . '" id="job-session-id-' . $event['job_session_id'] . '" value="' . $event['job_session_id'] . '" />
                 <div class="call-first-row">
-                        <div class="call-id '.$is_call_canceled.'">' . l($event['call_id'], 'node/'.$event['job_nid'], array('attributes' => array('target' => '_blank'))) . '</div>
+                        <div class="call-id '.$is_call_cancelled.'">' . l($event['call_id'], 'node/'.$event['job_nid'], array('attributes' => array('target' => '_blank'))) . '</div>
                         <div class="call-time">' .  $call_time . '</div>
                         <div class="call-crew-count">' .  $call_crew_amount . '</div>
                         <div class="call-hours">' . $call_hours . '</div>';
@@ -2286,10 +2288,10 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
           $classes[] = 'awaiting-po';
         }
         watchdog('ev', '<pre>'.print_r($event, TRUE).'</pre>');
-        if ($event['is_call_notice_canceled'] != CANCELLATION_NA) {
+        if ($event['is_notice_cancelled'] != CANCELLATION_NA) {
           $classes[] = 'cancel-notice';
         }
-        if ($event['is_call_canceled']) {
+        if ($event['is_call_cancelled']) {
           $classes[] = 'cancel-btn';
         }
         //watchdog('cla', '<pre>'.print_r($classes, TRUE).'</pre>');

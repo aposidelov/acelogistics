@@ -291,7 +291,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
           $total_adjusted = true;
       }      
 
-      $sum += acecrew_cancellation_price_total($call_amount, $call->cancellation_status);
+      $sum += acecrew_cancellation_price_total($call_amount, 
+                                               $call->cancellation_status, 
+                                               $job->cancellation_status);
       /*
       // half totals for >24hrs&<12hrs
       if ($call->cancellation_status == CANCELLATION_24HOURS_LESS_NOTICE) {

@@ -454,7 +454,9 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         }
         $call_index++;
         $total = $total + $supplement_total;
-        $sum += acecrew_cancellation_price_total($total, $call->cancellation_status);
+        $sum += acecrew_cancellation_price_total($total, 
+                                                 $call->cancellation_status, 
+                                                 $job->cancellation_status);
     }
 
     if ($discount >= 1) {
