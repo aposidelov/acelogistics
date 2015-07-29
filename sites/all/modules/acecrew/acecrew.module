@@ -502,13 +502,13 @@ function acecrew_del_job_session($ses_id) {
 
 function acecrew_toogle_status_job_session($ses_id) {
   $node = node_load($ses_id);
-  $node->status = !$node->status;  
+  //$node->status = !$node->status;  
   //watchdog('nnn', '<pre>'.print_r($node, TRUE).'</pre>');  
-  /*if ($node->status) {
+  if ($node->field_cancellation_status[0]['value'] != CANCELLATION_NA) {
     $node->field_cancellation_status[0]['value'] = CANCELLATION_NA;
   } else {
     $node->field_cancellation_status[0]['value'] = CANCELLATION_24HOURS_MORE_NOTICE;
-  }*/
+  }
 
   node_save($node);
 }
@@ -2066,35 +2066,6 @@ function theme_acecrew_customform($acecrew_customform) {
         <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
       </div>
   </div>';
-    return $output;
-}
-
-function theme_acecrew_assigned_sessions($acecrew_assigned_sessions) {
-    $base_path = base_path();
-    $output = '';
-    $is_sms = user_access('acecrew access sms');
-    foreach ($acecrew_assigned_sessions as $ses_id => $session) {
-        $node = node_load($ses_id);
-        $status_label = $node->status ? t('Cancel') : t('Activate');        
-        $classes .= !$node->status ? ' cancel-btn' : '';
-        $classes .= $node->field_cancellation_status[0]['value'] != CANCELLATION_NA ? ' cancel-notice' : '';
-        if ($is_sms){
-            $sms_output = '';
-        } else {
-            $sms_output = '';
-        }
-        $output .=
-            '<div class="acecrew_sessions_container">' .
-                "<div class=\"acecrew_session_content".$classes."\" id=\"acecrew_session_content_$ses_id\"> " . $session['content'] . ' </div>' .
-                "<div class=\"acecrew_session_form\" id=\"acecrew_session_form_$ses_id\"> " . $session['form'] . ' </div>' .
-                "<div class=\"acecrew_session_buttons\" id=\"acecrew_session_buttons_$ses_id\">
-                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_edit('$ses_id')\" class=\"acecrew_session_edit_button\" id=\"acecrew_session_edit_button_$ses_id\">Edit</a>
-                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_del('$ses_id')\" class=\"acecrew_session_del_button\" id=\"acecrew_session_del_button_$ses_id\">Delete</a>
-                <a href=\"javascript:void(0)\" onclick=\"acecrew_session_status_toogle('$ses_id')\" class=\"acecrew_session_status_button\" id=\"acecrew_session_status_button_$ses_id\">" . $status_label . "</a>
-                $sms_output
-            </div>" .
-                '</div>';
-    }
     return $output;
 }
 

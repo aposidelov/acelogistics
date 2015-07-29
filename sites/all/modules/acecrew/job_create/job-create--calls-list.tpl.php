@@ -1,7 +1,7 @@
 
 <?php foreach ($acecrew_assigned_sessions as $ses_id => $session) : ?>
 	<?php $node = node_load($ses_id); ?>
-	<?php $status_label = $node->status ? t('Cancel') : t('Activate'); ?>
+	<?php $status_label = $node->field_cancellation_status[0]['value'] == CANCELLATION_NA ? t('Cancel') : t('Activate'); ?>
     <?php $classes = !$node->status ? ' cancel-btn' : ''; ?>
     <?php $classes .= $node->field_cancellation_status[0]['value'] != CANCELLATION_NA ? ' cancel-notice' : ''; ?>
     <div class="acecrew_sessions_container">

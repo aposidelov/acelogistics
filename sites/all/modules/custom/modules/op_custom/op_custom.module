@@ -1274,7 +1274,35 @@ function acecrew_get_bookoff_crews($date, $uid = '') {
   return $bookoff_grouped_crews;
 }
 
-function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job_status = CANCELLATION_NA) {  
+/**
+ * Is used for calculating Total Sum
+ * @param  [type] $price       [description]
+ * @param  [type] $call_status [description]
+ * @return [type]              [description]
+ */
+function acecrew_cancellation_price_total($price, $cancellation_status = CANCELLATION_NA) {
+  // half totals for >24hrs&<12hrs
+  if ($cancellation_status == CANCELLATION_24HOURS_LESS_NOTICE) {
+    return ($price / 2);
+  } 
+  // exclude >24hrs variant - it should be absent for Total Sum
+  elseif ($cancellation_status == CANCELLATION_24HOURS_MORE_NOTICE) {
+    return 0;
+  } 
+  else {
+    return $price;
+  }
+}
+
+/**
+ * Is used for displaying cell prices
+ * @param  [type] $price       [description]
+ * @param  [type] $type        [description]
+ * @param  [type] $call_status [description]
+ * @param  [type] $job_status  [description]
+ * @return [type]              [description]
+ */
+function acecrew_cancellation_price($price, $type, $call_status = CANCELLATION_NA, $job_status = CANCELLATION_NA) {  
   /*if ( ($call_status == CANCELLATION_12HOURS_NOTICE) ||
        ($job_status == CANCELLATION_12HOURS_NOTICE AND $call_status == CANCELLATION_NA)) {
     $price = $price / 2;
@@ -1284,7 +1312,7 @@ function acecrew_cancellation_price($price, $call_status = CANCELLATION_NA, $job
   define('CANCELLATION_12HOURS_LESS_NOTICE', 3);
   */
 
-  if ($call_status == CANCELLATION_24HOURS_MORE_NOTICE) {
+  if ($call_status == CANCELLATION_24HOURS_MORE_NOTICE && $type == 'total') {
     return 0;
   } elseif ($call_status == CANCELLATION_24HOURS_LESS_NOTICE) {
     return $price / 2;
