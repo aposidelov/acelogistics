@@ -120,6 +120,20 @@ function op_custom_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['admin/ajax/client-comment/%/%'] = array(
+    'page callback' => 'op_custom_ajax_client_comment',
+    'page arguments' => array(3,4),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/ajax/venue-comment/%/%'] = array(
+    'page callback' => 'op_custom_ajax_venue_comment',
+    'page arguments' => array(3,4),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
   $items['admin/ajax/client-call-crew-is-blocked/%/%'] = array(
     'page callback' => 'op_custom_ajax_client_call_is_blocked_crew',
     'page arguments' => array(3,4),
@@ -1436,4 +1450,42 @@ function acecrew_update_cck_field_type($int_field_name, $table_name, $decimal_fi
     array('type' => 'numeric', 'precision' => 10, 
       'scale' => 2, 'not null' => FALSE)
   );      
+}
+
+function op_custom_ajax_client_comment($value, $type) {
+  $comment = '';
+  if (empty($value)) {
+    return $comment;
+  }
+
+  if ($type == 'name') {    
+    $comment = db_result(db_query('SELECT IF(ctc.field_client_job_call_cb_value IS NULL , "", ctc.field_client_job_call_cb_value) AS comment FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $value));        
+  } elseif ($type == 'job') {
+    $comment = db_result(db_query('SELECT IF(ctc.field_client_job_call_cb_value IS NULL , "", ctc.field_client_job_call_cb_value) AS comment FROM {content_type_client} ctc INNER JOIN {content_type_job} ctj ON ctc.field_client_id_value = ctj.field_job_client_name_value WHERE ctj.nid = %d', $value));        
+  }   
+
+  if (!empty($comment)) {
+    $comment = 'Client:'.$comment;
+  }
+
+  print json_encode(array('comment' => $comment));
+  exit;
+}
+
+function op_custom_ajax_venue_comment($value, $type = 'name') {  
+  $comment = '';
+  if (empty($value)) {
+    return $comment;
+  }
+
+  if ($type == 'name') {    
+    $comment = db_result(db_query('SELECT IF(ctv.field_venue_job_call_cb_value IS NULL , "", ctv.field_venue_job_call_cb_value) AS comment FROM {content_type_venue} ctv WHERE ctv.field_venue_name_value = "%s"', $value));          
+  }
+
+  if (!empty($comment)) {
+    $comment = 'Venue:'.$comment;
+  }
+
+  print json_encode(array('comment' => $comment));
+  exit;
 }

@@ -13,9 +13,9 @@
         <div class="acecrew_session_content<?php print $classes; ?>" id="acecrew_session_content_<?php print $ses_id; ?>"> <?php print $session['content']; ?> </div>
         <div class="acecrew_session_form" id="acecrew_session_form_<?php print $ses_id; ?>"> <?php print $session['form']; ?> </div>
         <div class="acecrew_session_buttons" id="acecrew_session_buttons_<?php print $ses_id; ?>">
-            <a href="javascript:void(0)" onclick="acecrew_session_edit('<?php print $ses_id; ?>')" class="acecrew_session_edit_button" id="acecrew_session_edit_button_$ses_id">Edit</a>
-            <a href="javascript:void(0)" onclick="acecrew_session_del('<?php print $ses_id; ?>')" class="acecrew_session_del_button" id="acecrew_session_del_button_$ses_id">Delete</a>            
-            <a href="javascript:void(0)" onclick="acecrew_session_status_toogle('<?php print $ses_id; ?>')" class="acecrew_session_status_button" id="acecrew_session_status_button_$ses_id"><?php print $status_label; ?></a>
+            <a href="javascript:void(0)" onclick="acecrew_session_edit('<?php print $ses_id; ?>')" class="acecrew_session_edit_button" id="acecrew_session_edit_button_<?php print $ses_id; ?>">Edit</a>
+            <a href="javascript:void(0)" onclick="acecrew_session_del('<?php print $ses_id; ?>')" class="acecrew_session_del_button" id="acecrew_session_del_button_<?php print $ses_id; ?>">Delete</a>            
+            <a href="javascript:void(0)" onclick="acecrew_session_status_toogle('<?php print $ses_id; ?>')" class="acecrew_session_status_button" id="acecrew_session_status_button_<?php print $ses_id; ?>"><?php print $status_label; ?></a>
         </div>
     </div>
 <?php endforeach; ?>

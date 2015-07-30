@@ -24,7 +24,72 @@ function acecrew_session_status_toogle(ses_id)
     });
 }
 
+function acecrewUpdateComments(commentField, jobNid, venueName) {
+    var comment = commentField.val();                            
+    var isClientCommentExists = comment.indexOf('Client:') !== -1;
+    var isVenueCommentExists  = comment.indexOf('Venue:') !== -1;
+    $.getJSON('/admin/ajax/client-comment/' + jobNid + '/job', function(data) {
+        if (data.comment != '' && !isClientCommentExists) {             
+            if (commentField.val() != '') {
+                comment = comment + '\n\n';
+            }
+            comment += data.comment;                                    
+            commentField.val(comment);
+        }
+        
+        $.getJSON('/admin/ajax/venue-comment/' + venueName + '/name', function(data) {
+            if (data.comment != '' && !isVenueCommentExists) {
+                if (commentField.val() != '') {
+                    comment = comment + '\n\n';
+                }                                                                
+                comment += data.comment;
+                commentField.val(comment);
+            }
+        });
+    });                            
+ 
+}
+
 $(document).ready(function() {
+    var jobNid = $('#acecrew_session_add_buttons').attr('data-job-nid');
+
+    $('.acecrew_sessions_container').each(function() {                
+        var venueName = $(this).find('[name*="field_job_session_venue"]').val();         
+        var commentDiv = $(this).find('div[id*="job-session-comment"]');                    
+        var commentField = commentDiv.find('textarea');
+
+        $(this).find('[name*="field_job_session_venue"]').change(function() {
+            venueName = $(this).val();            
+        });
+                            
+        $('<a class="update_comment" href="#">Client & Venue comments update</a>')
+            .appendTo(commentDiv.find('label'))
+            .click(function() {                     
+                acecrewUpdateComments(commentField, jobNid, venueName);
+                return false;
+            });
+    });
+
+    /*
+    $('[name*="field_job_session_venue"]').change(function() {
+        callVenueName = $(this).val();
+    });*/
+    var venueName = $('#acecrew_session_add_form [name*="field_job_session_venue"]').val();    
+    $('#acecrew_session_add_form [name*="field_job_session_venue"]').change(function() {
+        venueName = $(this).val();
+    });    
+    var commentDiv = $('#acecrew_session_add_form div[id*="job-session-comment"]');                    
+    var commentField = commentDiv.find('textarea');
+    acecrewUpdateComments(commentField, jobNid, venueName);
+                        
+    $('<a class="update_comment" href="#">Client & Venue comments update</a>')
+        .appendTo(commentDiv.find('label'))
+        .click(function() {                                                        
+            acecrewUpdateComments(commentField, jobNid, venueName);
+            return false;
+        });
+    
+
     $('#acecrew_session_add_button').click(function(){
         var url = $(location).attr('href');
         var n = url.split("/");
@@ -35,8 +100,8 @@ $(document).ready(function() {
             async: false,
             cache: false,
             success: function(data) {
-                if(data.indexOf('"internal_urls"') != -1)
-                {
+                if (data.indexOf('"internal_urls"') != -1) {                                                            
+
                     $('#acecrew_session_add_form').show('fast');
                     $('#acecrew_session_add_buttons').hide('fast');
                     $('.acecrew_session_buttons').hide('fast');
@@ -83,20 +148,10 @@ $(document).ready(function() {
                             }
 
                         } else {
-
                             return true;
-
                         }
-
                     })
-
-
-
-
-
-                }
-                else
-                {
+                } else {
                     var start = data.indexOf('<div class="messages warning">');
                     var messagePart = data.substring(start);
                     var end = messagePart.indexOf('</div>');

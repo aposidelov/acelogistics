@@ -2054,6 +2054,7 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
 }
 
 function theme_acecrew_customform($acecrew_customform) {
+    $job_nid = arg(1);
     $output =
         '
   <div class="acecrew_session_add_block clear-block">
@@ -2064,7 +2065,7 @@ function theme_acecrew_customform($acecrew_customform) {
       <div id ="acecrew_job_lock_message" style="display: none;">
         <p>Access Denied by job locking.</p>
       </div>
-      <div id="acecrew_session_add_buttons">
+      <div id="acecrew_session_add_buttons" data-job-nid="'.$job_nid.'">
         <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
       </div>
   </div>';

@@ -39,9 +39,9 @@ function acecrew_change_crew_status(session_crew_status_select_id)
         });
 }
 
-$(document).ready(function() {
+$(document).ready(function() {    
     $('#acecrew_session_add_button').click(function(){
-        acecrew_current_edit_item = 'acecrew_session_add_form';
+        acecrew_current_edit_item = 'acecrew_session_add_form';        
         $('#acecrew_session_add_form').show('fast');
         $('#acecrew_session_add_buttons').hide('fast');
         $('.acecrew_session_buttons').hide('fast');
