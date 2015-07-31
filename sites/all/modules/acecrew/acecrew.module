@@ -666,7 +666,7 @@ function acecrew_calendar_popup_sms($callNodeid) {
     $ses_call_time = date("d/m/Y H:i", strtotime($ses_call_time));
     //$ses_call_day = date('l', strtotime($ses_call_time));
     $ses_call_id = $session_node->field_session_callid[0]['value'];
-    $ses_call_comment = $session_node->field_job_session_comment[0]['value'];
+    $ses_call_comment = nl2br($session_node->field_job_session_comment[0]['value']);
 
     $job = node_load(array('nid' => $session_node->field_session_job_nid[0]['value']));
     $client = acecrew_get_client_by_id($job->field_job_client_name[0]['value']);
@@ -700,9 +700,7 @@ function acecrew_calendar_popup_sms($callNodeid) {
         @ $venue_name, $venu_address, $venu_post_code <br/>
         $crew_with_supp
         Cont: {$ses_call_contact[0]} {$ses_call_contact[1]} <br/>
-        $ses_call_comment <br/>
-        Client comment: $client_comment <br/>
-        Venue comment: $venue_comment <br/><br/>
+        $ses_call_comment <br/>        
         Please reply J: $ses_call_id OK!<br/>
         <br/>
         <br/>

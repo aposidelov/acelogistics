@@ -31,7 +31,7 @@ function acecrewUpdateComments(commentField, jobNid, venueName) {
     $.getJSON('/admin/ajax/client-comment/' + jobNid + '/job', function(data) {
         if (data.comment != '' && !isClientCommentExists) {             
             if (commentField.val() != '') {
-                comment = comment + '\n\n';
+                comment = comment + '\n';
             }
             comment += data.comment;                                    
             commentField.val(comment);
@@ -40,7 +40,7 @@ function acecrewUpdateComments(commentField, jobNid, venueName) {
         $.getJSON('/admin/ajax/venue-comment/' + venueName + '/name', function(data) {
             if (data.comment != '' && !isVenueCommentExists) {
                 if (commentField.val() != '') {
-                    comment = comment + '\n\n';
+                    comment = comment + '\n';
                 }                                                                
                 comment += data.comment;
                 commentField.val(comment);
