@@ -299,32 +299,42 @@ $(document).ready(function(){
   </div>
   <?php }?>
       
-  <?php if(isset($user_view[3]) && $user_view[3]=='booked-off'):?>    
+  <?php if (isset($user_view[3]) && $user_view[3]=='booked-off'):?>    
   <script type="text/javascript">
   $(document).ready(function(){
-    $('#ub_date_start').datetimepicker({ 
+    $('#ub_date_start').datetimepicker({       
       dateFormat: 'yy-mm-dd',
-      timeFormat: 'hh:ii',
-      onSelect: function (e, t) {
-        var date = $(this).val();   
+      timeFormat: 'hh:ii',      
+      onSelect: function (e, t) {        
+        var hour = $('.ui-datepicker .dateimepicker-hour').val();
+        var minuts = $('.ui-datepicker .dateimepicker-minuts').val();        
+        // get only date
+        var date = $(this).val();
+        //console.log(date);        
         $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
           if (data.message !== '') {
             alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
           }
         });
+
+        $('#ub_date_start').val(date + ' ' + hour + ':' + minuts);
       }
     });
     $('#ub_date_end').datetimepicker({ 
       dateFormat: 'yy-mm-dd',
       timeFormat: 'hh:ii',
       onSelect: function (e, t) {
+        var hour = $('.ui-datepicker .dateimepicker-hour').val();
+        var minuts = $('.ui-datepicker .dateimepicker-minuts').val();        
+        // get only date        
         var date = $(this).val();   
         $.getJSON('/acecrew/ajax/checkbookoff/' + date, function(data) {          
           if (data.message !== '') {
             alert('At least ' + data.max_crews_count + ' crew are booked off for ' + date + '\nList:\n' + data.message);
           }
         });
-      } 
+        $('#ub_date_end').val(date + ' ' + hour + ':' + minuts);
+      }
     });
     
      $(document).ajaxStart(function(){

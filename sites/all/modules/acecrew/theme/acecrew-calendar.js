@@ -8,7 +8,7 @@ function stickySidebar() {
         var st = $(window).scrollTop();
         var ot = $("#scroller-anchor").offset().top;
         var s = $("#block-block-2");
-        if(st > ot) {
+        if (st > ot) {
             s.css({
                 position: "fixed",
                 top: "0px"
@@ -27,6 +27,9 @@ function stickySidebar() {
 }
 
 $(document).ready(function() {
+    $('#ub_date_start').change(function() {
+        console.log('ssss');
+    });
 
     //Call stickySidebar once document is ready
     stickySidebar();
