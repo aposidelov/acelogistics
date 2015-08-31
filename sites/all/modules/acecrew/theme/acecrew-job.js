@@ -25,7 +25,10 @@ function acecrew_session_status_toogle(ses_id)
 }
 
 function acecrewUpdateComments(commentField, jobNid, venueName) {
-    var comment = commentField.val();                            
+    var comment = commentField.val();   
+    if (comment == '' || comment == undefined) {
+        return '';
+    }
     var isClientCommentExists = comment.indexOf('Client:') !== -1;
     var isVenueCommentExists  = comment.indexOf('Venue:') !== -1;
     $.getJSON('/admin/ajax/client-comment/' + jobNid + '/job', function(data) {
