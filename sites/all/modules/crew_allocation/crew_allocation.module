@@ -148,7 +148,20 @@ function _crew_allocation_top_form(&$form_state) {
     if($_emp_type_value == NULL || $_emp_type_value == 'All' ) {
       // then get all type.
       $emp_types = _crew_allocation_get_all_employment_type();
-      array_shift($emp_types);
+      array_shift($emp_types);      
+
+      crew_allocation_list_crew_members(
+        $form,
+        $form_state,
+        intval($_supplement_value),
+        "resticted_crews",
+        $call_id,
+        $vid,
+        $booked_user_list,
+        null,
+        $unavailable_users,
+        $unavailable_120_61
+      );
 
 
       /**
@@ -598,7 +611,7 @@ function crew_allocation_list_crew_members(&$form, &$form_state, $supplement, $e
     $supplement = $supplement == 0 ? '' : $supplement;
 
     //Get all crew members (users) that have assigned supplement and employment type
-    $users = crew_allocation_get_all_users($supplement, $pure_emp_type);
+    $users = crew_allocation_get_all_users($supplement, $pure_emp_type, $call_id);
 
     //Sort by name
     usort($users, "cmp_crew_name2");
@@ -774,11 +787,46 @@ function crew_allocation_get_unavailable_users($start, $end, $js_id, $status = n
 /**
  * Get all crew members(users) that have assigned supplement and employment type
  */
-function crew_allocation_get_all_users($supplement, $emp_type) {
-
+function crew_allocation_get_all_users($supplement, $emp_type, $call_id) {    
     $users = array();
+    // list of users filtered by $supplement & $emp_type + excluded restricted users
+    /*$sql = "SELECT pv.uid FROM `drupal_content_type_job_session` js 
+        INNER JOIN `drupal_content_type_job` j ON js.field_session_job_nid_value = j.nid
+        INNER JOIN `drupal_content_type_venue` v ON v.field_venue_id_value = js.field_job_session_venue_value
+        INNER JOIN `drupal_content_field_blocked_crews` vbc ON v.nid = vbc.nid
+        INNER JOIN `drupal_content_type_client` c ON c.field_client_id_value = j.field_job_client_name_value
+        INNER JOIN `drupal_content_field_blocked_crews` cbc ON c.nid = cbc.nid
+        INNER JOIN `drupal_profile_values` pv ON pv.uid <> vbc.field_blocked_crews_uid AND pv.uid <> cbc.field_blocked_crews_uid
+        WHERE pv.fid=41
+        AND js.field_session_callid_value = '9163-3'
+        AND pv.value LIKE '%$supplement%'
+        AND pv.uid IN (
+            SELECT pv2.uid FROM `drupal_profile_values` pv2 WHERE pv2.fid=39 AND pv2.value='$emp_type'
+        ) GROUP BY pv.uid";
+    watchdog('sss', '<pre>'.print_r($sql, TRUE).'</pre>');
+    
 
-    $sql = db_query("
+    // list of resticted users by call
+
+    $sql = "SELECT u.name, pv.uid FROM `drupal_content_type_job_session` js 
+INNER JOIN `drupal_content_type_job` j ON js.field_session_job_nid_value = j.nid
+INNER JOIN `drupal_content_type_venue` v ON v.field_venue_id_value = js.field_job_session_venue_value
+INNER JOIN `drupal_content_field_blocked_crews` vbc ON v.nid = vbc.nid
+INNER JOIN `drupal_content_type_client` c ON c.field_client_id_value = j.field_job_client_name_value
+INNER JOIN `drupal_content_field_blocked_crews` cbc ON c.nid = cbc.nid
+INNER JOIN `drupal_profile_values` pv ON pv.uid = cbc.field_blocked_crews_uid OR pv.uid = vbc.field_blocked_crews_uid
+INNER JOIN `drupal_users` u ON u.uid = pv.uid
+WHERE pv.fid=41
+AND js.field_session_callid_value = '9163-3'
+AND pv.value LIKE '%%'
+ GROUP BY pv.uid";
+
+
+    $result = db_query($sql);
+    */
+    
+
+    $result = db_query("
         SELECT uid FROM {profile_values}
         WHERE fid=41
         AND value LIKE '%$supplement%'
@@ -786,7 +834,7 @@ function crew_allocation_get_all_users($supplement, $emp_type) {
             SELECT uid FROM {profile_values} WHERE fid=39 AND value='$emp_type'
         );");
 
-    while($row = db_fetch_object($sql)) {
+    while($row = db_fetch_object($result)) {
         $res = db_fetch_object(db_query(
             "SELECT * FROM {profile_values} WHERE uid = $row->uid AND value = '$emp_type'"
         ));
@@ -822,12 +870,21 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
         $unavailable_120_61 = array();
     }
     $blocked_users = crew_allocation_get_blocked_users();
+    $blocked_by_cv = acecrew_get_blocked_crews_by_cv($call_id);
+    watchdog('call_id', '<pre>'.print_r($call_id, TRUE).'</pre>');
+    watchdog('bl', '<pre>'.print_r($blocked_by_cv, TRUE).'</pre>');
     foreach($users as $user) {
+        $blocked_by_cv_class = '';
+        if (in_array($user->uid, $blocked_by_cv)) {
+          $blocked_by_cv_class = 'blocked-by-cv';
+        }
+
         if (array_key_exists($user->uid, $booked_user_array)) {
             //If crew member(user) is booked off
         } else if (in_array($user->uid, $blocked_users)) {
             //If user is blocked
         } else {
+
             //If user is available add it to the form list
             if(array_key_exists($user->uid, $unavailable_users) && (strpos($emp_type, 'Unavailable') != FALSE)) {
                 //If the user is checked
@@ -841,7 +898,7 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
                     $class = "unavailable-one";
                 } else if($status == "normal") {
                     $class = "unavailable-normal";
-                }
+                }                
 
                 //Create the form field, $emp_type is form fieldsed(ex: Full Time Unavailable) and status is
                 //unavailable grouping type(120-61/60-1/normal)
@@ -851,8 +908,7 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
                     '#title' => t($user->name),
                     '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
                     '#attributes' => $checked,
-
-                    '#prefix' => '<div class="' . $class . '">',
+                    '#prefix' => '<div class="' . $class . ' '.$blocked_by_cv_class.'">',
                     '#suffix' => '</div>'
                 );
             }
@@ -866,7 +922,9 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
                     '#id' => t('crew-'.$user->uid),
                     '#title' => t($user->name),
                     '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
-                    '#attributes' => $checked
+                    '#attributes' => $checked,
+                    '#prefix' => '<div class="'.$blocked_by_cv_class.'">',
+                    '#suffix' => '</div>'
                 );
 
 
@@ -1173,4 +1231,22 @@ function _crew_allocation_is_crew_allocated($uid, $call_id, $jsid)
     if(db_fetch_object(db_query("SELECT * FROM {crew_call} WHERE uid = $uid AND cid = '$call_id' AND jsid = $jsid")) == NULL)
         return false;
     return true;
+}
+
+function acecrew_get_blocked_crews_by_cv($call_id_str) {
+  $result = db_query('SELECT field_blocked_crews_uid AS uid
+    FROM `drupal_content_type_job_session` c 
+    INNER JOIN `drupal_content_type_job` j ON c.field_session_job_nid_value = j.nid 
+    INNER JOIN `drupal_content_type_client` cl ON j.field_job_client_name_value = cl.field_client_id_value
+    INNER JOIN `drupal_content_type_venue` v ON j.field_job_venue_value = v.field_venue_id_value
+    INNER JOIN `drupal_content_field_blocked_crews` bc ON cl.nid = bc.nid OR v.nid = bc.nid
+    WHERE c.field_session_callid_value = "%s"
+    GROUP BY field_blocked_crews_uid', $call_id_str);
+
+  $blocked_crews = array();
+  while ($row = db_fetch_object($result)) {
+    $blocked_crews[] = $row->uid;
+  }
+
+  return $blocked_crews;
 }

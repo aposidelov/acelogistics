@@ -1095,7 +1095,7 @@ function op_custom_ajax_client_account($client_name = '') {
   exit;
 }
 
-function op_custom_ajax_client_call_is_blocked_crew($call_vid = '', $crew_id = '') {  
+function op_custom_ajax_client_call_is_blocked_crew($call_vid = '', $crew_id = '') {    
   $is_not_blocked = db_result(db_query('SELECT COUNT(*) 
     FROM `drupal_content_type_job_session` c 
     INNER JOIN `drupal_content_type_job` j ON c.field_session_job_nid_value = j.nid 

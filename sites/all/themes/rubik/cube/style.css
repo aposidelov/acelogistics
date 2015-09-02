@@ -1245,3 +1245,11 @@ ul.call-listing li.cancel-btn,
     border: 2px solid #E72435 !important;
     box-shadow: 0px 0px 5px #E72435;
 }
+
+.blocked-by-cv label {
+    color: #E01F1F;
+}
+
+#field-document-items {
+    clear: both;
+}

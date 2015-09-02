@@ -686,7 +686,8 @@ function acecrew_calendar_popup_sms($callNodeid) {
     }
 
     $crew_suppl = $session_node->field_call_supplements[0]['value'];
-
+    $ses_call_comment = str_replace('Client:', '', $ses_call_comment);
+    $ses_call_comment = str_replace('Venue:', '', $ses_call_comment);
     //Check if job is plus call
     $plus_call = $session_node->field_job_session_plus_call[0]['value'] ? ' +' : '';
 
@@ -947,6 +948,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_hours_tbc' => $row->call_hours_tbc,
                     'call_contract_tbc' => $row->call_contract_tbc,
                     'is_call_cancelled' => !$row->call_status,
+                    'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
                     'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
                 );
                 $tbc_scheduler_date[$date_item]['date'] = $date_item;
@@ -977,6 +979,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'call_hours_tbc' => $row->call_hours_tbc,
                     'call_contract_tbc' => $row->call_contract_tbc,
                     'is_call_cancelled' => !$row->call_status,
+                    'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
                     'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
                 );
             }
@@ -1622,7 +1625,7 @@ function acecrew_calendar_form(){
         '#type' => 'date_popup',
         '#title' => t('Select date'),
         '#date_format' => 'Y-m-d',
-        '#default_value' => date("Y-m-d"),//  DDEL
+        '#default_value' => '2014-09-27',//date("Y-m-d"),//  DDEL
         '#attributes' => array('id' => 'acecrew_calendar_date'),
     );
 
@@ -1637,7 +1640,7 @@ function acecrew_calendar_form(){
             31=>31
         ),
         '#attributes' => array('id' => 'acecrew_calendar_forward_days'),
-        //'#default_value' => 4, // DDEL
+        '#default_value' => 4, // DDEL
     );
 
     $form['date']['submit'] = array(
@@ -2191,7 +2194,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     // 'to be confirmed' short name
     $tbc_short = 'TBC';
     //watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
-    foreach ($scheduler as $event) {
+    $jobs_notify = array();
+    foreach ($scheduler as $event) {        
         $client_id = acecrew_get_client_id_by_job_id($event['job_nid']);
         $client_credit_exists = acecrew_client_is_credit_exists($client_id);
         $red_class = !$client_credit_exists ? 'client-credit-warning' : '';
@@ -2199,6 +2203,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
 
         $is_call_cancelled = $event['is_call_cancelled'] ? 'call-status-canceled' : '';
+        $is_job_cancelled = $event['is_job_cancelled'] ? 'job-notify-canceled' : '';
+        $jobs_notify[$event['job_nid']] = $is_job_cancelled;
 
         $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
 
@@ -2285,8 +2291,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         if ($event['job_status'] == 'Awaiting PO') {
           $classes[] = 'call-wrapper';
           $classes[] = 'awaiting-po';
-        }
-        watchdog('ev', '<pre>'.print_r($event, TRUE).'</pre>');
+        }        
         if ($event['is_notice_cancelled'] != CANCELLATION_NA) {
           $classes[] = 'cancel-notice';
         }
@@ -2299,10 +2304,28 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
           'data' => $data,
           'class' => implode(' ', $classes),
           'id' => 'call-listing-item-' . $event['job_session_id'],
+          'job_nid' => $event['job_nid'],
         );
     }
+    $grouped_items = array();
+    foreach ($jobs_notify as $job_nid => $status) {
+      $grouped_items[$job_nid] = array(
+        'data' => '',
+        'class' => 'job '.$status,        
+      );
+      foreach ($items as $item) {
+        if ($item['job_nid'] == $job_nid) {
+          $grouped_items[$job_nid]['children'][] = array(
+            'data' => $item['data'],
+            'id' => $item['id'],
+            'class' => $item['class'],
+          );
+        }
+      }
+    }    
 
     $dummyhtml = '<div class="block-content clear-block prose"><span class="icon-info"></span><p>Click on the load call button at the bottom of each call, to load more information</p></div>';
+    //$output = theme('item_list', $grouped_items, $title, 'ul', array('class' => 'call-listing'));
     $output = theme('item_list', $items, $title, 'ul', array('class' => 'call-listing'));
 
     $output = $output . '
@@ -2767,6 +2790,16 @@ function acecrew_get_cancellations() {
     CANCELLATION_24HOURS_LESS_NOTICE => 'Cancellation <24hrs & >12hrs Notice',
     CANCELLATION_12HOURS_LESS_NOTICE => 'Cancellation <12hrs Notice',    
   );
+}
+
+function acecrew_get_inv_cancellation_titles($status) {
+  $statuses = array(    
+    CANCELLATION_24HOURS_MORE_NOTICE => 'No Cancellation Fee',
+    CANCELLATION_24HOURS_LESS_NOTICE => '50% Cancellation Fee',
+    CANCELLATION_12HOURS_LESS_NOTICE => '100% Cancellation Fee',    
+  );
+
+  return $statuses[$status];
 }
 
 function acecrew_get_job_clients() {

@@ -170,8 +170,14 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
       }
     }*/
 
+    $job_cancelation_status = '';
+    if ($job->cancellation_status != CANCELLATION_NA) {
+      $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
+      $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
+    }
+
     echo '<table width=90% border=1 cellspacing=0 cellpadding=5 style="margin-bottom:120px;border:0px solid;border-collapse:collapse;margin-left:5%;">';
-    echo '<tr><td colspan=9></td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
+    echo '<tr><td colspan=9>'.$job_cancelation_status.'</td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
     $call_index = 1;
     $sum = 0;
     //watchdog('calli', '<pre>'.print_r($callings, TRUE).'</pre>');
@@ -230,9 +236,14 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
           $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
         } 
 
+        $call_cancelation_status = '';
+        if ($call->cancellation_status != CANCELLATION_NA) {
+          $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+        }
+
         echo '
         <tr>
-            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . '</td>
+            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $call_cancelation_status . '</td>
             <td width=4% valign=top>Date: </td>
             <td width=10% valign=top>' . substr($call->field_job_session_date_time_value, 0, 10) . '</td>
             <td width=4% valign=top>Time: </td>

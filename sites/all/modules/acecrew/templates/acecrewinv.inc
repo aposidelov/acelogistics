@@ -149,17 +149,23 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $vat = NULL;
     $multiple_vat_values = FALSE;
     foreach ($invoice->invoice_items as $item) {
-        if (is_null($vat)) {
-          $vat = $item['vat'];
-        }
+      if (is_null($vat)) {
+        $vat = $item['vat'];
+      }
 
-        if ($item['vat'] !== $vat) {
-          $multiple_vat_values = TRUE;
-        }
+      if ($item['vat'] !== $vat) {
+        $multiple_vat_values = TRUE;
+      }
+    }
+    
+    $job_cancelation_status = '';
+    if ($job->cancellation_status != CANCELLATION_NA) {
+      $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
+      $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
     }
 
     echo '<table width=90% border=1 cellspacing=0 cellpadding=5 style="margin-bottom:120px;border:0px solid;border-collapse:collapse;margin-left:5%;">';
-      echo '<tr><td colspan=9></td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
+      echo '<tr><td style="vertical-align:middle;" colspan=9>'.$job_cancelation_status.'</td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
     $call_index = 1;
     $sum = 0;
     foreach ($callings as $data) {
@@ -306,10 +312,15 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       
 
       if ($additional_hours > 0) $inc++;
+      
+      $call_cancelation_status = '';
+      if ($call->cancellation_status != CANCELLATION_NA) {
+        $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+      }
 
       echo '
         <tr>
-          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . '</td>
+          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $call_cancelation_status . '</td>
           <td width=4% valign=top>Date: </td>
           <td width=10% valign=top>' . $date . '</td>
           <td width=4% valign=top>Time: </td>

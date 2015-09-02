@@ -2,8 +2,7 @@
 /*
  * $type == crew | generate научиться как сабмитать форму чтоб в ней был action
  */
-function acecrew_review_report_spreadsheet(&$form_state, $crew_id = '') {
-
+function acecrew_review_report_spreadsheet(&$form_state, $crew_id = '') {  
   drupal_add_js(drupal_get_path('module', 'acereview') . '/acereview-timesheets.js');
 
   $users = getCrewMembers();
