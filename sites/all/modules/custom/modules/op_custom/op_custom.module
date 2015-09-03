@@ -527,46 +527,46 @@ function op_custom_views_query_alter(&$view, &$query) {
       $query->where[0]['args'][] = $_GET['field_invoice_number_value'];
     }
 
-    $query->orderby = array();
+    $query->orderby = array('job_field_job_number_value DESC');
     if (isset($_GET['order'])) {
       // Order by Job Number
       if ($_GET['order'] == 'field_job_number_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby[] = 'job_field_job_number_value ASC';
+          $query->orderby = array('job_field_job_number_value ASC');
         } else {
-          $query->orderby[] = 'job_field_job_number_value DESC';
+          $query->orderby = array('job_field_job_number_value DESC');
         }
       }
       // Job status
       if ($_GET['order'] == 'field_job_status_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby[] = 'field_job_status_value ASC';
+          $query->orderby = array('field_job_status_value ASC');
         } else {
-          $query->orderby[] = 'field_job_status_value DESC';
+          $query->orderby = array('field_job_status_value DESC');
         }
       }
       //
       if ($_GET['order'] == 'field_job_venue_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby[] = 'field_job_venue_value ASC';
+          $query->orderby = array('field_job_venue_value ASC');
         } else {
-          $query->orderby[] = 'field_job_venue_value DESC';
+          $query->orderby = array('field_job_venue_value DESC');
         }
       }
       //
       if ($_GET['order'] == 'field_job_date_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby[] = 'field_job_date_value ASC';
+          $query->orderby = array('field_job_date_value ASC');
         } else {
-          $query->orderby[] = 'field_job_date_value DESC';
+          $query->orderby = array('field_job_date_value DESC');
         }
       }
       //
       if ($_GET['order'] == 'field_job_client_name_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby[] = 'field_job_client_name_value ASC';
+          $query->orderby = array('field_job_client_name_value ASC');
         } else {
-          $query->orderby[] = 'field_job_client_name_value DESC';
+          $query->orderby = array('field_job_client_name_value DESC');
         }
       }
     }
