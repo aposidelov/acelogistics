@@ -792,6 +792,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         js.field_job_session_crew_value AS job_session_crew,
         js.field_job_session_hours_value AS job_session_hours,
         js.field_session_num_vehicles_value AS num_vehicles,
+        IF( ctj.field_names_needed_value IS NULL , 0, ctj.field_names_needed_value ) AS names_needed,
         js.field_session_callid_value AS call_number,
         ctc.nid AS client_nid,
         ctc.field_client_name_value AS client_name,
@@ -938,6 +939,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'ses_count_crews' => $ses_count_crews,
                     'ses_count_hours' => $ses_count_hours,
                     'ses_number_vehicles' => $ses_number_vehicles,
+                    'job_names_needed' => $row->names_needed,
                     'flag' => get_flag_count($row->nid), // get_diary_flag_count($call)
                     'crews' => $crews,
                     'supplement' => $supps,
@@ -969,6 +971,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'ses_count_crews' => $ses_count_crews,
                     'ses_count_hours' => $ses_count_hours,
                     'ses_number_vehicles' => $ses_number_vehicles,
+                    'job_names_needed' => $row->names_needed,
                     'flag' => get_flag_count($row->nid), //get_diary_flag_count($call)
                     'crews' => $crews,
                     'supplement' => $supps,
@@ -1625,7 +1628,7 @@ function acecrew_calendar_form(){
         '#type' => 'date_popup',
         '#title' => t('Select date'),
         '#date_format' => 'Y-m-d',
-        '#default_value' => date("Y-m-d"),//,'2014-09-27'//  DDEL
+        '#default_value' => date("Y-m-d"),//'2014-09-27', //   DDEL
         '#attributes' => array('id' => 'acecrew_calendar_date'),
     );
 
@@ -2262,9 +2265,10 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         if (intval($event['ses_number_vehicles']) != 0) {
             $data .= '<div class="call-vehicle">&nbsp;</div>';
         }
-        else {
-            $data .= '<div class="call-vehicle1">&nbsp;</div>';
+        if ($event['job_names_needed']) {
+          $data .= '<div class="call-need-name">&nbsp;</div>';
         }
+              
         if (intval($event['flag']) > 0) $data .= '<div class="call-flag">' .  $event['flag']['count'] . '</div>';
 
         $data .= '</div>

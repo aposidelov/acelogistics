@@ -643,8 +643,21 @@ ul.call-listing li.call-listing-item {position: relative; background: #fff url(i
 .call-first-row .call-time {background: url(images/call-time.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-crew-count {background: url(images/call-crew.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-hours {background: url(images/call-hours.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
-.call-first-row .call-vehicle {background: url(images/call-vehicle.png) no-repeat 0 0; padding-left: 100px; display: inline-block; height: 30px;}
-.call-first-row .call-vehicle1 {padding-left: 100px; display: inline-block; height: 30px;}
+.call-first-row .call-vehicle {background: url(images/call-vehicle.png) no-repeat 0 0; padding-left: 50px; display: inline-block; height: 30px;}
+
+.field-field-names-needed .field-items,
+.call-first-row .call-need-name {
+    background: url(images/need-name-icon.png) no-repeat 0 0; 
+    display: inline-block; 
+    width: 50px; 
+    height: 30px;
+}
+
+.field-field-names-needed .field-item {
+    display: none;
+}
+
+/*.call-first-row .call-vehicle1 {padding-left: 100px; display: inline-block; height: 30px;}*/
 .call-first-row .call-vehicle .call-alert {background: url(images/call-alert.png) no-repeat 0 0; padding: 0 20px; display: inline-block; height: 30px;color: #fff;}
 .call-second-row, .call-third-row, .call-fourth-row {padding: 10px; background: #f7f7f7;}
 .call-second-row, .call-fourth-row {border: 1px solid #d5d5d5;}
@@ -896,6 +909,7 @@ table.ui-datepicker-calendar {margin: 0 !important;}
 }
 
 .node-type-job .field-type-text, 
+.node-type-job .field-type-number-integer.field-field-names-needed,
 .node-job > .column-main > .column-wrapper > .node-content > .field-field-cancellation-status, 
 .page-node .field-type-datestamp { float: left; width: 30%; overflow: hidden; margin-right: 30px !important; background: #f7f7f7; border: 1px solid #D5D5D5; padding: 8px 0; text-align: center; margin-bottom: 10px;}
 .node-type-job .field-type-text.field-field-job-comments {}

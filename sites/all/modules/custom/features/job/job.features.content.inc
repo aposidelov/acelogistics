@@ -11,9 +11,10 @@ function job_content_default_fields() {
     'field_name' => 'field_cancellation_status',
     'type_name' => 'job',
     'display_settings' => array(
+      'weight' => '37',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -95,9 +96,10 @@ function job_content_default_fields() {
     'field_name' => 'field_document',
     'type_name' => 'job',
     'display_settings' => array(
+      'weight' => '51',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -160,7 +162,7 @@ function job_content_default_fields() {
       'max_filesize_per_file' => '',
       'max_filesize_per_node' => '',
       'label' => 'Document',
-      'weight' => '50',
+      'weight' => '51',
       'description' => '',
       'type' => 'filefield_widget',
       'module' => 'filefield',
@@ -172,7 +174,7 @@ function job_content_default_fields() {
     'field_name' => 'field_invoice_notes',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '31',
+      'weight' => '48',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -239,7 +241,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Invoice Notes',
-      'weight' => '47',
+      'weight' => '48',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -251,7 +253,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_booked_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '32',
+      'weight' => '49',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -318,7 +320,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Booked By',
-      'weight' => '48',
+      'weight' => '49',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -330,7 +332,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_client_contact',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '24',
+      'weight' => '40',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -394,7 +396,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Client contact',
-      'weight' => '39',
+      'weight' => '40',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -406,7 +408,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_client_name',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '23',
+      'weight' => '39',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -475,7 +477,7 @@ function job_content_default_fields() {
       'autocomplete_case' => '0',
       'i18n_flddata' => 0,
       'label' => 'Client name',
-      'weight' => '38',
+      'weight' => '39',
       'description' => '',
       'type' => 'autocomplete_widgets_allowvals',
       'module' => 'autocomplete_widgets',
@@ -487,7 +489,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_comments',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '30',
+      'weight' => '47',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -554,7 +556,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Comments',
-      'weight' => '46',
+      'weight' => '47',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -566,7 +568,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_created_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '33',
+      'weight' => '50',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -633,7 +635,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Created By',
-      'weight' => '49',
+      'weight' => '50',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -645,7 +647,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_date',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '27',
+      'weight' => '43',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -720,7 +722,7 @@ function job_content_default_fields() {
       'year_range' => '-3:+3',
       'label_position' => 'above',
       'label' => 'Date',
-      'weight' => '42',
+      'weight' => '43',
       'description' => '',
       'type' => 'date_popup',
       'module' => 'date',
@@ -732,7 +734,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '29',
+      'weight' => '45',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -799,7 +801,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount',
-      'weight' => '44',
+      'weight' => '45',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -811,9 +813,10 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount_desc',
     'type_name' => 'job',
     'display_settings' => array(
+      'weight' => '46',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -877,7 +880,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount description',
-      'weight' => '45',
+      'weight' => '46',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -889,7 +892,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_number',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '22',
+      'weight' => '36',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -968,7 +971,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_po_number',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '28',
+      'weight' => '44',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1035,7 +1038,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'PO Number',
-      'weight' => '43',
+      'weight' => '44',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -1047,7 +1050,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_status',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '26',
+      'weight' => '42',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1111,7 +1114,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Job status',
-      'weight' => '41',
+      'weight' => '42',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -1123,7 +1126,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_venue',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '25',
+      'weight' => '41',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1196,10 +1199,93 @@ return $items;',
       'autocomplete_case' => '0',
       'i18n_flddata' => 0,
       'label' => 'Venue',
-      'weight' => '40',
+      'weight' => '41',
       'description' => '',
       'type' => 'autocomplete_widgets_allowvals',
       'module' => 'autocomplete_widgets',
+    ),
+  );
+
+  // Exported field: field_names_needed
+  $fields['job-field_names_needed'] = array(
+    'field_name' => 'field_names_needed',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '38',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_integer',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'number',
+    'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '0|
+1|Names needed',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => 0,
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Names needed',
+      'weight' => '38',
+      'description' => '',
+      'type' => 'optionwidgets_onoff',
+      'module' => 'optionwidgets',
     ),
   );
 
@@ -1218,6 +1304,7 @@ return $items;',
   t('Invoice Notes');
   t('Job Number');
   t('Job status');
+  t('Names needed');
   t('PO Number');
   t('Venue');
 
