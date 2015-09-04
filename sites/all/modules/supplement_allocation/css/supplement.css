@@ -1,6 +1,5 @@
 .crew_name {
-    float: left;
-    line-height: 50px;
+    float: left;    
     vertical-align: middle;
     width: 120px;
 }
@@ -16,22 +15,19 @@ div.crew_name {
     float: left;
 }
 .comments
-{
-    line-height: 50px;
+{    
     width: 90px;/*width: 150px;*/
     float: left;
 }
 .total_crew
 {
-    float: left;
-    line-height: 50px;
+    float: left;    
     width: 70px;
 }
 .total_client
 {
-    float: left;
-    line-height: 50px;
-    width: 70px;
+    float: left;    
+    width: 90px;
 }
 .th-title
 {
@@ -152,8 +148,7 @@ div.crew_name {
 
 .additional_hours {
     width: 100px;
-    float: left;
-    line-height: 50px;
+    float: left;    
 }
 .standard_crew {
     float: left;
