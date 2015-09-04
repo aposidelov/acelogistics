@@ -1267,3 +1267,11 @@ ul.call-listing li.cancel-btn,
 #field-document-items {
     clear: both;
 }
+
+#views-exposed-form-venue-block-1 input[type=text] {
+    width: 250px;
+}
+
+#node-17 {
+    display: none;
+}

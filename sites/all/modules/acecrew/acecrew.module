@@ -1628,7 +1628,7 @@ function acecrew_calendar_form(){
         '#type' => 'date_popup',
         '#title' => t('Select date'),
         '#date_format' => 'Y-m-d',
-        '#default_value' => date("Y-m-d"),//'2014-09-27', //   DDEL
+        '#default_value' => '2014-09-27', // date("Y-m-d"),   DDEL
         '#attributes' => array('id' => 'acecrew_calendar_date'),
     );
 
@@ -1643,7 +1643,7 @@ function acecrew_calendar_form(){
             31=>31
         ),
         '#attributes' => array('id' => 'acecrew_calendar_forward_days'),
-        //'#default_value' => 4, // DDEL
+        '#default_value' => 4, // DDEL
     );
 
     $form['date']['submit'] = array(
