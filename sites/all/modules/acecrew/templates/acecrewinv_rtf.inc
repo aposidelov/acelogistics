@@ -688,7 +688,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $invoice_id = $quote['job']->acecrew_job_invoice_id;
     $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
     $file =  dirname(__FILE__) . '/../rtf/files/Ace-Invoice-'.$invoice_number.'.rtf';
-    watchdog('rtf_file', '<pre>'.print_r($file, TRUE).'</pre>');
+
     $rtf->save($file);
 
     return;
