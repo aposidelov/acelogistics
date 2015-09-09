@@ -26,6 +26,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $booked_by = $quote['job']->field_job_booked_by_value;
     $venue = $quote['venue'];
     $callings = $quote['callings'];
+    $job_number = $job->field_job_number_value;
     
     /*
       // Create alias
@@ -123,7 +124,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     echo '
   <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
   <tr>
-    <td style="width:390px;"><h1 style="padding-top:75px;">Quote - ' . $quote['job']->field_job_number_value . '</h1></td>
+    <td style="width:390px;"><h1 style="padding-top:75px;">Quote - ' . $job_number . '</h1></td>
     <td>
         <img src=' . $image . ' width=270 height=220 alt="Acecrew" style="margin-left:0px;" />
     </td>

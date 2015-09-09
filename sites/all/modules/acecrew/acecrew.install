@@ -44,6 +44,19 @@ function acecrew_schema()
     )
   );
   
+  $schema['acecrew_job_costs'] = array(
+    'fields' => array(
+      'acecrew_job_cost_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'job_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),      
+      'created' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key'        => array('acecrew_job_cost_id'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'job_id' => array('job_id')
+    )
+  );
+
   $schema['acecrew_uniform_pays'] = array(
     'fields' => array(
       'acecrew_uniform_pay_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),

@@ -472,7 +472,7 @@ ul li.leaf a, ul li.expanded a, ul li.collapsed a {
 
 .field-field-job-session-crews-items {padding-left: 0 !important; margin: 20px 0;}
 
-.acecrew_session_edit_button, .acecrew_session_status_button, .acecrew_session_sms_button, .acecrew_session_del_button, .form-submit, button, #acecrew_session_add_buttons a, #acecrew_job_button_quote, #acecrew_job_button_invoice, input.teaser-button, input.form-submit, .call-buttons a {
+.acecrew_session_edit_button, .acecrew_session_status_button, .acecrew_session_sms_button, .acecrew_session_del_button, .form-submit, button, #acecrew_session_add_buttons a, .acecrew_job_button, input.teaser-button, input.form-submit, .call-buttons a {
 
     color: #ffffff;
     padding: 8px 19px;
@@ -568,6 +568,32 @@ ul li.leaf a, ul li.expanded a, ul li.collapsed a {
         from(#b56565),
         to(#9A2929)) !important; 
 }
+
+.acecrew-costs-btn {
+    background: #095E89;
+    background: -moz-linear-gradient(
+        top,
+        #139ADE 0%,
+        #095E89) !important;
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#139ADE),
+        to(#095E89)) !important;    
+}
+
+.acecrew-costs-btn:hover {
+    background: #075C88;
+    background: -moz-linear-gradient(
+        top,
+        #124A67 0%,
+        #075C88) !important;
+    background: -webkit-gradient(
+        linear, left top, left bottom,
+        from(#124A67),
+        to(#075C88)) !important; 
+}
+
+
 
 .acecrew_job_docs li {margin-bottom: 10px !important;}
 

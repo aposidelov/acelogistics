@@ -15,34 +15,8 @@ function acecrew_review_crewmonth_form(&$form_state, $crew_id = '') {
 	if (sizeof($messages['status']) > 1) {
     unset($messages['status'][1]);
 	}
-
-	$call1 = array(
-		'data' => 'call 1',
-		'class' => 'call',
-	);
-	$call2 = array(
-		'data' => 'call 2',
-		'class' => 'call',
-	);
-	$call3 = array(
-		'data' => 'call 3',
-		'class' => 'call',
-	);
-
-	$list = array(
-		array('data' => '', 'children' => array($call1, $call2), 'class' => 'job'), 
-		array('data' => '', 'children' => array($call3), 'class' => 'job'), 
-		//array('children' => array('call31'), 'class' => 'job'),
-		//array('children' => array('call41', 'call42', 'call43'), 'class' => 'job')
-	);
-	/*$items[] = array(
-    'data' => $data,
-    'class' => implode(' ', $classes),
-    'id' => 'call-listing-item-' . $event['job_session_id'],
-  );*/
-  $output = theme('item_list', $list, 'My Title', 'ul', array('class' => 'call-listing'));
-
-	drupal_set_message($output);
+	
+	//drupal_set_message('<pre>'.print_r($schema, TRUE).'</pre>');
 
 	$form['month'] = array(
 	    '#type' => 'date_popup',

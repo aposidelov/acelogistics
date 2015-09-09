@@ -2,6 +2,16 @@
 
 require_once dirname(__FILE__) .'/acecrew_func.inc';
 
+/**
+ * Implements hook_update_N().
+ */
+function acecrew_update_6001() {    
+  $schema = drupal_get_schema('acecrew_job_costs', TRUE);
+  $ret = array();
+  db_create_table($ret, 'acecrew_job_costs', $schema);
+  return $ret;
+}
+
 // Delete node using ajax call
 function acecrew_del_user_bookedoff($nid){
   node_delete($nid);
@@ -29,30 +39,6 @@ function acecrew_add_user_bookedoff(){
     $ub_range_type
   );
 
-    /*$node = new StdClass();
-    $node->field_ub_label[0]['value']= $ub_label;
-
-    //$ub_date_start = explode(" ",$ub_date_start);
-    //   mm/dd/yy => yy-mm-dd
-    $ub_date_start = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_start);
-    $node->field_ub_date_start[0]['value']= $ub_date_start;//array('date'=>$ub_date_start[0], 'time'=>$ub_date_start[1]);
-
-    $ub_date_end = preg_replace("/(\d+)\/(\d+)\/(\d+)/", '\3-\1-\2', $ub_date_end);
-    $node->field_ub_date_end[0]['value']=$ub_date_end;// array('date'=>$ub_date_end[0], 'time'=>$ub_date_end[1]);
-    $node->field_ub_owner = array(0=>array('uid'=>$uid ));
-    $node->{type} = 'user_bookedoff';
-
-    $form_state = array();
-    //drupal_execute( $node->type, $form_state, (object)$node);
-    $cn = node_submit($node);
-    node_save($cn);
-    if ($cn->nid){ //success
-        drupal_json(array('result' => '1', 'msg'=>'Added new bookoff',
-            'node_id'=>$cn->nid));
-    }else{
-        drupal_json(array('result' => '0', 'msg'=>'bookoff operatio failed'));
-    }
-    */
   drupal_json(array('result' => '1'));
   exit();
 }
@@ -88,7 +74,6 @@ function acecrew_form_alter(&$form, $form_state, $form_id) {
     unset($form['Supplement']['profile_payrateid']);
   }
 }
-
 
 /**
  * Implementaiton of hook_menu()
@@ -135,6 +120,7 @@ function acecrew_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  // Invoice
   $items['acecrew/generateinvoice/%'] = array(
     'title' => 'Ace Crew Generate Invoice',
     'page callback' => 'acecrew_generate_invoice',
@@ -157,6 +143,30 @@ function acecrew_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  // Final costs
+  $items['acecrew/generate-costs/%'] = array(
+    'title' => 'Ace Crew Generate Final Costs',
+    'page callback' => 'acecrew_generate_costs',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/delete-costs/%'] = array(
+    'title' => 'Ace Crew  Delete Invoice',
+    'page callback' => 'acecrew_delete_costs',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/email-costs/%'] = array(
+    'title' => 'Ace Crew Email Final Costs',
+    'page callback' => 'acecrew_email_costs',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  // Quote
   $items['acecrew/generatequote/%'] = array(
     'title' => 'Ace Crew Generate quote',
     'page callback' => 'acecrew_generate_quote',
@@ -304,6 +314,14 @@ function acecrew_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['acecrew/costs/pdf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_cost_view_pdf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
+
   $items['acecrew/quote/rtf/%'] = array(
     'title' => 'Del crew from session',
     'page callback' => 'acecrew_quote_view_rtf',
@@ -315,6 +333,14 @@ function acecrew_menu() {
   $items['acecrew/invoice/rtf/%'] = array(
     'title' => 'Del crew from session',
     'page callback' => 'acecrew_invoice_view_rtf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
+
+   $items['acecrew/costs/rtf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_cost_view_rtf',
     'page arguments' => array(3),
     'access arguments' => array('edit field_job_session_crews'),
     'type' => MENU_CALLBACK,
@@ -546,7 +572,7 @@ function _acecrew_calc_crew_hours_cost($hour_rate, $hours) {
 function acecrew_generate_invoice($job_id) {
     $job = _acecrew_get_job_node_by_id($job_id);
     _acecrew_add_invoice_job_relate($job_id);
-    _acecrew_invoice_raised_job_status($job_id);
+    _acecrew_invoice_raised_job_status($job->nid);
 
     module_invoke_all('invoice_generate', $job_id);
 
@@ -575,7 +601,7 @@ function acecrew_email_invoice($invoice_id) {
     $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
     file_put_contents($filepath . $filename, $pdf);
 
-    if(empty($_POST['client_emails'])){
+    if (empty($_POST['client_emails'])){
         $client = acecrew_get_client_by_invoice_id($invoice_id);
         $client_email = $client->field_client_company_email[0]['email'];
     } else {
@@ -592,7 +618,7 @@ function acecrew_email_invoice($invoice_id) {
     $mail->Body = t('This is your invoice. Please see that attached file.');
     $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
 
-    if(!$mail->Send()) {
+    if (!$mail->Send()) {
         drupal_set_message(t('Can\'t send email'));
     } else {
         drupal_set_message(t('Email has been sent'));
@@ -600,6 +626,64 @@ function acecrew_email_invoice($invoice_id) {
 
     unlink($filepath . $filename);
     _acecrew_invoice_sent_job_status($invoice_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_generate_costs($job_id) {
+    $job = _acecrew_get_job_node_by_id($job_id);
+    _acecrew_add_cost_job_relate($job_id);    
+
+    module_invoke_all('cost_generate', $job_id);
+
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// delete invoice from custom table {acecrew_job_invoices}
+function acecrew_delete_costs($cost_id) {
+    /*$nid = db_result(db_query("SELECT nid FROM {invoice_invoices} WHERE iid=%d", $invoice_id));
+    node_delete($nid);*/
+    db_query("DELETE FROM {acecrew_job_costs} WHERE acecrew_job_cost_id = %d", $cost_id);
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// Generate Final Costs Pdf and send mail it to client
+function acecrew_email_costs($cost_id) {
+    $module_path = drupal_get_path('module', 'acecrew');
+    require_once($module_path .'/dompdf/dompdf_config.inc.php');
+    $html = _acecrew_invoice_get_html($cost_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $pdf = $dompdf->output();
+
+    $filename = 'FinalCosts.pdf';
+    $filepath = $module_path . '/temp/';
+    file_put_contents($filepath . $filename, $pdf);
+
+    if (empty($_POST['client_emails'])){
+        $client_email = acecrew_get_client_email_by_cost_id($cost_id);
+        //$client_email = $client->field_client_company_email[0]['email'];
+    } else {
+        $client_email = $_POST['client_emails'];
+    }
+
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From     = variable_get('site_mail', "crewreview@example.com");
+    $mail->AddAddress($client_email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Ace Crew Final Costs');
+    $mail->Body = t('This is your final costs. Please see that attached file.');
+    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+
+    if (!$mail->Send()) {
+        drupal_set_message(t('Can\'t send email'));
+    } else {
+        drupal_set_message(t('Email has been sent'));
+    }
+
+    unlink($filepath . $filename);    
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
@@ -2079,28 +2163,38 @@ function theme_acecrew_customform($acecrew_customform) {
 function theme_acecrew_assigned_docs($docs, $clientEmails) {
     modalframe_parent_js();
 
+    watchdog('ddd', '<pre>'.print_r($docs, TRUE).'</pre>');
+
     $base_path = base_path();
 
     $clientEmailsSelectbox = '';
-    foreach($clientEmails as $clientEmail){
+    foreach ($clientEmails as $clientEmail) {
         $clientEmailsSelectbox .= '<option value="' . $clientEmail['email'] . '"> ' . $clientEmail['name'] . ' &lt;' . $clientEmail['email'] . '&gt; </option>';
     }
     $clientEmailsSelectbox = '<select class="client_emails" name="client_emails">' . $clientEmailsSelectbox . '</select>';
 
     $invoices_html = '';
-    foreach($docs['invoices'] as $invoice_id => $invoice){
+    foreach ($docs['invoices'] as $invoice_id => $invoice) {
         $invoices_html .= "<li><a href=\"$base_path" . "acecrew/invoice/pdf/$invoice_id\">PDF</a> <a href=\"$base_path" . "acecrew/invoice/rtf/$invoice_id\">RTF</a> <a href=\"$base_path" . "acecrew/delinvoice/$invoice_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$invoice_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailinvoice/$invoice_id\" class=\"client_emails_form\" id=\"client_emails_form_$invoice_id\"> $clientEmailsSelectbox </form> </li>";
     }
-    if(!empty($invoices_html)){
+    if (!empty($invoices_html)) {
         $invoices_html = '<ul>' . $invoices_html . '</ul>';
     }
 
     $quotes_html = '';
-    foreach($docs['quotes'] as $quote_id => $quote){
+    foreach ($docs['quotes'] as $quote_id => $quote) {
         $quotes_html .= "<li><a href=\"$base_path" . "acecrew/quote/pdf/$quote_id\">PDF</a> <a href=\"$base_path" . "acecrew/quote/rtf/$quote_id\">RTF</a> <a href=\"$base_path" . "acecrew/delquote/$quote_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$quote_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/emailquote/$quote_id\" class=\"client_emails_form\" id=\"client_emails_form_$quote_id\"> $clientEmailsSelectbox </form> </li>";
     }
-    if(!empty($quotes_html)){
+    if (!empty($quotes_html)) {
         $quotes_html = '<ul>' . $quotes_html . '</ul>';
+    }
+
+    $costs_html = '';
+    foreach ($docs['costs'] as $cost_id => $cost) {
+        $costs_html .= "<li><a href=\"$base_path" . "acecrew/costs/pdf/$cost_id\">PDF</a> <a href=\"$base_path" . "acecrew/costs/rtf/$cost_id\">RTF</a> <a href=\"$base_path" . "acecrew/delete-costs/$cost_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$cost_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/email-costs/$cost_id\" class=\"client_emails_form\" id=\"client_emails_form_$cost_id\"> $clientEmailsSelectbox </form> </li>";
+    }
+    if (!empty($costs_html)){
+        $costs_html = '<ul>' . $costs_html . '</ul>';
     }
 
     $output = '<div class="acecrew_job_docs">';
@@ -2112,7 +2206,15 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
         <div class="document-wrapper invoice-wrapper">
         <h3>Invoices</h3>
         ' . $invoices_html . '
-        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-invoice-btn" id="acecrew_job_button_invoice">Generate Invoice</a></div>';
+        <a href="' .$base_path . 'acecrew/generateinvoice/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-invoice-btn" id="acecrew_job_button_invoice">Generate Invoice</a></div>
+        <div class="document-wrapper">
+        <h3>Final Costs</h3>
+        ' . $costs_html . '
+        <a href="' .$base_path . 'acecrew/generate-costs/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-costs-btn" id="acecrew_job_button_costs">Generate Final Costs</a></div>
+        ';
+    
+
+
     $has_crews = acecrew_get_crews_by_job($docs['job_nid']);
     if ($has_crews) {
     $output .= '<div class="document-wrapper">
@@ -2579,6 +2681,18 @@ function acecrew_invoice_view_pdf($invoice_id) {
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
+function acecrew_cost_view_pdf($cost_id) {
+    $job_number = acecrew_get_job_by_cost_id($cost_id);
+    _quote_dompdf_include_lib();
+    $html = _acecrew_cost_get_html($cost_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $dompdf->stream("Ace-FinalCosts-" . $job_number . ".pdf", array('Attachment' => 1));
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
 function acecrew_email_quote($quote_id){
     $path = drupal_get_path('module', 'acecrew');
     require_once($path . '/dompdf/dompdf_config.inc.php');
@@ -2649,25 +2763,25 @@ function acecrew_quote_view_rtf($quote_id) {
 }
 */
 
-function acecrew_quote_view_rtf($quote_id) {
-    /*
-    require_once('rtf/PHPRtfLite.php');
-    global $base_url;
-
-    $html = _acecrew_quote_rtf_get_html($quote_id);
-    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/sample.rtf';
-
-    //$file = file_get_contents($file);
-
-
-    drupal_goto($file);
-    */
+function acecrew_quote_view_rtf($quote_id) {    
     $job_number = acecrew_get_job_by_quote_id($quote_id);
     require_once('rtf/PHPRtfLite.php');
     global $base_url;
 
     $html = _acecrew_quote_rtf_get_html($quote_id);
     $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-Quote-' . $job_number . '.rtf';
+
+    drupal_goto($file);
+
+}
+
+function acecrew_cost_view_rtf($cost_id) {    
+    $job_number = acecrew_get_job_by_cost_id($cost_id);
+    require_once('rtf/PHPRtfLite.php');
+    global $base_url;
+
+    $html = _acecrew_cost_rtf_get_html($cost_id);
+    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-FinalCosts-' . $job_number . '.rtf';
 
     drupal_goto($file);
 

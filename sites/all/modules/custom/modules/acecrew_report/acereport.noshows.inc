@@ -1,7 +1,6 @@
 <?php
 
-function acecrew_report_noshows_form(&$form_state) {
-
+function acecrew_report_noshows_form(&$form_state) {  
   drupal_add_js(drupal_get_path('module', 'acereport') . '/acereport-noshows.js');
   
   if (!isset($form_state['values'])) {    

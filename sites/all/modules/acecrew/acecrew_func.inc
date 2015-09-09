@@ -175,6 +175,15 @@ function _acecrew_get_assigned_job_docs($nid){
         $docs['quotes'][$row->acecrew_job_quote_id] = date('Y-m-d H:i:s', $row->created);
     }
 
+    $docs['costs'] = array();
+    $query = "SELECT ajc.acecrew_job_cost_id, ajc.created FROM {acecrew_job_costs} ajc 
+    INNER JOIN {content_type_job} ctj ON  ajc.job_id = ctj.field_job_number_value
+    WHERE ctj.field_job_number_value = %d ORDER BY ajc.created DESC";
+    $query_result =  db_query($query, $docs['job_id']);
+    while ($row = db_fetch_object($query_result)){
+        $docs['costs'][$row->acecrew_job_cost_id] = date('Y-m-d H:i:s', $row->created);
+    }
+
     return $docs;
 }
 
@@ -197,43 +206,37 @@ function _acecrew_add_invoice_item($description, $quantity, $unit_cost, $uid, $w
 }
 
 function _get_invoice_number($job_id) {
-  $query = "SELECT invoice_number FROM {acecrew_job_invoices} WHERE job_id=$job_id";
-  $result = db_query($query);
+  $result = db_query("SELECT invoice_number FROM {acecrew_job_invoices} WHERE job_id=%d", $job_id);
   $row = db_fetch_object($result);
 
   return $row->invoice_number;
 }
 
-function _set_invoice_number() {
+function _set_invoice_number() {  
+  $is_invoice_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_invoices}"));
+  
+  if (!$is_invoice_exists) {
+    variable_set('invoice_inc', 0);
+  }
 
-    $query = "SELECT * FROM {acecrew_job_invoices}";
-    $result = db_query($query);
-    $row = db_fetch_object($result);
-    if (!$row) {
-        variable_set('invoice_inc', 0);
-    }
-
-  $invoice_inc = variable_get('invoice_inc');
+  $invoice_inc = variable_get('invoice_inc', 0);
   variable_set('invoice_inc', $invoice_inc + 1);
   $query = "SELECT field_invoice_number_value FROM {content_type_admin_settings}";
   $result = db_query($query);
   $row = db_fetch_object($result);
     if($invoice_inc) {
-        return $row->field_invoice_number_value + $invoice_inc;
+      return $row->field_invoice_number_value + $invoice_inc;
     } else {
-        return $row->field_invoice_number_value;
+      return $row->field_invoice_number_value;
     }
 }
 
 //set relate between job and invoice
 function _acecrew_add_invoice_job_relate($job_id) {
-
   $invoice_number = _set_invoice_number();
-  $date = mktime();
-  $query = "SELECT * FROM {acecrew_job_invoices} WHERE job_id=$job_id";
-  $result = db_query($query);
-  $row = db_fetch_object($result);
-  if (!$row) {
+  $date = mktime();  
+  $is_invoice_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_invoices} WHERE job_id = %d", $job_id));
+  if (!$is_invoice_exists) {
     $query = "INSERT INTO {acecrew_job_invoices} (job_id, invoice_number, created) VALUES ('%d', '%d', '%d')";
     $result = db_query($query, $job_id, $invoice_number, $date);
   } else {
@@ -242,52 +245,46 @@ function _acecrew_add_invoice_job_relate($job_id) {
   }
 }
 
-function _acecrew_invoice_raised_job_status($job_id) {
-
-    $query = "SELECT nid FROM {content_type_job} WHERE field_job_number_value='" . $job_id . "'";
-    $result = db_query($query);
-    while ($row = db_fetch_object($result)) {
-        $nid = $row->nid;
-    }
-    $query = "UPDATE {content_type_job} SET field_job_status_value=" . INVOICED . " WHERE nid=$nid";
-    db_query($query);
-    $query = "UPDATE {node} SET status=" . INVOICED . " WHERE nid=$nid";
-    db_query($query);
-    $query = "TRUNCATE {cache}";
-    db_query($query);
-    $query = "TRUNCATE {cache_content}";
-    db_query($query);
+function _acecrew_invoice_raised_job_status($job_nid) {        
+    acecrew_update_job_status($job_nid, INVOICED);
 }
 
 function _acecrew_invoice_sent_job_status($invoice_id) {
-
-    $query = "SELECT nid FROM {content_type_job} WHERE field_job_number_value=(SELECT job_id FROM {acecrew_job_invoices} WHERE acecrew_job_invoice_id=$invoice_id)";
-    $result = db_query($query);
-    while ($row = db_fetch_object($result)) {
-        $nid = $row->nid;
-    }
-    $query = "UPDATE {content_type_job} SET field_job_status_value=" . INVOICE_SENT . " WHERE nid=$nid";
-    db_query($query);
-    $query = "UPDATE {node} SET status=" . INVOICE_SENT . " WHERE nid=$nid";
-    db_query($query);
-    $query = "TRUNCATE {cache}";
-    db_query($query);
-    $query = "TRUNCATE {cache_content}";
-    db_query($query);
+    $job_nid = db_result(db_query('SELECT j.nid FROM {content_type_job} j 
+        INNER JOIN {acecrew_job_invoices} i ON j.field_job_number_value = i.job_id
+        WHERE i.acecrew_job_invoice_id = %d', $invoice_id));
+    acecrew_update_job_status($job_nid, INVOICE_SENT);
 }
 
-//set relate between job and quote
-function _acecrew_add_quote_job_relate($job_id){
-  $date = mktime();
-  $query = "SELECT * FROM {acecrew_job_quotes} WHERE job_id=$job_id";
-  $result = db_query($query);
-  $row = db_fetch_object($result);
-  if (!$row) {
-    $query = "INSERT INTO {acecrew_job_quotes} (job_id, created) VALUES ('%d', '%d')";
-    $result = db_query($query, $job_id, $date);
+function acecrew_update_job_status($job_nid, $status) {
+    db_query("UPDATE {content_type_job} 
+        SET field_job_status_value = %d 
+        WHERE nid = %d", $status, $job_nid);   
+}
+
+// set relate between job and quote
+function _acecrew_add_quote_job_relate($job_id) {
+  $date = mktime();  
+  $is_quote_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_quotes} WHERE job_id = %d", $job_id));    
+  if (!$is_quote_exists) {
+    $query = "INSERT INTO {acecrew_job_quotes} (job_id, created) VALUES (%d, %d)";
+    db_query($query, $job_id, $date);
   } else {
-    $query = "UPDATE {acecrew_job_quotes} SET `created` = '%d' WHERE `job_id` =%d;";
-    $result = db_query($query, $date, $job_id);
+    $query = "UPDATE {acecrew_job_quotes} SET created = %d WHERE job_id = %d";
+    db_query($query, $date, $job_id);
+  }
+}
+
+// set relate between job and cost
+function _acecrew_add_cost_job_relate($job_id) {
+  $date = mktime();  
+  $is_quote_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_costs} WHERE job_id = %d", $job_id));    
+  if (!$is_quote_exists) {
+    $query = "INSERT INTO {acecrew_job_costs} (job_id, created) VALUES (%d, %d)";
+    db_query($query, $job_id, $date);
+  } else {
+    $query = "UPDATE {acecrew_job_costs} SET created = %d WHERE job_id = %d";
+    db_query($query, $date, $job_id);
   }
 }
 
@@ -372,6 +369,16 @@ function acecrew_get_client_by_invoice_id($invoice_id) {
     return $client;
 }
 
+function acecrew_get_client_email_by_cost_id($cost_id) {
+    $query = "SELECT ctc.field_client_company_email_email AS client_company_email FROM drupal_acecrew_job_costs ajc
+        INNER JOIN drupal_content_type_job ctj ON ajc.job_id = ctj.field_job_number_value
+        INNER JOIN drupal_content_type_client ctc ON ctj.field_job_client_name_value = ctc.field_client_id_value
+        WHERE ajc.acecrew_job_cost_id = %d";
+    $client_company_email = db_result(db_query($query, $cost_id));
+    
+    return $client_company_email;
+}
+
 function acecrew_get_job_by_invoice_id($invoice_id, $only_id = TRUE) {
     $result = FALSE;
     $query = "SELECT ji.job_id FROM drupal_acecrew_job_invoices ji WHERE ji.acecrew_job_invoice_id = %d";
@@ -429,6 +436,14 @@ function acecrew_get_job_by_quote_id($quote_id, $only_id = TRUE) {
         }
     }
     return $result;
+}
+
+function acecrew_get_job_by_cost_id($cost_id) {
+    $result = FALSE;
+    $query = "SELECT jq.job_id FROM drupal_acecrew_job_costs jq WHERE jq.acecrew_job_cost_id = %d";
+    $job_id =  db_result(db_query($query, $cost_id));
+    
+    return $job_id;
 }
 
 //??saf modify
@@ -669,18 +684,10 @@ function _quote_dompdf_include_lib() {
     require_once(dirname(__FILE__) .'/dompdf/dompdf_config.inc.php');
 }
 
-function _acecrew_quote_get_html($quote_id, $type='print') {
-    /*
-      , cs.field_cancellation_status_value AS cancellation_status
-    FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid
-     */
-
+function _acecrew_quote_get_html($quote_id, $type = 'print') {    
     $job = NULL;
     $query = "SELECT ctj.*, ajq.*, cs.field_cancellation_status_value AS cancellation_status FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
-    $query_result = db_query($query, $quote_id);
-    while($row = db_fetch_object($query_result)){
-        $job = $row;
-    }
+    $job = db_fetch_object(db_query($query, $quote_id));
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);
@@ -702,13 +709,11 @@ function _acecrew_quote_get_html($quote_id, $type='print') {
     return $html;
 }
 
-function _acecrew_invoice_get_html($invoice_id, $type='print') {
+function _acecrew_invoice_get_html($invoice_id, $type = 'print') {
     $job = NULL;
     
     $query = "SELECT ctj.*, aji.*, cs.field_cancellation_status_value AS cancellation_status FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_invoices} aji WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
-    $query_result = db_query($query, $invoice_id);
-    $row = db_fetch_object($query_result);
-    $job = $row;
+    $job = db_fetch_object(db_query($query, $invoice_id));
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);
@@ -723,6 +728,32 @@ function _acecrew_invoice_get_html($invoice_id, $type='print') {
     $html .= '</head><body>';
 
     $html .= theme_acecrew_invoice_body($job, $client, $client_contact, $venue, $callings);
+
+    // The eurosign is not supported as applicable character, so replace it with a ascii code
+
+    $html .= '</body></html>';
+    return $html;
+}
+
+function _acecrew_cost_get_html($cost_id, $type = 'print') {
+    $job = NULL;
+    
+    $query = "SELECT ctj.*, ajc.*, cs.field_cancellation_status_value AS cancellation_status FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_costs} ajc WHERE ajc.job_id=ctj.field_job_number_value AND ajc.acecrew_job_cost_id='%s'";
+    $job = db_fetch_object(db_query($query, $cost_id));    
+
+    $client = _get_client_by_job($job);
+    $client_contact = _get_client_contact_by_id($job);
+    $venue = _get_venue_by_job($job);
+    $callings = _get_callings_for_invoice_by_job($job);
+
+    $html = '<!doctype>';
+    $html .= '<head>';
+    $html .= '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />';
+    $html .= '<html><head>';
+    $html .= '<style>table {page-break-before:auto;font-size:8px;} td {height: 10px;}</style>';
+    $html .= '</head><body>';
+
+    $html .= theme_acecrew_cost_body($job, $client, $client_contact, $venue, $callings);
 
     // The eurosign is not supported as applicable character, so replace it with a ascii code
 
@@ -953,6 +984,27 @@ function theme_acecrew_invoice_body($job, $client, $client_contact, $venue, $cal
     return $content;
 }
 
+function theme_acecrew_cost_body($job, $client, $client_contact, $venue, $callings) {
+    $node = array(
+            'job' => $job,
+            'client' => $client,
+            'client_contact' => $client_contact,
+            'venue' => $venue,
+            'callings' => $callings);
+
+    $content = '<div class="quote-wrapper">';
+
+    require_once dirname(__FILE__) .'/templates/acecrewcosts.inc';
+    //drupal_add_css(drupal_get_path('module', 'acecrew') .'/templates/acecrewcosts.css', 'module');
+
+    $content_function = '_acecrew_cost_get_template_output';
+    $content .= $content_function($node, 'pdf');
+
+    $content .= '</div>';
+
+    return $content;
+}
+
 function get_additional_hours($call) {
     $query = "SELECT * FROM {crew_call} WHERE jsid=" . $call->vid;
     $result = db_query($query);
@@ -1155,10 +1207,7 @@ function _acecrew_quote_rtf_get_html($quote_id) {
     $job = NULL;
     $query = "SELECT ctj.*, ajq.*, cs.field_cancellation_status_value AS cancellation_status 
     FROM {content_type_job} ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid, {acecrew_job_quotes} ajq WHERE ajq.job_id=ctj.field_job_number_value AND ajq.acecrew_job_quote_id='%s'";
-    $query_result = db_query($query, $quote_id);
-    while($row = db_fetch_object($query_result)){
-        $job = $row;
-    }
+    $job = db_fetch_object(db_query($query, $quote_id));
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);
@@ -1186,9 +1235,7 @@ function _acecrew_invoice_rtf_get_html($invoice_id) {
         FROM `drupal_content_type_job` ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid 
 , `drupal_acecrew_job_invoices` aji         
         WHERE aji.job_id=ctj.field_job_number_value AND aji.acecrew_job_invoice_id='%s'";
-    $query_result = db_query($query, $invoice_id);
-    $row = db_fetch_object($query_result);
-    $job = $row;    
+    $job = db_fetch_object(db_query($query, $invoice_id));   
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);
@@ -1206,6 +1253,34 @@ function _acecrew_invoice_rtf_get_html($invoice_id) {
     require_once dirname(__FILE__) .'/templates/acecrewinv_rtf.inc';
 
     $content = _acecrew_invoice_get_template_output($node);
+
+    return $content;
+}
+
+function _acecrew_cost_rtf_get_html($cost_id) {    
+    $job = NULL;
+    $query = "SELECT ctj.*, ajc.*, cs.field_cancellation_status_value AS cancellation_status
+        FROM `drupal_content_type_job` ctj LEFT JOIN `drupal_content_field_cancellation_status` cs ON cs.nid = ctj.nid 
+, `drupal_acecrew_job_costs` ajc         
+        WHERE ajc.job_id = ctj.field_job_number_value AND ajc.acecrew_job_cost_id = '%s'";
+    $job = db_fetch_object(db_query($query, $cost_id));   
+
+    $client = _get_client_by_job($job);
+    $client_contact = _get_client_contact_by_id($job);
+    $venue = _get_venue_by_job($job);
+    $callings = _get_callings_for_invoice_by_job($job);
+
+    $node = array(
+        'job' => $job,
+        'client' => $client,
+        'client_contact' => $client_contact,
+        'venue' => $venue,
+        'callings' => $callings
+    );
+
+    require_once dirname(__FILE__) .'/templates/acecrewcosts_rtf.inc';
+
+    $content = _acecrew_cost_get_template_output($node);
 
     return $content;
 }
