@@ -6,6 +6,7 @@ core = "6.x"
 engine = "phptemplate"
 
 stylesheets[screen][] = "style.css"
+stylesheets[print][] = "print.css"
 
 
 ; Regions

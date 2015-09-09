@@ -26,9 +26,12 @@ function stickySidebar() {
     move();
 }
 
-$(document).ready(function() {
-    $('#ub_date_start').change(function() {
-        console.log('ssss');
+$(document).ready(function() {    
+
+    $('.print-page').click(function() {
+        console.log('ddd');
+        window.print();
+        return false;
     });
 
     //Call stickySidebar once document is ready

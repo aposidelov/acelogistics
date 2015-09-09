@@ -2365,10 +2365,10 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                         <div class="call-crew-count">' .  $call_crew_amount . '</div>
                         <div class="call-hours">' . $call_hours . '</div>';
         if (intval($event['ses_number_vehicles']) != 0) {
-            $data .= '<div class="call-vehicle">&nbsp;</div>';
+            $data .= '<div class="call-vehicle">Vehicle</div>';
         }
         if ($event['job_names_needed']) {
-          $data .= '<div class="call-need-name">&nbsp;</div>';
+          $data .= '<div class="call-need-name">Need Names</div>';
         }
               
         if (intval($event['flag']) > 0) $data .= '<div class="call-flag">' .  $event['flag']['count'] . '</div>';
