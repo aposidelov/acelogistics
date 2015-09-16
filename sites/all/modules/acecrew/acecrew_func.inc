@@ -137,7 +137,7 @@ function _acecrew_get_assigned_job_sessions($nid) {
         $form_id = $node_type . '_node_form';
         $form_state = array('type' => $node_type);
 
-        $edit_form = drupal_get_form($form_id, $node);
+        $edit_form = '';//drupal_get_form($form_id, $node);
 
         $sessions[$row->nid]['form'] = $edit_form;
     }

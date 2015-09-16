@@ -60,11 +60,11 @@ function acecrew_theme_registry_alter(&$theme_registry) {
 /**
  * Implementaiton of hook_form_alter()
  */
-function acecrew_form_alter(&$form, $form_state, $form_id) {
+function acecrew_form_alter(&$form, &$form_state, $form_id) {
     //?? saf modified
   if ($form_id == 'job_session_node_form' || $form_id == 'admin_settings_node_form') {
     unset($form['buttons']['preview']);
-    unset($form['buttons']['delete']);
+    unset($form['buttons']['delete']);    
   }
   if ($form_id == 'admin_settings_node_form' ){
     $form['#redirect'] = false;
@@ -72,7 +72,23 @@ function acecrew_form_alter(&$form, $form_state, $form_id) {
 
   if ($form_id == 'user_register' || $form_id == 'user_profile_form'){
     unset($form['Supplement']['profile_payrateid']);
-  }
+  }  
+
+  if ($form_id == 'job_session_node_form') {    
+    $op = isset($_POST['op']) ? $_POST['op'] : '';
+    //watchdog('ff33', '<pre>'.print_r($form, TRUE).'</pre>');
+    //$form_state['rebuild'] = TRUE;        
+    //array_unshift($form['#submit'], 'acecrew_call_close_dialog_submit');
+    //$form['#submit'][] = 'acecrew_call_close_dialog_submit';
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-call.js');      
+    $form['buttons']['submit']['#submit'][] = 'acecrew_call_close_dialog_submit';    
+  } 
+}
+
+function acecrew_call_close_dialog_submit($form, &$form_state) {
+  $form_state['redirect'] = FALSE;
+  modalframe_child_js();
+  modalframe_close_dialog();  
 }
 
 /**
@@ -362,7 +378,28 @@ function acecrew_menu() {
     'file' => 'acecrew.pages.inc',
   );
 
+  $items['acecrew/get_call_add_form/%'] = array(
+    'title' => 'Add new call',
+    'page callback' => 'acecrew_ajax_get_call_form_add',
+    'page arguments' => array(2), //'acecrew_ajax_get_call_form_add',
+    'access arguments' => array('admin content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/get_call_edit_form/%'] = array(
+    'title callback' => 'acecrew_call_title',
+    'title arguments' => array(2),
+    'page callback' => 'acecrew_ajax_get_call_form_edit',
+    'page arguments' => array(2),
+    'access arguments' => array('admin content'),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
+}
+
+function acecrew_call_title($call_id) {
+  $call = node_load($call_id);
+  return t("Edit !call_name call", array('!call_name' => $call->field_session_callid[0]['value']));
 }
 
 /**
@@ -510,7 +547,7 @@ function acecrew_profile_alter(&$account) {
     drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-profile-reports.js');
 
     $output = '';
-    $output .= '<div id="acecrew_report_form"> ' . drupal_get_form('acecrew_report_form') . ' </div> ';
+    $output .= '<div id="acecrew_report_form">' . drupal_get_form('acecrew_report_form') . ' </div> '; //  
     $output .= '<div id="acecrew_report_output">  </div>';
     $output = '<div id="acecrew_report">' . $output . '</div>';
 
@@ -1781,18 +1818,23 @@ function __ref_func_inline(&$val){
  *
  */
 function acecrew_nodeapi(&$node, $op, $teaser, $page) {
+    if ($node->type == 'job' || ($node->type == 'job_session' && arg(1) == 'get_call_add_form')) {
+        if ($node->type == 'job') {
+          $job_nid = $node->nid;
+        } else {
+          $job_nid = arg(2);
+        }
 
-    if($node->type == 'job'){
         $acecrewmodule = acecrewmodule::getInstance();
-        $acecrewmodule->setCurrentJobId($node->nid);
+        $acecrewmodule->setCurrentJobId($job_nid);
 
-        $client_nid = _acecrew_get_client_nid_by_job_nid($node->nid);
+        $client_nid = _acecrew_get_client_nid_by_job_nid($job_nid);
         $acecrewmodule->setCurrentClientId($client_nid);
 
 
         $query = "SELECT j.field_job_number_value FROM drupal_content_type_job j
                 WHERE j.nid = '%d'";
-        $query_result =  db_query($query, $node->nid);
+        $query_result =  db_query($query, $job_nid);
         $row = db_fetch_array($query_result);
 
         $jbNum = $row['field_job_number_value'];
@@ -1801,7 +1843,7 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
         $query = "SELECT count(*) + 1 cc, max(CONVERT(SUBSTRING_INDEX(field_session_callid_value,'-',-1),UNSIGNED INTEGER)) mx FROM drupal_content_type_job_session s
               WHERE s.field_session_job_nid_value = '%d'";
 
-        $query_result =  db_query($query, $node->nid);
+        $query_result =  db_query($query, $job_nid);
         $row = db_fetch_array($query_result);
         $jbSessionCount = $row['cc'];
         if ( $jbSessionCount != 0){
@@ -1862,11 +1904,11 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
 
         // create a string of the $form_id
         $form_id = $nodeType . '_node_form';
-        $add_new_form = drupal_get_form($form_id, array('type' => $nodeType));
+        //$add_new_form = drupal_get_form($form_id, array('type' => $nodeType));
         $assigned_sessions = _acecrew_get_assigned_job_sessions($node->nid);
-        $assigned_docs = _acecrew_get_assigned_job_docs($node->nid);
+        $assigned_docs = _acecrew_get_assigned_job_docs($node->nid);        
         return array(
-            'acecrew_customform' => $add_new_form,
+            'acecrew_customform' => '',//$add_new_form,
             'acecrew_assigned_sessions' => $assigned_sessions,
             'acecrew_assigned_docs' => $assigned_docs);
     }
@@ -1879,28 +1921,27 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
     }
 
     if($node->type == 'job_session' && $op == 'presave' ) {
-        //Checking before the content type job_session is saved. If certain fields are to be edited
-        //than we should update crew members status (to text_not_sent) for that job call.
+      //Checking before the content type job_session is saved. If certain fields are to be edited
+      //than we should update crew members status (to text_not_sent) for that job call.
 
-        //Check if node is about to be edited (new nodes do not have nid set)
-        if($node->nid) {
-            $node_db = node_load($node->nid);
-            //Check if there is crew members allocated for this call
-            $cid = $node->field_session_callid[0]['value'];
-            $result = db_query("SELECT * FROM {crew_call} WHERE cid = '%s'", $cid);
-            if(db_affected_rows($result) > 0) {
-                //Compare new values with the one in database (time, crew num, hours)
-                if(
-                    $node->field_job_session_date_time[0]['value'] != $node_db->field_job_session_date_time[0]['value'] ||
-                    $node->field_job_session_crew[0]['value'] != $node_db->field_job_session_crew[0]['value'] ||
-                    $node->field_job_session_hours[0]['value'] != $node_db->field_job_session_hours[0]['value']
-                ) {
-                    //Update crew members status to text_not_sent
-                    db_query("UPDATE {crew_call} SET supplements = 'text_not_sent' WHERE cid = '%s'", $cid);
-                }
-            }
-        }
-
+      //Check if node is about to be edited (new nodes do not have nid set)
+      if($node->nid) {
+          $node_db = node_load($node->nid);
+          //Check if there is crew members allocated for this call
+          $cid = $node->field_session_callid[0]['value'];
+          $result = db_query("SELECT * FROM {crew_call} WHERE cid = '%s'", $cid);
+          if(db_affected_rows($result) > 0) {
+              //Compare new values with the one in database (time, crew num, hours)
+              if(
+                  $node->field_job_session_date_time[0]['value'] != $node_db->field_job_session_date_time[0]['value'] ||
+                  $node->field_job_session_crew[0]['value'] != $node_db->field_job_session_crew[0]['value'] ||
+                  $node->field_job_session_hours[0]['value'] != $node_db->field_job_session_hours[0]['value']
+              ) {
+                  //Update crew members status to text_not_sent
+                  db_query("UPDATE {crew_call} SET supplements = 'text_not_sent' WHERE cid = '%s'", $cid);
+              }
+          }
+      }      
     }
 
     if($node->type == 'job' && $op == 'presave') {
@@ -2143,6 +2184,11 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
 
 function theme_acecrew_customform($acecrew_customform) {
     $job_nid = arg(1);
+    // old ADD NEW CALL button
+    // <div id="acecrew_session_add_buttons" data-job-nid="'.$job_nid.'">
+    //    <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
+    // </div>
+
     $output =
         '
   <div class="acecrew_session_add_block clear-block">
@@ -2153,8 +2199,11 @@ function theme_acecrew_customform($acecrew_customform) {
       <div id ="acecrew_job_lock_message" style="display: none;">
         <p>Access Denied by job locking.</p>
       </div>
-      <div id="acecrew_session_add_buttons" data-job-nid="'.$job_nid.'">
-        <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
+      
+      <div id="acecrew_session_add_buttons">
+        <a href="javascript:void(0)" id="acecrew_session_add_button_2" onclick="Drupal.modalFrame.open({url: \'/acecrew/get_call_add_form/'.$job_nid.'\', onSubmit: function() {console.log(\'subm\');}, width: 700,
+
+height: 1200})">Add new call</a>
       </div>
   </div>';
     return $output;
@@ -2162,8 +2211,7 @@ function theme_acecrew_customform($acecrew_customform) {
 
 function theme_acecrew_assigned_docs($docs, $clientEmails) {
     modalframe_parent_js();
-
-    watchdog('ddd', '<pre>'.print_r($docs, TRUE).'</pre>');
+    
 
     $base_path = base_path();
 
@@ -3007,4 +3055,27 @@ function getInactiveActiveCrewMembers() {
     }
 
     return $users;
+}
+
+
+function acecrew_ajax_get_call_form_add($job_id) {  
+  global $user;
+  module_load_include('inc', 'node', 'node.pages');
+  $type = 'job_session';
+  $node = array('uid' => $user->uid, 'name' => (isset($user->name) ? $user->name : ''), 'type' => $type, 'language' => '');
+
+  $form_id = $type.'_node_form';
+  modalframe_child_js();
+  return drupal_get_form($form_id, $node);
+}
+
+function acecrew_ajax_get_call_form_edit($call_id) {
+  module_load_include('inc', 'node', 'node.pages');
+  $node = node_load($call_id);
+  // which nodeform you want
+  $node_type = 'job_session';
+  $form_id = $node_type . '_node_form';
+  $form_state = array('type' => $node_type);
+  modalframe_child_js();
+  return drupal_get_form($form_id, $node);
 }

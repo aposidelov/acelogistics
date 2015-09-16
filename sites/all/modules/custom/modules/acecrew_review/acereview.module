@@ -36,7 +36,8 @@ function acereview_menu() {
     'page arguments' => array('acereview_send_review_contract_popup_form', 2),
     'access arguments' => array('admin content'),
     'type' => MENU_CALLBACK,
-  );
+  );  
+
   $items['admin/reports/review_spreadsheet'] = array(
     'title' => 'Review spreadsheet',
     'description' => "Review spreadsheet Reports.",

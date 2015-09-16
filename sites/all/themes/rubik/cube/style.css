@@ -1319,3 +1319,12 @@ ul.call-listing li.cancel-btn,
 #node-17 {
     display: none;
 }
+
+.modalframe-page-content #node-form .column-main {
+    width: 100%;
+}
+
+.modalframe-page-content #node-form .column-main .collapsed,
+.modalframe-page-content #node-form .column-main #edit-preview-changes-1 {
+    display: none;
+}

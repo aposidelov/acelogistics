@@ -797,9 +797,9 @@ function call_content_default_fields() {
       'default_value_php' => NULL,
       'label' => 'Cancellation',
       'weight' => '31',
-      'description' => '>24 hrs                    - total price will be removed on the invoice & quote
->=12 hrs & < 24 hrs  - total price will be 50% charge on the invoice & quote
-<12 hrs                   - total price will be 100% charge on the invoice & quote',
+      'description' => '>24 hrs                    - total price will be removed on the invoice & quote;
+>=12 hrs & < 24 hrs  - total price will be 50% charge on the invoice & quote;
+<12 hrs                   - total price will be 100% charge on the invoice & quote;',
       'type' => 'optionwidgets_buttons',
       'module' => 'optionwidgets',
     ),
