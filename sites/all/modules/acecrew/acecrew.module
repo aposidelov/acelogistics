@@ -724,6 +724,7 @@ function acecrew_email_invoice($invoice_id) {
           'filemime' => 'application/pdf',
         )
       ));
+      drupal_set_message(t('Invoice email has been sent to !client_name', array('!client_name' => $client_name)));
 
     /*
     , array(
