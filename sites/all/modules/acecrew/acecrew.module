@@ -688,8 +688,8 @@ function acecrew_email_invoice($invoice_id) {
     $theme_path = drupal_get_path('theme', 'cube');
     $inv_logo_path = $theme_path.'/images/logo-invoice.png';
     $green_logo_path = $theme_path.'/images/green-inv-logo.png';
-    mimemail("alex.posidelov@gmail.com", 
-      "alex.posidelov@gmail.com", 
+    mimemail("brian@acecrew.co.uk", 
+      $client_email, 
       t('Ace Crew Invoice'),       
       "
       <p>Dear $client_name,</p>
