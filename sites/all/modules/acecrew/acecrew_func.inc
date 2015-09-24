@@ -321,8 +321,7 @@ function acecrew_get_client_by_id($client_id)
     return $client;
 }
 
-function acecrew_get_client_by_name($client_id)
-{
+function acecrew_get_client_by_name($client_id) {
     $client = false;
     $query = "SELECT ctc.nid FROM {content_type_client} ctc WHERE ctc.field_client_name_value = '%s'";
     $query_result =  db_query($query, $client_id);
@@ -333,19 +332,44 @@ function acecrew_get_client_by_name($client_id)
     return $client;
 }
 
-function _acecrew_get_client_emails($client_id)
-{
-    $client = acecrew_get_client_by_id($client_id);
-    $clientEmails = array();
-    $clientEmails[] = array('name' => $client->field_client_name[0]['value'], 'email' => $client->field_client_company_email[0]['email']);
-    foreach((array)$client->field_client_contact as $contact){
-        $clientEmails[] = array('name' => $contact['value']['field_client_contact_name'][0]['value'], 'email' => $contact['value']['field_client_contact_email'][0]['email']);
+function _acecrew_get_client_emails($client_param) {
+    if (is_object($client_param)) {
+        $client = &$client_param;
+    } else { 
+        $client = acecrew_get_client_by_id($client_param);
     }
+    $clientEmails = array();
+    foreach ((array)$client->field_add_accounts as $contact) {
+        $clientEmails[$contact['value']['field_accounts_email'][0]['email']] = array('name' => $contact['value']['field_accounts_contact'][0]['value'], 'email' => $contact['value']['field_accounts_email'][0]['email']);
+    }   
+    $clientEmails[$client->field_client_company_email[0]['email']] = array('name' => $client->field_client_name[0]['value'], 'email' => $client->field_client_company_email[0]['email']);
+    foreach ((array)$client->field_client_contact as $contact) {
+        $clientEmails[$contact['value']['field_client_contact_email'][0]['email']] = array('name' => $contact['value']['field_client_contact_name'][0]['value'], 'email' => $contact['value']['field_client_contact_email'][0]['email']);
+    }
+
     return $clientEmails;
 }
 
-function acecrew_get_venue_by_id($venue_id)
-{
+function _acecrew_get_client_emails_data($client_param) {
+    if (is_object($client_param)) {
+        $client = &$client_param;
+    } else { 
+        $client = acecrew_get_client_by_id($client_param);
+    }
+    $clientEmails = array();
+    foreach ((array)$client->field_add_accounts as $contact) {
+        $clientEmails[$contact['item_id']] = array('name' => $contact['value']['field_accounts_contact'][0]['value'], 'email' => $contact['value']['field_accounts_email'][0]['email']);
+    }   
+    $clientEmails[0] = array('name' => $client->field_client_name[0]['value'], 'email' => $client->field_client_company_email[0]['email']);
+    foreach ((array)$client->field_client_contact as $contact) {
+        $clientEmails[$contact['item_id']] = array('name' => $contact['value']['field_client_contact_name'][0]['value'], 'email' => $contact['value']['field_client_contact_email'][0]['email']);
+    }
+
+    return $clientEmails;
+}
+
+
+function acecrew_get_venue_by_id($venue_id) {
     $venue = false;
     $query = "SELECT ctv.nid FROM {content_type_venue} ctv WHERE ctv.field_venue_id_value = '%d'";
     $query_result =  db_query($query, $venue_id);

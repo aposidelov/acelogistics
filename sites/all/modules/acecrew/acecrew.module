@@ -624,45 +624,128 @@ function acecrew_delete_invoice($invoice_id) {
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
+/*
+function acecrew_invoice_view_pdf($invoice_id) {
+    $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
+    _quote_dompdf_include_lib();
+    $html = _acecrew_invoice_get_html($invoice_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $dompdf->stream("Ace-Invoice-" . $invoice_number . ".pdf", array('Attachment' => 1));
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+*/
 // Generate Invoice Pdf and send mail it to client (client is taken by $invoice_id)
 function acecrew_email_invoice($invoice_id) {
     $invoice_path = drupal_get_path('module', 'invoice');
-    require_once($invoice_path .'/dompdf/dompdf_config.inc.php');
+    _quote_dompdf_include_lib();
     $html = _acecrew_invoice_get_html($invoice_id, 'pdf');
     $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
     $dompdf->load_html($html);
     $dompdf->render();
     $pdf = $dompdf->output();
-
     $filename = 'invoice.pdf';
     $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
     file_put_contents($filepath . $filename, $pdf);
+    //drupal_set_message("File was created");
+    $client = acecrew_get_client_by_invoice_id($invoice_id);
+    //watchdog('cE', '<pre>'.print_r($client, TRUE).'</pre>');  
+    $clientEmails = _acecrew_get_client_emails_data($client);
 
-    if (empty($_POST['client_emails'])){
-        $client = acecrew_get_client_by_invoice_id($invoice_id);
-        $client_email = $client->field_client_company_email[0]['email'];
-    } else {
-        $client_email = $_POST['client_emails'];
+    if (empty($_POST['client_emails'])) {
+      $_POST['client_emails'] = 0;
     }
 
+    $client_email = $clientEmails[$_POST['client_emails']]['email'];
+    $client_name = $clientEmails[$_POST['client_emails']]['name'];
+    //watchdog('cE1', '<pre>'.print_r($client_name, TRUE).'</pre>');    
+    //watchdog('cE2', '<pre>'.print_r($client_email, TRUE).'</pre>');    
+    /*if (empty($_POST['client_emails'])) {
+      $client = acecrew_get_client_by_invoice_id($invoice_id);
+      $client_email = $client->field_client_company_email[0]['email'];
+    } else {
+      $client_email = $_POST['client_emails'];
+    }*/
+
+    
     module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
     $mail = new DrupalPHPMailer();
     $mail->IsMail();
-    $mail->From     = "from@example.com";
-    $mail->AddAddress($client_email);
+    $mail->From     = "alex.posidelov@gmail.com"; //from@example.com"; // brian@acecrew.co.uk // alex.posidelov@gmail.com
+    $mail->AddAddress("alex.posidelov@gmail.com"); // $client_email
     $mail->CreateBody();
     $mail->Subject  = t('Ace Crew Invoice');
-    $mail->Body = t('This is your invoice. Please see that attached file.');
+    $mail->Body = "
+      <p>Dear $client_name,</p>
+      <p>Please find attached our Invoice for service rendered.</p>
+      <p>Thank you!</p>
+      <p><strong>*Please do not reply to this email as it is unmanned. For all accounts enquiries or queries please email <span style='color:red;'>Brian@acecrew.co.uk</span>.</strong></p>";
     $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+    
+    $theme_path = drupal_get_path('theme', 'cube');
+    $inv_logo_path = $theme_path.'/images/logo-invoice.png';
+    $green_logo_path = $theme_path.'/images/green-inv-logo.png';
+    mimemail("alex.posidelov@gmail.com", 
+      "alex.posidelov@gmail.com", 
+      t('Ace Crew Invoice'),       
+      "
+      <p>Dear $client_name,</p>
+      <p>Please find attached our Invoice for service rendered.</p>
+      <p>Thank you!</p>
+        <p><strong>*Please do not reply to this email as it is unmanned. For all accounts enquiries or queries please email <a href='mailto:Brian@acecrew.co.uk'><font color='red'>Brian@acecrew.co.uk</font></a>.</strong></p>
+      <h3>Ace Crew Ltd.</h3>
+      <p><img src='$inv_logo_path' /></p>
+      <p>Unit 6,</p>
+      <p>Princess Court,</p>
+      <p>1 Horace Road,</p>
+      <p>Kingston upon Thames,</p>
+      <p>KT1 2SL</p>
+      <p><strong><font color='red'>m:</font></strong> <a href='#'><font color='black'>+44(0)7947 88 66 99</font></a></p>
+      <p><strong><font color='red'>t:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7924 6569</font></a></p>
+      <p><strong><font color='red'>f:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7900 6569</font></a></p>
+      <p><strong><font color='red'><a href='http://www.acecrew.co.uk'><strong><font color='red'>www.acecrew.co.uk</font><strong></a></font></strong></p>      
+      <br/><br/>
+      <p><font color='grey'>Company No: 06128298</font></p>
+      <p><font color='grey'>VAT No: 918965374</font></p>
+      <br/><br/>
+      <p><img src='$green_logo_path' /> <font color='green'>please don't print this email unless you really need to</font></p>
+      <br/>
+      <p>The contents of this Email and any files transmitted with it are confidential and intended solely for the use of the individual or entity to which it is addressed.</p>
+      <p>The views stated herein do not necessarily represent the view of the company.</p>
+      <p>If you are not the intended recipient of this Email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever.</p>
+      <p>If you have received this mail in error please Email the sender</p>",
+      NULL, array(), NULL, array(
+        array(
+          'filepath' => $filepath . $filename,
+          'filename' => $filename,
+          'filemime' => 'application/pdf',
+        )
+      ));
 
-    if (!$mail->Send()) {
+    /*
+    , array(
+        array(
+          'filepath' => $filepath . $filename,
+          'filename' => $filename,
+          'filemime' => 'application/pdf',
+        )
+      )
+     */
+    
+    /*if (!$mail->Send()) {
         drupal_set_message(t('Can\'t send email'));
     } else {
         drupal_set_message(t('Email has been sent'));
-    }
-
+    }*/
+    
+    unlink($filepath . $filename);
+    /*
     unlink($filepath . $filename);
     _acecrew_invoice_sent_job_status($invoice_id);
+    */
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
@@ -2089,7 +2172,7 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
             'basepath' => drupal_get_path('module', 'acecrew'),
         );
         drupal_add_js(array('acecrew' => $my_settings), "setting");
-        $clientEmails = _acecrew_get_client_emails($node->field_job_client_name[0]['value']);
+        $clientEmails = _acecrew_get_client_emails_data($node->field_job_client_name[0]['value']);
 
         $node->content['acecrew_assigned_sessions'] = array(
             '#value' => theme('acecrew_assigned_sessions', $node->acecrew_assigned_sessions),
@@ -2215,9 +2298,9 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
 
     $base_path = base_path();
 
-    $clientEmailsSelectbox = '';
-    foreach ($clientEmails as $clientEmail) {
-        $clientEmailsSelectbox .= '<option value="' . $clientEmail['email'] . '"> ' . $clientEmail['name'] . ' &lt;' . $clientEmail['email'] . '&gt; </option>';
+    $clientEmailsSelectbox = '';    
+    foreach ($clientEmails as $item_id => $clientEmail) {
+        $clientEmailsSelectbox .= '<option value="' . $item_id . '"> ' . $clientEmail['name'] . ' &lt;' . $clientEmail['email'] . '&gt; </option>';
     }
     $clientEmailsSelectbox = '<select class="client_emails" name="client_emails">' . $clientEmailsSelectbox . '</select>';
 
@@ -2742,7 +2825,7 @@ function acecrew_cost_view_pdf($cost_id) {
 }
 
 function acecrew_email_quote($quote_id){
-    $path = drupal_get_path('module', 'acecrew');
+    $path = drupal_get_path('module', 'invoice');
     require_once($path . '/dompdf/dompdf_config.inc.php');
     $html = _acecrew_quote_get_html($quote_id, 'pdf');
     $dompdf = new DOMPDF();
@@ -2755,7 +2838,7 @@ function acecrew_email_quote($quote_id){
     file_put_contents  ($filepath . $filename, $pdf);
 
     if(empty($_POST['client_emails'])){
-        $client = acecrew_get_client_by_quote_id($invoice_id);
+        $client = acecrew_get_client_by_quote_id($quote_id);
         $client_email = $client->field_client_company_email[0]['email'];
     } else {
         $client_email = $_POST['client_emails'];
@@ -2764,12 +2847,14 @@ function acecrew_email_quote($quote_id){
     module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
     $mail = new DrupalPHPMailer();
     $mail->IsMail();
-    $mail->From     = "from@example.com";
-    $mail->AddAddress($client_email);
+    $mail->From     = "alex.posidelov@gmail.com";//"from@example.com";
+    $mail->AddAddress("alex.posidelov@gmail.com"); // "alex.posidelov@gmail.com" $client_email
     $mail->CreateBody();
     $mail->Subject  = t('Ace Crew Quote');
     $mail->Body = t('This is your quote. Please see that attached file.');
-    $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+    $file_link = $filepath . $filename;
+    watchdog('fl', '<pre>'.print_r($file_link, TRUE).'</pre>');
+    //$mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
 
     if(!$mail->Send()) {
         drupal_set_message(t('Can\'t send email'));
