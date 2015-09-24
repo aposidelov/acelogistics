@@ -28,8 +28,7 @@ function stickySidebar() {
 
 $(document).ready(function() {    
 
-    $('.print-page').click(function() {
-        console.log('ddd');
+    $('.print-page').click(function() {        
         window.print();
         return false;
     });
