@@ -741,7 +741,7 @@ function acecrew_email_invoice($invoice_id) {
         drupal_set_message(t('Email has been sent'));
     }*/
     
-    unlink($filepath . $filename);
+    //unlink($filepath . $filename);
     /*
     unlink($filepath . $filename);
     _acecrew_invoice_sent_job_status($invoice_id);
