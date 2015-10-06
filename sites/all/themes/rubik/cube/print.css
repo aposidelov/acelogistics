@@ -560,7 +560,7 @@ select.form-select {background: #f7f7f7; border: 1px solid #d5d5d5; padding: 6px
 #user-login-form {width: 220px; margin: 20px auto;}
 #user-login-form #edit-submit {float: right; margin-top: 10px;}
 .container-inline .fieldset-content, .fieldset-content {border: 0;}
-.page-acecrew #page, .page-acecrew .content-wrapper, .page-supplement #page, .page-supplement .content-wrapper {background: transparent !important; border: 0 !important; padding: 0 !important;}
+.page-acecrew #page, .page-acecrew .content-wrapper, .page-supplement #page, .page-supplement .content-wrapper {margin: 0px !important; background: transparent !important; border: 0 !important; padding: 0 !important;}
 
 .page-acecrew .content-wrapper {position: relative; margin: 0px 0 !important;}
 .block .block-content, .container-inline .fieldset-content, .fieldset-content {background: transparent;}
@@ -597,10 +597,10 @@ fieldset.group-company-contact-details #edit-field-client-logo-0-ahah-wrapper {w
 .call-buttons {text-align: right; margin: 10px 35px 10px 0;}
 ul.call-listing li.call-listing-item {position: relative; background: #fff url(images/listing-header.png) repeat-x 0 0; border: 1px solid #d5d5d5; border-radius: 6px; margin-top: 10px;}
 .call-count-title {background: url(images/pattern-dark-blue.png) repeat-x 0 0; height: 25px; color: #fff; display: inline-block; border-radius: 4px; padding: 0 12px; line-height: 25px;}
-.call-first-row {height: 30px; margin-bottom: 20px; line-height: 30px;}
+.call-first-row {height: 30px; margin-bottom: 0px; line-height: 30px;}
 .call-first-row span {line-height: 30px;} /*color: #363636;*/
 .call-first-row .call-id {background: url(images/call-id.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
-.call-first-row .call-flag {background: url(images/call-flag.png) no-repeat 0 center;padding: 0px 18px;margin-left:10px;display:inline-block;height:30px;color:#fff; float: right; cursor: pointer}
+.call-first-row .call-flag {background: url(images/call-flag.png) no-repeat 0 center;padding: 0px 18px;margin-left:10px;display:none;height:30px;color:#fff; float: right; cursor: pointer}
 .call-first-row .call-time {background: url(images/call-time.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-crew-count {background: url(images/call-crew.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-hours {background: url(images/call-hours.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
@@ -1098,14 +1098,13 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
     right: 0;
 }
 
-@media (max-width:1040px){
-	
+@media (max-width:1040px) {	
 	ul.nice-menu > li, ul.nice-menu > li.first {margin: 0 10px;}
 	ul.nice-menu-down {float: none;}
 	.call-first-row .call-time, .call-first-row .call-id, .call-first-row .call-hours, .call-first-row .call-vehicle1, .call-first-row .call-crew-count {background: transparent; padding: 0 5px; margin: 0 5px;}
 	.call-buttons a {float: none; display: block; clear: both; width: 100%; margin: 5px 0; text-align: center;}
-	.call-first-row {height: auto;}
-	.call-first-row .call-flag {float: none; clear: both; margin: 10px 0 10px auto; display: table;}
+	.call-first-row {height: 30px;}
+	.call-first-row .call-flag {float: none; clear: both; margin: 10px 0 0px auto; display: none;}
 	#supplements span {margin-bottom: 7px;}
 	#block-block-2.scroller-static {max-width: 35.5%; right: 20px;}
 	#top #block-nice_menus-1 {max-width: 98%; margin: -29px auto 0 !important;}

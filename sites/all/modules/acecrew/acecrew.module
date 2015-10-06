@@ -649,8 +649,7 @@ function acecrew_email_invoice($invoice_id) {
     $pdf = $dompdf->output();
     $filename = 'invoice.pdf';
     $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
-    file_put_contents($filepath . $filename, $pdf);
-    //drupal_set_message("File was created");
+    file_put_contents($filepath . $filename, $pdf);    
     $client = acecrew_get_client_by_invoice_id($invoice_id);
     //watchdog('cE', '<pre>'.print_r($client, TRUE).'</pre>');  
     $clientEmails = _acecrew_get_client_emails_data($client);
@@ -693,30 +692,38 @@ function acecrew_email_invoice($invoice_id) {
       t('Ace Crew Invoice'),       
       "
       <p>Dear $client_name,</p>
-      <p>Please find attached our Invoice for service rendered.</p>
-      <p>Thank you!</p>
-        <p><strong>*Please do not reply to this email as it is unmanned. For all accounts enquiries or queries please email <a href='mailto:Brian@acecrew.co.uk'><font color='red'>Brian@acecrew.co.uk</font></a>.</strong></p>
-      <h3>Ace Crew Ltd.</h3>
-      <p><img src='$inv_logo_path' /></p>
-      <p>Unit 6,</p>
-      <p>Princess Court,</p>
-      <p>1 Horace Road,</p>
-      <p>Kingston upon Thames,</p>
-      <p>KT1 2SL</p>
-      <p><strong><font color='red'>m:</font></strong> <a href='#'><font color='black'>+44(0)7947 88 66 99</font></a></p>
-      <p><strong><font color='red'>t:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7924 6569</font></a></p>
-      <p><strong><font color='red'>f:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7900 6569</font></a></p>
-      <p><strong><font color='red'><a href='http://www.acecrew.co.uk'><strong><font color='red'>www.acecrew.co.uk</font><strong></a></font></strong></p>      
-      <br/><br/>
-      <p><font color='grey'>Company No: 06128298</font></p>
-      <p><font color='grey'>VAT No: 918965374</font></p>
-      <br/><br/>
+      <p>Please find attached our invoice for services rendered.</p>
+      <p>Many Thanks.</p>
+      <p>Kind Regards,</p>  
+      <p>
+      Brian Goulding<br>
+      <strong>Managing Director</strong><br>      
+      <strong>Ace Crew Ltd.</strong><br>      
+      <img width='136px' height='107px' src='$inv_logo_path' />
+      </p>
+      <p>
+      Unit 6,<br>
+      Princess Court,<br>
+      1 Horace Road,<br>
+      Kingston upon Thames,<br>
+      KT1 2SL<br>
+      <strong><font color='red'>m:</font></strong> <a href='#'><font color='black'>+44(0)7947 88 66 99</font></a><br>
+      <strong><font color='red'>t:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7924 6569</font></a><br>
+      <strong><font color='red'>f:&nbsp;</font></strong> <a href='#'><font color='black'>+44(0)20 7900 6569</font></a><br>
+      <strong><font color='red'><a href='http://www.acecrew.co.uk'><strong><font color='red'>www.acecrew.co.uk</font><strong></a></font></strong>      
+      </p>
+      <br/>
+      <p>
+      <font size='1' color='grey'>Company No: 06128298</font><br>
+      <font size='1' color='grey'>VAT No: 918965374</font>
+      </p>
+      <br/>
       <p><img src='$green_logo_path' /> <font color='green'>please don't print this email unless you really need to</font></p>
       <br/>
-      <p>The contents of this Email and any files transmitted with it are confidential and intended solely for the use of the individual or entity to which it is addressed.</p>
-      <p>The views stated herein do not necessarily represent the view of the company.</p>
-      <p>If you are not the intended recipient of this Email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever.</p>
-      <p>If you have received this mail in error please Email the sender</p>",
+      <p>The contents of this Email and any files transmitted with it are confidential and intended solely for the use of the individual or entity to which it is addressed.<br>
+      The views stated herein do not necessarily represent the view of the company.<br>
+      If you are not the intended recipient of this Email you may not copy, forward, disclose or otherwise use it or any part of it in any form whatsoever.<br>
+      If you have received this mail in error please Email the sender</p>",
       NULL, array(), NULL, array(
         array(
           'filepath' => $filepath . $filename,
