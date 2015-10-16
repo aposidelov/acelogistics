@@ -692,9 +692,13 @@ function acecrew_email_invoice($invoice_id) {
       t('Ace Crew Invoice'),       
       "
       <p>Dear $client_name,</p>
+      <br/>
       <p>Please find attached our invoice for services rendered.</p>
+      <br/>
       <p>Many Thanks.</p>
+      <br/>
       <p>Kind Regards,</p>  
+      <br/>
       <p>
       Brian Goulding<br>
       <strong>Managing Director</strong><br>      
@@ -718,7 +722,7 @@ function acecrew_email_invoice($invoice_id) {
       <font size='1' color='grey'>VAT No: 918965374</font>
       </p>
       <br/>
-      <p><img src='$green_logo_path' /> <font color='green'>please don't print this email unless you really need to</font></p>
+      <p><img src='$green_logo_path' /> please don't print this email unless you really need to</p>
       <br/>
       <p>The contents of this Email and any files transmitted with it are confidential and intended solely for the use of the individual or entity to which it is addressed.<br>
       The views stated herein do not necessarily represent the view of the company.<br>
