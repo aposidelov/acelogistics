@@ -647,10 +647,10 @@ function acecrew_email_invoice($invoice_id) {
     $dompdf->load_html($html);
     $dompdf->render();
     $pdf = $dompdf->output();
-    //$invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
-    //$filename = 'invoice-'.$invoice_number.'.pdf';
-    $filename = 'invoice.pdf';
-    drupal_set_message($filename);
+    $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
+    $filename = 'Ace-Invoice-'.$invoice_number.'.pdf';
+    //$filename = 'invoice.pdf';
+    //drupal_set_message($filename);
     $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
     file_put_contents($filepath . $filename, $pdf);    
     $client = acecrew_get_client_by_invoice_id($invoice_id);    
