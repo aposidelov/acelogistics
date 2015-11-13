@@ -653,8 +653,7 @@ function acecrew_email_invoice($invoice_id) {
     drupal_set_message($filename);
     $filepath = drupal_get_path('module', 'acecrew') . '/temp/';
     file_put_contents($filepath . $filename, $pdf);    
-    $client = acecrew_get_client_by_invoice_id($invoice_id);
-    //watchdog('cE', '<pre>'.print_r($client, TRUE).'</pre>');  
+    $client = acecrew_get_client_by_invoice_id($invoice_id);    
     $clientEmails = _acecrew_get_client_emails_data($client);
 
     if (empty($_POST['client_emails'])) {
@@ -690,7 +689,7 @@ function acecrew_email_invoice($invoice_id) {
     $theme_path = drupal_get_path('theme', 'cube');
     $inv_logo_path = $theme_path.'/images/logo-invoice.png';
     $green_logo_path = $theme_path.'/images/green-inv-logo.png';
-    mimemail("brian@acecrew.co.uk", 
+    mimemail("alex.posidelov@gmail.com", 
       $client_email, 
       t('Ace Crew Invoice'),       
       "
