@@ -212,38 +212,43 @@ function _get_invoice_number($job_id) {
   return $row->invoice_number;
 }
 
-function _set_invoice_number() {  
-  $is_invoice_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_invoices}"));
+function _set_invoice_number() {
+    /*$is_invoice_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_invoices}"));
   
-  if (!$is_invoice_exists) {
-    variable_set('invoice_inc', 0);
-  }
+    if (!$is_invoice_exists) {
+        variable_set('invoice_inc', 0);
+    }*/
 
-  $invoice_inc = variable_get('invoice_inc', 0);
-  variable_set('invoice_inc', $invoice_inc + 1);
-  $query = "SELECT field_invoice_number_value FROM {content_type_admin_settings}";
-  $result = db_query($query);
-  $row = db_fetch_object($result);
-    if($invoice_inc) {
-      return $row->field_invoice_number_value + $invoice_inc;
+    $invoice_inc = variable_get('invoice_inc', 0);
+    variable_set('invoice_inc', $invoice_inc + 1);
+    $query = "SELECT field_invoice_number_value FROM {content_type_admin_settings} LIMIT 1";
+    $result = db_query($query);
+    $row = db_fetch_object($result);
+    if ($invoice_inc) {                
+        return $row->field_invoice_number_value + $invoice_inc;
     } else {
-      return $row->field_invoice_number_value;
+        return $row->field_invoice_number_value;
     }
 }
 
 //set relate between job and invoice
 function _acecrew_add_invoice_job_relate($job_id) {
-  $invoice_number = _set_invoice_number();
-  $date = mktime();  
-  $is_invoice_exists = db_result(db_query("SELECT COUNT(*) FROM {acecrew_job_invoices} WHERE job_id = %d", $job_id));
-  if (!$is_invoice_exists) {
-    $query = "INSERT INTO {acecrew_job_invoices} (job_id, invoice_number, created) VALUES ('%d', '%d', '%d')";
+
+  $invoice_number = _set_invoice_number();  
+  $date = mktime();
+  $query = "SELECT * FROM {acecrew_job_invoices} WHERE job_id = %d";
+  $result = db_query($query, $job_id);
+  $row = db_fetch_object($result);
+
+  if (!$row) {
+    $query = "INSERT INTO {acecrew_job_invoices} (job_id, invoice_number, created) VALUES (%d, %d, %d)";
     $result = db_query($query, $job_id, $invoice_number, $date);
   } else {
-    $query = "UPDATE {acecrew_job_invoices} SET `created` = '%d' WHERE `job_id` =%d;"; //, `invoice_number` = '%d'
-    $result = db_query($query, $date, $invoice_number, $job_id);
+    $query = "UPDATE {acecrew_job_invoices} SET created = '%d' WHERE job_id = %d";
+    $result = db_query($query, $date, $job_id);
   }
 }
+
 
 function _acecrew_invoice_raised_job_status($job_nid) {        
     acecrew_update_job_status($job_nid, INVOICED);
