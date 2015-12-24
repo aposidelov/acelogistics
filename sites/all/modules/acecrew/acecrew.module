@@ -2931,7 +2931,6 @@ function acecrew_cost_view_rtf($cost_id) {
     $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-FinalCosts-' . $job_number . '.rtf';
 
     drupal_goto($file);
-
 }
 
 

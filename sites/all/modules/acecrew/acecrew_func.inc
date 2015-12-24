@@ -145,7 +145,7 @@ function _acecrew_get_assigned_job_sessions($nid) {
     return $sessions;
 }
 
-function _acecrew_get_assigned_job_docs($nid){
+function _acecrew_get_assigned_job_docs($nid) {
     $docs = array();
 
     $query = "SELECT ctj.field_job_number_value AS job_id, ctj.nid AS job_nid FROM {content_type_job} ctj WHERE ctj.nid = '%d' LIMIT 1";
@@ -249,7 +249,6 @@ function _acecrew_add_invoice_job_relate($job_id) {
   }
 }
 
-
 function _acecrew_invoice_raised_job_status($job_nid) {        
     acecrew_update_job_status($job_nid, INVOICED);
 }
@@ -293,7 +292,7 @@ function _acecrew_add_cost_job_relate($job_id) {
   }
 }
 
-function _acecrew_get_supplement($supp_id){
+function _acecrew_get_supplement($supp_id) {
     return node_load(array('nid' => $supp_id));
 }
 
