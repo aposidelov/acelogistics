@@ -12,7 +12,7 @@ define('BOOKOFF_DAILY_CREWS_COUNT', 5);
 
 
 /**
- * Implements hook_update_N().
+ * Implements hook_update_6001().
  */
 function op_custom_update_6001() {
   $fields = array(
@@ -32,7 +32,31 @@ function op_custom_update_6001() {
     acecrew_update_cck_field_type($int_field_name, $table_name);
   }
 
-  drupal_set_message(t('Supplements fields have been updated to decimal'));
+  drupal_set_message(t('Single Supplements fields have been updated to decimal'));
+}
+
+/**
+ * Implements hook_update_6002().
+ */
+function op_custom_update_6002() {
+  $fields = array(
+    'field_supp_0to4_client_hour', 
+    'field_supp_0to4_crew_hour', 
+    'field_supp_5to8_client_hour', 
+    'field_supp_5to8_crew_hour', 
+    'field_supp_9to12_client_hour', 
+    'field_supp_9to12_crew_hour', 
+    'field_supp_12plus_client_hour', 
+    'field_supp_12plus_crew_hour', 
+    'field_supp_per_hour'
+  );
+  $table_name = 'content_type_supplements';
+
+  foreach ($fields as $int_field_name) {
+    acecrew_update_cck_field_type($int_field_name, $table_name);
+  }
+
+  drupal_set_message(t('Per Hour Supplements fields have been updated to decimal'));
 }
 
 /**
