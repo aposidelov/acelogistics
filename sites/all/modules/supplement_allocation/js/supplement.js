@@ -1,4 +1,4 @@
-jQuery(document).ready(function() {
+jQuery(document).ready(function() {    
     /* $('#accordion .head').click(function() {
      $(this).next().toggle('slow');
      return false;
@@ -269,8 +269,10 @@ jQuery(document).ready(function() {
         var comment         = $('#' + currId.replace('_use_', '_comment_'));
 
         if ($(this).is(":checked")) {
-            
-            supplementRowRefresh(checkboxInput);
+            var crewId = $(this).attr('data-uid');                        
+            var additionalHours = $('#additional_hours_' + crewId).val();
+            // refresh data after enabling supplement checkbox
+            supplementRowRefresh(checkboxInput, additionalHours);
             
 
             crewPH.removeAttr("disabled");
@@ -313,15 +315,22 @@ jQuery(document).ready(function() {
     });
 
     $('.additional_hours > input').keyup(function() {
+        // pass additional hours to Refresh Supplement Row function
         var hrs = parseInt($(this).val());
+        var crewId = $(this).attr('data-uid');
+        var supplementRowSelector = 'input[name*="supp_use_' + crewId + '"]';
 
         if (confirm("Would you like to refresh supplement values?")) {
             delay(function() {
-                if (isInt(hrs)) {                
-                    $(".tr_check").each(function() {
+                if (isInt(hrs)) {    
+                    // go through each supplement row      
+                    // all supplements of current crew
+                    $(supplementRowSelector).each(function() {
                         var checkboxInput = $(this);
-                        if (checkboxInput.is(":checked")) {            
-                            supplementRowRefresh(checkboxInput, true);
+                        // check what supplements are checked
+                        if (checkboxInput.is(":checked")) {  
+                            // refresh data for checked supplements          
+                            supplementRowRefresh(checkboxInput, hrs, true);
                         }
                     }); 
                 }            
@@ -329,7 +338,7 @@ jQuery(document).ready(function() {
         }
     });
 
-    function supplementRowRefresh(checkboxInput, rewrite) {
+    function supplementRowRefresh(checkboxInput, additionalHours, rewrite) {
         rewrite = rewrite || false;
 
         var currId      = checkboxInput.attr('id');
@@ -341,11 +350,8 @@ jQuery(document).ready(function() {
 
         var supplementId = currId.split('_')[3];
         var callHours = Drupal.settings.callHours;
-        var additionalHours = $('.additional_hours > input').val();
-        var totalHours = parseInt(callHours) + parseInt(additionalHours);
-        //console.log(supplementId);
-        //console.log(callHours);
-        //console.log(additionalHours);
+                
+        var totalHours = parseInt(callHours) + parseInt(additionalHours);        
         //
         if (rewrite) {
             crewPH.val('');

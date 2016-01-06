@@ -59,7 +59,7 @@
                     $total_crew_charge += $crew['total_crew'];
                     $total_client_charge += $crew['total_client'];
                     ?>
-                    <h3 class="head">
+                    <h3 class="head head_<?=$crew['uid']?>">
                         <div class="crew_name">
                             <p style="float: left;" ><?=$crew['name']?></p>
 
@@ -71,11 +71,11 @@
                         <p class="additional_charge"><input name="additional_charge_<?=$crew['uid']?>" type="text" value="<?=$crew['additional_charge']?>" /></p>
                         <p class="additional_crew_pay"><input name="additional_crew_pay_<?=$crew['uid']?>" type="text" value="<?=$crew['additional_crew_pay']?>" /></p>
                         <p class="comments"><input name="comment_<?=$crew['uid']?>" type="text" value="<?=$crew['comment']?>" /></p>
-                        <p class="additional_hours"><input name="additional_hours_<?=$crew['uid']?>" type="text" value="<?=$crew['additional_hours']?>" /></p>
+                        <p class="additional_hours"><input data-uid="<?=$crew['uid']?>" id="additional_hours_<?=$crew['uid']?>" name="additional_hours_<?=$crew['uid']?>" type="text" value="<?=$crew['additional_hours']?>" /></p>
                         <div class="total_crew"><p style="border: 1px solid; width: 90%;"><?=$crew['total_crew'];?></p></div>
                         <div class="total_client"><p style="border: 1px solid; width: 90%;"><?=$crew['total_client'];?></p></div>
                     </h3>
-                    <div>
+                    <div class="supplement_<?=$crew['uid']?>">
                         <?php //var_dump($variables); ?>
                         <?php
                         if(empty($crew['supplements']))
@@ -186,7 +186,7 @@
                                     <div class = "crew_record">
                                         <div class="tr_crew">
                                             <label for="supp_use_<?=$crew['uid'].'_'.$supplement['nid']?>">
-                                                <input id="supp_use_<?=$crew['uid'].'_'.$supplement['nid']?>" name="supp_use_<?=$crew['uid'].'_'.$supplement['nid']?>" class="tr_check" type="checkbox" <?php
+                                                <input data-uid="<?=$crew['uid']?>" id="supp_use_<?=$crew['uid'].'_'.$supplement['nid']?>" name="supp_use_<?=$crew['uid'].'_'.$supplement['nid']?>" class="tr_check" type="checkbox" <?php
                                                     if($supplement['checked'] == 1) {?> checked="checked" <?php } ?>/>
                                                 <?=$supplement['title'];?></label></div>
                                         <?php
