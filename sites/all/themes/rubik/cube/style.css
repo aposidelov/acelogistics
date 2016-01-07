@@ -696,6 +696,8 @@ ul.call-listing li.call-listing-item {position: relative; background: #fff url(i
 .call-first-row .call-vehicle .call-alert {background: url(images/call-alert.png) no-repeat 0 0; padding: 0 20px; display: inline-block; height: 30px;color: #fff;}
 .call-second-row, .call-third-row, .call-fourth-row {padding: 10px; background: #f7f7f7;}
 .call-second-row, .call-fourth-row {border: 1px solid #d5d5d5;}
+.call-second-row { padding: 10px 0 5px 10px; }
+.call-second-row span { margin-bottom: 5px; }
 .call-third-row {border-left: 1px solid #d5d5d5; border-right: 1px solid #d5d5d5;}
 .call-third-row strong {margin-right: 10px;}
 .call-third-row span, #supplements span {display: inline-block; margin-left: 5px; background: url(images/supplement-bg.png) repeat-x 0 0; border: 1px solid #4c5764 !important; border-radius: 2px; color: #fff; font-size: 11px; padding: 0px 7px !important; text-transform: lowercase;}

@@ -1015,11 +1015,13 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         ctc.nid AS client_nid,
         ctc.field_client_name_value AS client_name,
         ctv.nid AS venue_nid,
+        ctv.field_venue_address_value AS venue_address,
         ctv.field_venue_name_value AS venue_name,
+        ctj.field_job_client_contact_value AS client_contact_id,
         ctj.field_job_status_value AS job_status,
         ctj.field_job_number_value AS job_number,
         ctj.nid AS job_nid,
-        js.field_call_contact_value AS job_client_contact,
+        js.field_call_contact_value AS call_contact_id,
         TIME(js.field_job_session_date_time_value) AS jstime,
         DATE(js.field_job_session_date_time_value) AS jsdate,
         IF( js.field_call_time_tbc_value IS NULL , 0, js.field_call_time_tbc_value ) AS call_time_tbc,
@@ -1070,10 +1072,12 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $job_nid             = $row->jsnid;
             $job_status          = $row->job_status;
             $job_number          = $row->job_number;
-            $job_client_contact  = $row->job_client_contact;
+            $call_contact_id     = $row->call_contact_id;
+            $client_contact_id   = $row->client_contact_id;
             $client_nid          = $row->client_nid;
             $client_name         = $row->client_name;
             $venue_nid           = $row->venue_nid;
+            $venue_address       = $row->venue_address;
             $venue_name          = $row->venue_name;
             $ses_count_crews     = $row->job_session_crew;
             $ses_count_hours     = $row->job_session_hours;
@@ -1146,6 +1150,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'time' => $row->jstime,
                     'venue_nid' => $venue_nid,
                     'venue' => $venue_name,
+                    'venue_address' => $venue_address,
                     'client_nid' => $client_nid,
                     'client' => $client_name,
                     'job_id' => $job_number,
@@ -1161,8 +1166,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'flag' => get_flag_count($row->nid), // get_diary_flag_count($call)
                     'crews' => $crews,
                     'supplement' => $supps,
-                    'nodeid' => $call_nid,
-                    'call_contact_id' => $job_client_contact,
+                    'nodeid' => $call_nid,                    
+                    'client_contact_id' => $client_contact_id,
+                    'call_contact_id' => $call_contact_id,
                     'call_time_tbc' => $row->call_time_tbc,
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
@@ -1178,6 +1184,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'time' => $row->jstime,
                     'venue_nid' => $venue_nid,
                     'venue' => $venue_name,
+                    'venue_address' => $venue_address,
                     'client_nid' => $client_nid,
                     'client' => $client_name,
                     'job_id' => $job_number,
@@ -1194,7 +1201,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                     'crews' => $crews,
                     'supplement' => $supps,
                     'nodeid' => $call_nid,
-                    'call_contact_id' => $job_client_contact,
+                    'client_contact_id' => $client_contact_id,
+                    'call_contact_id' => $call_contact_id,
                     'call_time_tbc' => $row->call_time_tbc,
                     'call_crew_tbc' => $row->call_crew_tbc,
                     'call_hours_tbc' => $row->call_hours_tbc,
@@ -1784,8 +1792,7 @@ function acecrew_session_sms($session_id)
     //$client_contact = '';
 
     //compose message
-    $newline = '
-';
+    $newline = '';
     $message = 'J' . $job_number . $newline . $sess_time . $newline . implode('; ', $hours_text) . $newline . $client_name . $newline . $addr . $newline . implode('; ', $comments) . $newline . $client_contact;
 
     //if number start from '0' then it is nuber without country code;
@@ -2451,6 +2458,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $red_class = !$client_credit_exists ? 'client-credit-warning' : '';
 
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
+        $client_contact = _get_client_contact_for_sms($event['client_contact_id'], $event['job_nid']);
 
         $is_call_cancelled = $event['is_call_cancelled'] ? 'call-status-canceled' : '';
         $is_job_cancelled = $event['is_job_cancelled'] ? 'job-notify-canceled' : '';
@@ -2525,7 +2533,9 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                         <strong>Call Status:</strong> ' . $call_status_text . '
                     </span>
                     <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  l($event['client'], 'node/'.$event['client_nid'], array('attributes' => array('target' => '_blank'))) . '</span></span>
+                    <span class="call-cleint-contact"><strong>Client Contact:</strong> ' .  $client_contact[0] . '</span>
                     <span class="call-venue"><strong>Venue:</strong> ' .  l($venue_name, 'node/'.$event['venue_nid'], array('attributes' => array('target' => '_blank'))) . '</span>
+                    <span class="call-venue-address"><strong>Venue Address:</strong> ' .  $event['venue_address'] . '</span>  
                     <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
                 </div>
                 <div class="call-third-row"><strong>Skills Required:</strong>'. $event['supplement'] . '</div>
