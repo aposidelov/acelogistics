@@ -1034,6 +1034,11 @@ span.bookoff-crew { width: auto; }
     border: 1px solid #5D9645;
     color: #28695c;}
 #crews-status-set-box .allocated-skills {display: none}
+#crews-status-set-box .each-crew > span {
+    max-width: 125px;
+
+    margin-right: 5px;
+}
 .call-fourth-row {overflow: hidden;}
 .call-fourth-row strong {float: none; clear: both; display: block;}
 .call-fourth-row .crew-names {display: block; float: left;}
@@ -1059,7 +1064,7 @@ ul.call-listing li.active-load-call {border-color: #ff0000}
 #block-block-2 {width: 100%; position: absolute;z-index: 1000;}
 
 #members-wrapper { width: 320px; clear: both; margin: 0px 0 10px; }
-#members-wrapper .viewport { width: 299px; height: 162px; overflow: hidden; position: relative; }
+#members-wrapper .viewport { width: 299px; height: 162px; overflow-y: scroll; position: relative; }
 #members-wrapper .overview { list-style: none; position: absolute; left: 0; top: 0; }
 #members-wrapper .thumb .end,
 #members-wrapper .thumb { background-color: #003D5D !important; }

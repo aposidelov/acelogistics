@@ -2675,7 +2675,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
                 var crew_box_count = crews.length;
                 if(crew_box_count > 5) {
-                    sidebar_widget += "<div id=\"members-wrapper\"><div class=\"scrollbar\"><div class=\"track\"><div class=\"thumb\"><div class=\"end\"></div></div></div></div><div class=\"viewport\"><div class=\"overview\">";
+                    sidebar_widget += "<div id=\"members-wrapper\"><div class=\"scrollbar\"><div class=\"track\"></div></div><div class=\"viewport\"><div class=\"overview\">";
                 }
 
                 sidebar_widget += "<div id=\"crews-status-set-box\">";
@@ -2729,11 +2729,12 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                 //}
                 $("#block-block-2").fadeIn(1000);
 
-                if(crew_box_count > 5) {
-                var oScrollbar = $("#members-wrapper");
-                    oScrollbar.tinyscrollbar();
-                    oScrollbar.tinyscrollbar_update();
-                }
+                /*if(crew_box_count > 5) {
+                var oScrollbar = $("#members-wrapper .viewport");
+                    //console.log(oScrollbar);
+                    //oScrollbar.tinyscrollbar();
+                    //oScrollbar.tinyscrollbar_update();
+                }*/
 
                 return false;
             });
