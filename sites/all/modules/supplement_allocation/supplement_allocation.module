@@ -190,20 +190,20 @@ function supplement_allocation_form_submit($form, &$form_state) {
                 ",
                 !empty($value) ? $value : 0,
                 !empty($clone['additional_crew_pay_'.$uid]) ? $clone['additional_crew_pay_'.$uid] : 0,
-                !empty($clone['comment_'.$uid]) ? '' : '',
+                !empty($clone['comment_'.$uid]) ? $clone['comment_'.$uid] : '',
                 !empty($clone['additional_hours_'.$uid]) ? $clone['additional_hours_'.$uid] : 0,
                 $standard_crew,
                 !empty($clone['fine_amount_'.$uid]) ? $clone['fine_amount_'.$uid] : 0,
-                !empty($clone['fine_desc_'.$uid]) ? '' : '',
+                !empty($clone['fine_desc_'.$uid]) ? $clone['fine_desc_'.$uid] : '',
                 !empty($clone['no_show_amount_'.$uid]) ? $clone['no_show_amount_'.$uid] : 0,
-                !empty($clone['no_show_desc_'.$uid]) ? '' : '',
+                !empty($clone['no_show_desc_'.$uid]) ? $clone['no_show_desc_'.$uid] : '',
                 !empty($clone['crew_total_add_amount_'.$uid]) ? $clone['crew_total_add_amount_'.$uid] : 0,
                 !empty($clone['crew_total_reduce_amount_'.$uid]) ? $clone['crew_total_reduce_amount_'.$uid] : 0,
                 !empty($clone['client_total_add_amount_'.$uid]) ? $clone['client_total_add_amount_'.$uid] : 0,
                 !empty($clone['client_total_reduce_amount_'.$uid]) ? $clone['client_total_reduce_amount_'.$uid] : 0,
                 $js_id,
                 $uid
-            );
+            );            
         }
         else if (strpos($key, 'supp_use') !== FALSE) {
             $temp = explode('_', $key);
