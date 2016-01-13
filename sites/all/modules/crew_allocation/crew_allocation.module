@@ -843,15 +843,22 @@ AND pv.value LIKE '%%'
     }
 
     $res = db_query("SELECT uid FROM {users_roles} WHERE rid = (SELECT rid FROM {role} WHERE name = 'Crew')");
-    while($row = db_fetch_object($res)) {
-        $crew_usrs[] = $row->uid;
+    while ($row = db_fetch_object($res)) {
+      $crew_usrs[] = $row->uid;
     }
 
-    foreach($users as $user) {
-        if (in_array($user->uid, $crew_usrs)) {
-            $user->name = $user->name. ' ' . acecrew_get_hours_by_crew($user->uid, $call_number);
-            $filtered_users[] = $user;
-        }
+
+    foreach ($users as $user) {            
+      if (in_array($user->uid, $crew_usrs)) {        
+        $postcode = db_result(db_query('SELECT pv.value
+          FROM {profile_fields} pf 
+          INNER JOIN {profile_values} pv
+          ON pf.fid = pv.fid
+          WHERE pf.name = "profile_crew_postcode" AND
+          pv.uid = %d LIMIT 1', $user->uid));
+        $user->name = $user->name. ' ' . acecrew_get_hours_by_crew($user->uid, $call_number) . ' ('.$postcode.')';
+        $filtered_users[] = $user;
+      }
     }
 
     return $filtered_users;
