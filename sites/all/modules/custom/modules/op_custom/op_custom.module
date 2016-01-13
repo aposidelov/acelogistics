@@ -1364,29 +1364,41 @@ function acecrew_cancellation_price($price, $type, $call_cancellation_status = C
   }
 }
 
-function acecrew_get_hours_by_crew($crew_uid, $str_result = TRUE) {   
-  $timezone = 'Europe/London';
-  $current_time = time();
-  // get day number 1 - Monday, 2 - Tuesday, ... 7 - Sunday
+function acecrew_get_hours_by_crew($crew_uid, $call_number = '6075-1', $str_result = TRUE) {   
+  $timezone = 'UTC';
+  // get call date
+  $current_date = db_result(db_query('
+    SELECT DATE(field_job_session_date_time_value)
+    FROM {content_type_job_session} 
+    WHERE field_session_callid_value = "%s"', 
+    $call_number));  
+  // turn call date to timestamp
+  $current_time = strtotime($current_date . ' 00:00');
+  // get day number 1 - Monday, 2 - Tuesday, ... 7 - Sunday  
   $day_number = ((date("w", $current_time) + 6) % 7);
+  // generate temporary current_to = call_date
   $current_week_date_to = $current_day = date('Y-m-d', $current_time);    
-
+  // generate current_from
   $current_week_date_from = date_make_date($current_day . ' 00:00', $timezone);
-  date_modify($current_week_date_from, '-'.($day_number).' days');
+  date_modify($current_week_date_from, '-'.($day_number).' days');  
   $current_week_date_from = date_format($current_week_date_from, 'Y-m-d');
+  // last_to
   $last_week_date_to = date_make_date($current_day . ' 00:00', $timezone);
   date_modify($last_week_date_to, '-'.($day_number + 1).' days');
   $last_week_date_to = date_format($last_week_date_to, 'Y-m-d');
+  // last_from
   $last_week_date_from = date_make_date($current_day . ' 00:00', $timezone);
   date_modify($last_week_date_from, '-'.($day_number + 7).' days');
   $last_week_date_from = date_format($last_week_date_from, 'Y-m-d');
+  // generate current_to = call_date - last day of the week  
+  $current_week_date_to = date_make_date($current_week_date_to, $timezone);
+  date_modify($current_week_date_to, (6 - $day_number).' days');
+  $current_week_date_to = date_format($current_week_date_to, 'Y-m-d');
 
-  /*
-  drupal_set_message('current_week_date_from = ' . $current_week_date_from);
-  drupal_set_message('current_week_date_to = ' . $current_week_date_to);
-  drupal_set_message('last_week_date_from = ' . $last_week_date_from);
-  drupal_set_message('last_week_date_to = ' . $last_week_date_to);
-  */
+  //drupal_set_message('current_week_date_from = ' . $current_week_date_from);
+  //drupal_set_message('current_week_date_to = ' . $current_week_date_to);
+  //drupal_set_message('last_week_date_from = ' . $last_week_date_from);
+  //drupal_set_message('last_week_date_to = ' . $last_week_date_to);  
 
   $current_hours = acecrew_get_crew_hours_by_date($crew_uid, $current_week_date_from, $current_week_date_to);
   $last_hours = acecrew_get_crew_hours_by_date($crew_uid, $last_week_date_from, $last_week_date_to);

@@ -787,7 +787,7 @@ function crew_allocation_get_unavailable_users($start, $end, $js_id, $status = n
 /**
  * Get all crew members(users) that have assigned supplement and employment type
  */
-function crew_allocation_get_all_users($supplement, $emp_type, $call_id) {    
+function crew_allocation_get_all_users($supplement, $emp_type, $call_number) {       
     $users = array();
     // list of users filtered by $supplement & $emp_type + excluded restricted users
     /*$sql = "SELECT pv.uid FROM `drupal_content_type_job_session` js 
@@ -849,7 +849,7 @@ AND pv.value LIKE '%%'
 
     foreach($users as $user) {
         if (in_array($user->uid, $crew_usrs)) {
-            $user->name = $user->name. ' ' . acecrew_get_hours_by_crew($user->uid);
+            $user->name = $user->name. ' ' . acecrew_get_hours_by_crew($user->uid, $call_number);
             $filtered_users[] = $user;
         }
     }
