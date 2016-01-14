@@ -1,9 +1,8 @@
 <?php
 
 function acecrew_report_fines_form(&$form_state) {
+  drupal_add_js(drupal_get_path('module', 'acereport') . '/acereport-fines.js');  
 
-  drupal_add_js(drupal_get_path('module', 'acereport') . '/acereport-fines.js');
-  
   if (!isset($form_state['values'])) {    
     $header = acecrew_report_fines_get_table_header();
     $rows = acecrew_report_fines_get_table_rows();
@@ -40,7 +39,17 @@ function acecrew_report_fines_form(&$form_state) {
     '#date_format' => 'Y-m-d',
     '#default_value' => isset($_POST['timesheets']) ? $_POST['timesheets']['end_date']['date'] : date("Y-m-d"),
     '#attributes' => array('id' => 'timesheets_end'),
-  );  
+  );
+
+  $form['timesheets']['crews_filter'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Crews'),    
+    '#default_value' => isset($form_state['values']) ? $form_state['values']['timesheets']['crews_filter'] : '',
+    '#attributes' => array('id' => 'timesheets_crews_filter'),
+    '#autocomplete_path' => 'user/autocomplete',
+  ); 
+  
+
   $form['timesheets']['preview'] = array(
     '#type' => 'submit',
     '#value' => t('Preview'),
@@ -59,18 +68,15 @@ function acecrew_report_fines_form_submit(&$form, &$form_state) {
   if ($form_state['clicked_button']['#parents'][1] == 'preview') {
     // to save the state in form.. it should be rebuilt
     $form_state['rebuild'] = 1;
-    $filter_by_date = $form_state['values']['timesheets']['filter_by_date'];
-    $date_from      = $_POST['timesheets']['start_date']['date'];
-    $date_to        = $_POST['timesheets']['end_date']['date'];    
+    $filter_by_date = $form_state['values']['timesheets']['filter_by_date'];    
+    $crews_filter   = $form_state['values']['timesheets']['crews_filter'];    
+    $date_from      = $filter_by_date ? $_POST['timesheets']['start_date']['date'] : '';
+    $date_to        = $filter_by_date ? $_POST['timesheets']['end_date']['date'] : '';    
 
     $rows   = array();
     // One Crew Type Report    
     $header = acecrew_report_fines_get_table_header();
-    if ($filter_by_date) {
-      $rows = acecrew_report_fines_get_table_rows($date_from, $date_to);
-    } else {
-      $rows = acecrew_report_fines_get_table_rows();
-    }
+    $rows = acecrew_report_fines_get_table_rows($date_from, $date_to, $crews_filter);
         
     
     $table = theme('table', $header, $rows, '');
@@ -79,10 +85,11 @@ function acecrew_report_fines_form_submit(&$form, &$form_state) {
 
   } elseif ($form_state['clicked_button']['#parents'][1] == 'generate') {
     $filter_by_date = $form_state['values']['timesheets']['filter_by_date'];
+    $crews_filter   = $form_state['values']['timesheets']['crews_filter'];
     $date_from      = $filter_by_date ? $_POST['timesheets']['start_date']['date'] : '';
     $date_to        = $filter_by_date ? $_POST['timesheets']['end_date']['date'] : '';
     
-    acecrew_report_fines_generate($date_from, $date_to);
+    acecrew_report_fines_generate($date_from, $date_to, $crews_filter);
     unset($_SESSION['messages']['status']);
   }
 }
@@ -98,10 +105,10 @@ function acecrew_report_fines_get_table_header() {
   return $header;
 }
 
-function acecrew_report_fines_get_table_rows($date_from = '', $date_to = '') {
+function acecrew_report_fines_get_table_rows($date_from = '', $date_to = '', $crews = '') {
   $rows = array();
 
-  $data = acecrew_report_fines_get_rows($date_from, $date_to);
+  $data = acecrew_report_fines_get_rows($date_from, $date_to, $crews);
 
   foreach ($data as $row) {
     $rows[] = array(
@@ -118,11 +125,15 @@ function acecrew_report_fines_get_table_rows($date_from = '', $date_to = '') {
   return $rows;
 }
 
-function acecrew_report_fines_get_rows($date_from = '', $date_to = '') {    
+function acecrew_report_fines_get_rows($date_from = '', $date_to = '', $crews = '') {    
   // cc.no_show
   $date_where = '';
   if (!empty($date_from) && !empty($date_to)) {
     $date_where = " AND js.field_job_session_date_time_value BETWEEN '%s' AND '%s' ";
+  }
+  $crews_where = '';
+  if (!empty($crews)) {
+    $crews_where = " AND c.name = '".$crews."'";
   }
 
   $sql = "SELECT  
@@ -134,8 +145,8 @@ function acecrew_report_fines_get_rows($date_from = '', $date_to = '') {
     FROM `drupal_crew_call` cc
     INNER JOIN `drupal_content_type_job_session` js ON cc.jsid = js.vid
     INNER JOIN `drupal_users` c ON c.uid = cc.uid
-    WHERE cc.fine <> 0 $date_where
-    ORDER BY js.field_job_session_date_time_value";
+    WHERE cc.fine <> 0 $date_where $crews_where
+    ORDER BY js.field_job_session_date_time_value";  
 
   if (!empty($date_from) && !empty($date_to)) {    
     $result = db_query($sql, $date_from, $date_to);
@@ -152,13 +163,13 @@ function acecrew_report_fines_get_rows($date_from = '', $date_to = '') {
   return $rows;
 }
 
-function acecrew_report_fines_generate($date_from, $date_to) {  
+function acecrew_report_fines_generate($date_from, $date_to, $crews) {  
   define (REPORT_DIR, 'sites/default/files/');
   define (CSV, '.csv');
   define (ZIP, '.zip');
 
   $header = acecrew_report_fines_get_table_header();
-  $rows   = acecrew_report_fines_get_rows($date_from, $date_to);
+  $rows   = acecrew_report_fines_get_rows($date_from, $date_to, $crews);
   
   $fname = "Acecrew-fines" . CSV;
   $path = REPORT_DIR . $fname;

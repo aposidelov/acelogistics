@@ -1335,3 +1335,10 @@ ul.call-listing li.cancel-btn,
 .modalframe-page-content #node-form .column-main #edit-preview-changes-1 {
     display: none;
 }
+
+#acecrew-report-fines-form .form-text,
+#acecrew-report-noshows-form .form-text {
+    width: 200px;
+    
+    margin-bottom: 30px;
+}
