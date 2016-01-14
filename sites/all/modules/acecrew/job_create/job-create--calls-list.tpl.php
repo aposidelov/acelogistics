@@ -2,10 +2,10 @@
 <?php foreach ($acecrew_assigned_sessions as $ses_id => $session) : ?>    
 	<?php $call = node_load($ses_id); ?>
     <?php $job = node_load($call->field_session_job_nid[0]['value']); ?>    
-	<?php $status_label = $call->field_cancellation_status[0]['value'] == CANCELLATION_NA ? t('Cancel') : t('Activate'); ?>
+	<?php $status_label = $call->status ? t('Cancel') : t('Activate'); ?>
     <?php $classes = !$call->status ? ' cancel-btn' : ''; ?>
     
-    <?php $classes .= $job->field_cancellation_status[0]['value'] != CANCELLATION_NA || 
+    <?php $classes .= !$call->status || $job->field_cancellation_status[0]['value'] != CANCELLATION_NA || 
                       $call->field_cancellation_status[0]['value'] != CANCELLATION_NA ? 
                       ' cancel-notice' : ''; ?>
 

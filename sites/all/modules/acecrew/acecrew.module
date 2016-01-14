@@ -565,13 +565,13 @@ function acecrew_del_job_session($ses_id) {
 
 function acecrew_toogle_status_job_session($ses_id) {
   $node = node_load($ses_id);
-  //$node->status = !$node->status;  
+  $node->status = !$node->status;  
   //watchdog('nnn', '<pre>'.print_r($node, TRUE).'</pre>');  
-  if ($node->field_cancellation_status[0]['value'] != CANCELLATION_NA) {
+  /*if ($node->field_cancellation_status[0]['value'] != CANCELLATION_NA) {
     $node->field_cancellation_status[0]['value'] = CANCELLATION_NA;
   } else {
     $node->field_cancellation_status[0]['value'] = CANCELLATION_24HOURS_MORE_NOTICE;
-  }
+  }*/
 
   node_save($node);
 }
@@ -1086,6 +1086,18 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $ses_number_vehicles = $row->num_vehicles;
             $job_status_code     = $job_status;
             $job_status          = $job_statuses[$job_status_code];
+            
+
+            if ($row->call_time_tbc || 
+              $row->call_crew_tbc || 
+              $row->call_hours_tbc || 
+              $row->call_contract_tbc) {
+              $job_status = t('To be confirmed');
+            }
+
+            if (!$row->call_status) {
+              $job_status = t('Cancelled');
+            }
 
             // if job status is 'canceled' or 'quote' it should not appear on diary page
             if (in_array($job_status, array(CANCELLED, QUOTE))) {
@@ -1145,76 +1157,51 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $call->field_session_callid     = $row->field_session_callid;
             $call->field_call_supplements   = $call_supp;
             */
-            //$row->cancellation_status = trim($row->cancellation_status);
-            if ($row->call_time_tbc || $row->call_crew_tbc || $row->call_hours_tbc || $row->call_contract_tbc) {
-                $tbc_scheduler_date[$date_item]['scheduler'][] = array(
-                    'job_session_id' => $row->vid,
-                    'time' => $row->jstime,
-                    'venue_nid' => $venue_nid,
-                    'venue' => $venue_name,
-                    'venue_address' => $venue_address,
-                    'venue_postcode' => $venue_postcode,
-                    'client_nid' => $client_nid,
-                    'client' => $client_name,
-                    'job_id' => $job_number,
-                    'job_nid' => $row->job_nid,
-                    'call_id' => $call_number,
-                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
-                    'job_status_code' => $job_status_code,
-                    'job_status' => $job_status,
-                    'ses_count_crews' => $ses_count_crews,
-                    'ses_count_hours' => $ses_count_hours,
-                    'ses_number_vehicles' => $ses_number_vehicles,
-                    'job_names_needed' => $row->names_needed,
-                    'flag' => get_flag_count($row->nid), // get_diary_flag_count($call)
-                    'crews' => $crews,
-                    'supplement' => $supps,
-                    'nodeid' => $call_nid,                    
-                    'client_contact_id' => $client_contact_id,
-                    'call_contact_id' => $call_contact_id,
-                    'call_time_tbc' => $row->call_time_tbc,
-                    'call_crew_tbc' => $row->call_crew_tbc,
-                    'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc,
-                    'is_call_cancelled' => !$row->call_status,
-                    'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
-                    'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
-                );
+            //$row->cancellation_status = trim($row->cancellation_status);            
+            $call_item_data = array(
+              'job_session_id' => $row->vid,
+              'time' => $row->jstime,
+              'venue_nid' => $venue_nid,
+              'venue' => $venue_name,
+              'venue_address' => $venue_address,
+              'venue_postcode' => $venue_postcode,
+              'client_nid' => $client_nid,
+              'client' => $client_name,
+              'job_id' => $job_number,
+              'job_nid' => $row->job_nid,
+              'call_id' => $call_number,
+              'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
+              'job_status_code' => $job_status_code,
+              'job_status' => $job_status,
+              'ses_count_crews' => $ses_count_crews,
+              'ses_count_hours' => $ses_count_hours,
+              'ses_number_vehicles' => $ses_number_vehicles,
+              'job_names_needed' => $row->names_needed,
+              'flag' => get_flag_count($row->nid), // get_diary_flag_count($call)
+              'crews' => $crews,
+              'supplement' => $supps,
+              'nodeid' => $call_nid,                    
+              'client_contact_id' => $client_contact_id,
+              'call_contact_id' => $call_contact_id,
+              'call_time_tbc' => $row->call_time_tbc,
+              'call_crew_tbc' => $row->call_crew_tbc,
+              'call_hours_tbc' => $row->call_hours_tbc,
+              'call_contract_tbc' => $row->call_contract_tbc,
+              'is_call_cancelled' => !$row->call_status,
+              'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
+              'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
+            );
+            // conditions when call should go to Top category 
+            // (also grouped by days)
+            if ($row->call_time_tbc || 
+              $row->call_crew_tbc || 
+              $row->call_hours_tbc || 
+              $row->call_contract_tbc ||
+              $call_item_data['is_call_cancelled']) {
+                $tbc_scheduler_date[$date_item]['scheduler'][] = $call_item_data;
                 $tbc_scheduler_date[$date_item]['date'] = $date_item;
             } else {
-                $scheduler[] = array(
-                    'job_session_id' => $row->vid,
-                    'time' => $row->jstime,
-                    'venue_nid' => $venue_nid,
-                    'venue' => $venue_name,
-                    'venue_address' => $venue_address,
-                    'venue_postcode' => $venue_postcode,
-                    'client_nid' => $client_nid,
-                    'client' => $client_name,
-                    'job_id' => $job_number,
-                    'job_nid' => $row->job_nid,
-                    'call_id' => $call_number,
-                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
-                    'job_status_code' => $job_status_code,
-                    'job_status' => $job_status,
-                    'ses_count_crews' => $ses_count_crews,
-                    'ses_count_hours' => $ses_count_hours,
-                    'ses_number_vehicles' => $ses_number_vehicles,
-                    'job_names_needed' => $row->names_needed,
-                    'flag' => get_flag_count($row->nid), //get_diary_flag_count($call)
-                    'crews' => $crews,
-                    'supplement' => $supps,
-                    'nodeid' => $call_nid,
-                    'client_contact_id' => $client_contact_id,
-                    'call_contact_id' => $call_contact_id,
-                    'call_time_tbc' => $row->call_time_tbc,
-                    'call_crew_tbc' => $row->call_crew_tbc,
-                    'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc,
-                    'is_call_cancelled' => !$row->call_status,
-                    'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
-                    'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
-                );
+              $scheduler[] = $call_item_data;
             }
         } // dates foreach
         $html .= theme('acecrew_calendar_scheduler', $scheduler, $date_item);
@@ -1240,180 +1227,6 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
     };
 }
 
-/*
-function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls = false) {
-    //$date = date($date);
-    //$date = strtotime("+".$forward_days." days", strtotime($date));
-    //$date = date("Y-m-d", $date);
-    $html = $tbc_calls_html = '';
-    $tbc_scheduler_date = array();
-    $tbc_index = 0;
-    for ($i = 0; $i <= $forward_days; $i++) {
-        $query = "SELECT vid, nid, field_session_callid_value AS cid, field_session_job_nid_value AS jsnid,  TIME(field_job_session_date_time_value) AS jstime,
-             IF(  `field_call_time_tbc_value` IS NULL , 0,  `field_call_time_tbc_value` ) AS call_time_tbc,
-             IF(  `field_call_crew_tbc_value` IS NULL , 0,  `field_call_crew_tbc_value` ) AS call_crew_tbc,
-             IF(  `field_call_hours_tbc_value` IS NULL , 0,  `field_call_hours_tbc_value` ) AS call_hours_tbc,
-             IF(  `field_call_contract_tbc_value` IS NULL , 0,  `field_call_contract_tbc_value` ) AS call_contract_tbc
-            FROM {content_type_job_session} js
-            WHERE DATE(js.field_job_session_date_time_value) = '%s'
-            ORDER BY jstime";
-        $query_result =  db_query($query, $date);
-        $scheduler = $current_scheduler = array();
-
-        $job_statuses = array(
-            AWAITING_PO  => 'Awaiting PO',
-            QUOTE        => 'Quote',
-            CONFIRMED    => 'Confirmed',
-            CANCELLED    => 'Cancelled',
-            PENCIL       => 'Pencil',
-            INVOICED     => 'Invoiced',
-            INVOICE_SENT => 'Invoice Sent');
-
-        while ($row = db_fetch_object($query_result)) {
-            $job_nid = $row->jsnid;
-            $job_row = acecrew_get_job_row_by_id($job_nid);
-
-            //If job status is 'canceled' or 'quote' it should not appear on diary page
-            if($job_row->field_job_status_value == CANCELLED || $job_row->field_job_status_value == QUOTE) {
-                continue;
-            }
-
-            $client = acecrew_get_client_by_id($job_row->field_job_client_name_value);
-            $client_name = $client->field_client_name[0]['value'];
-            $venue = acecrew_get_venue_by_id($job_row->field_job_venue_value);
-            $venue_name = $venue->field_venue_name[0]['value'];
-
-            $session_node = node_load(array('nid' => $row->nid));
-            $ses_callid = $session_node->field_session_callid[0]['value'];
-            $ses_count_crews = $session_node->field_job_session_crew[0]['value'];
-            $ses_count_hours = $session_node->field_job_session_hours[0]['value'];
-            $ses_number_vehicles = $session_node->field_session_num_vehicles[0]['value'];
-
-            $node_id = $session_node->nid;
-
-            $crews = array();
-            if (isset($session_node->field_job_session_crews)) {
-                foreach ($session_node->field_job_session_crews as $ses_crew) {
-                    $crew_name = $ses_crew['value']['field_crew_job_session_name'][0]['value'];
-                    $crew_status = $ses_crew['value']['field_crew_job_session_status'][0]['value'];
-                    $user = user_load(array('uid' => $crew_name));
-                    $crew_name = $user->name;
-                    //$crews .= '<li class="session_crew_statused_name_' . $crew_status . '">' . $crew_name . '</li>';
-                }
-            }
-
-            $supp_name = '';
-            if (isset($session_node->field_call_supplements)) {
-                foreach ($session_node->field_call_supplements as $item) {
-                    $tmp = explode("\"", $item['fields']);
-                    $supp_node = node_load($item['nid']);
-                    $supp_title = $supp_node->title;
-                    $supp_name .= "<span class='call-supp'>$supp_title ($tmp[3])</span>";
-                }
-            }
-
-            $supps =  $supp_name;
-
-            $job_status_code = $job_row->field_job_status_value;
-            $job_status = $job_statuses[$job_status_code];
-
-            $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
-            $query_result1 =  db_query($query1, $row->vid);
-            while ($row1 = db_fetch_object($query_result1)) {
-                $query2 = "SELECT supplements, fine, no_show FROM {crew_call} WHERE uid='%s' AND jsid='%s'";
-                $query_result2 = db_query($query2, $row1->uid, $row->vid);
-                while ($row2 = db_fetch_object($query_result2)) {
-                    $supplements = $row2->supplements;
-                    $fine = $row2->fine;
-                    $no_show = $row2->no_show;
-                }
-
-                $allocated_skills = acecrew_get_allocated_supplements($row1->uid, $row->vid);
-                $allocated_skills = implode(", ", $allocated_skills);
-
-                //Add to $crew, crew member name, uid, supplements, allocated skills, fine and no show
-                $crew = array($row1->name, $row1->uid, $supplements, $allocated_skills, $fine, $no_show);
-                $crews[] = $crew;
-            }
-
-            if ($row->call_time_tbc || $row->call_crew_tbc || $row->call_hours_tbc || $row->call_contract_tbc) {
-                $tbc_scheduler_date[$i]['scheduler'][] = array(
-                    'job_session_id' => $row->vid,
-                    'time' => $row->jstime,
-                    'venue' => $venue_name,
-                    'client' => $client_name,
-                    'job_id' => $job_row->field_job_number_value,
-                    'call_id' => $ses_callid,
-                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
-                    'job_status_code' => $job_status_code,
-                    'job_status' => $job_status,
-                    'ses_count_crews' => $ses_count_crews,
-                    'ses_count_hours' => $ses_count_hours,
-                    'ses_number_vehicles' => $ses_number_vehicles,
-                    'flag' => get_flag_count($row->nid),
-                    'crews' => $crews,
-                    'supplement' => $supps,
-                    'nodeid' => $node_id,
-                    'call_contact_id' => $job_row->field_job_client_contact_value,
-                    'call_time_tbc' => $row->call_time_tbc,
-                    'call_crew_tbc' => $row->call_crew_tbc,
-                    'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc
-                );
-                $tbc_scheduler_date[$i]['date'] = $date;
-                //$tbc_index++;
-            } else {
-                $scheduler[] = array(
-                    'job_session_id' => $row->vid,
-                    'time' => $row->jstime,
-                    'venue' => $venue_name,
-                    'client' => $client_name,
-                    'job_id' => $job_row->field_job_number_value,
-                    'call_id' => $ses_callid,
-                    'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
-                    'job_status_code' => $job_status_code,
-                    'job_status' => $job_status,
-                    'ses_count_crews' => $ses_count_crews,
-                    'ses_count_hours' => $ses_count_hours,
-                    'ses_number_vehicles' => $ses_number_vehicles,
-                    'flag' => get_flag_count($row->nid),
-                    'crews' => $crews,
-                    'supplement' => $supps,
-                    'nodeid' => $node_id,
-                    'call_contact_id' => $job_row->field_job_client_contact_value,
-                    'call_time_tbc' => $row->call_time_tbc,
-                    'call_crew_tbc' => $row->call_crew_tbc,
-                    'call_hours_tbc' => $row->call_hours_tbc,
-                    'call_contract_tbc' => $row->call_contract_tbc
-                );
-            }
-        }
-
-        $html .= theme('acecrew_calendar_scheduler', $scheduler, $date);
-        $date = strtotime("+1 day", strtotime($date));
-        $date = date("Y-m-d", $date);
-    }
-
-    if ( sizeof($tbc_scheduler_date) ) {
-        foreach ($tbc_scheduler_date as $data) {
-            $tbc_calls_html .= theme('acecrew_calendar_scheduler', $data['scheduler'], $data['date']);
-        }
-    }
-    if (!empty($tbc_calls_html)) {
-        $tbc_calls_html = '<div class="to-be-confirmed calls">' . $tbc_calls_html . '</div>';
-    }
-    if (!empty($html)) {
-        $html = '<div class="calls">' . $html . '</div>';
-    }
-    $html =  $tbc_calls_html . $html;
-
-    if ($show_current_day_calls) {
-        return $html;
-    } else {
-        drupal_json(array('html' => $html));
-    };
-}
-*/
 
 function get_diary_flag_count($call) {
     // field_call_supplements
@@ -1429,70 +1242,7 @@ function get_diary_flag_count($call) {
     //$call = node_load($call_id);
     $res['count'] = 0;
     $res['msg'] = 'test';
-    return $res;
-    /*
-    $supp = $call->field_call_supplements;
-    foreach ($supp as $s) {
-        $quoted_supplements[] = $s['nid'];
-    }
-    $query = "SELECT supplement_id FROM {crew_js_supplement} supplement WHERE jsid=" . $call->vid . " GROUP BY supplement_id";
-    $result = db_query($query);
-    $allocated_supplements = array();
-    while ($row = db_fetch_object($result)) {
-        $allocated_supplements[] = $row->supplement_id;
-    }
-    $diff = array_diff($quoted_supplements, $allocated_supplements);
-    if ($diff[0] != NULL  && $diff[0] && count($diff) > 0) {
-        $res['count']++;
-        $res['msg'] .= "<p>";
-        $c = 0;
-        foreach ($diff as $s) {
-            $n = node_load($s);
-            $res['msg'] .= $n->title;
-            if (++$c < count($diff))  $res['msg'] .= ", ";
-        }
-        if ($diff[0] != NULL && count($diff) > 0) {
-            if (count($diff) > 1) $res['msg'] .= " are";
-            else $res['msg'] .= " is";
-            $res['msg'] .= " not allocated!</p>";
-        }
-
-    }
-    $quoted_crew_number = $call->field_job_session_crew[0]['value'];
-    $query = "SELECT uid FROM {crew_call} crew_call WHERE jsid=" . $call->vid;
-    $result = db_query($query);
-    while ($row = db_fetch_object($result)) {
-        $allocated_crew[] = $row->uid;
-    }
-    $diff1 = $quoted_crew_number - count($allocated_crew);
-    if ($diff1 > 0) {
-        $res['count']++;
-        $res['msg'] .= "<p>You must still allocate $diff1 crew member";
-        if ($diff1 > 1) $res['msg'] .= "s.</p>";
-        else $res['msg'] .= ".</p>";
-    }
-    $created = $call->created;
-    $changed = $call->changed;
-    $author = user_load($call->uid);
-    $name = (($author->name != NULL or $author->name != "") ? $author->name : "admin");
-    if ($created < $changed) {
-        $res['count']++;
-        $res['msg'] .= "<p>" . $call->field_session_callid[0]['value'] . " last edited by " . $name . " on ". date("Y-m-d", $changed) . ".</p>";
-    }
-
-    //Flag for: if there is more allocated members than required for job call
-
-    //Find assigned crew members number for this call
-    $crew_members_assigned = db_result(db_query("SELECT COUNT(*) FROM {crew_call} WHERE cid = '%s'", $call->field_session_callid[0]['value']));
-    //Find required crew members number for this call
-    $crew_members_required = $call->field_job_session_crew[0]['value'];
-    //If there are more crew members assigned than required, add flag
-    if($crew_members_assigned > $crew_members_required) {
-        $res['count']++;
-        $res['msg'] .= "<p>Crew required was reduced to $crew_members_required</p>";
-    }
-    */
-    return $res;
+    return $res;      
 }
 
 /**
@@ -2470,7 +2220,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
         $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
 
-        $call_status_text = ($event['call_time_tbc'] || $event['call_crew_tbc'] || $event['call_hours_tbc'] || $event['call_contract_tbc']) ? t('To be confirmed') : $event['job_status'];
+        $call_status_text = $event['job_status'];
         $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
         $call_crew_amount = !$event['call_crew_tbc'] ? $event['ses_count_crews'] . ' crew' : $tbc_short;
         $call_hours       = !$event['call_hours_tbc'] ? $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '') : $tbc_short;
