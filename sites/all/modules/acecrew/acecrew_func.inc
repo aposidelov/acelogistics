@@ -1356,13 +1356,13 @@ function acecrew_get_crew_with_supplements($ses_call_id) {
 
 function acecrew_get_statuses($tbc_status = FALSE, $tbi_status = FALSE) {
     $statuses = array(
-        1 => 'Awaiting PO',
-        2 => 'Quote',
-        3 => 'Confirmed',
-        4 => 'Cancelled',
-        5 => 'Pencil',
-        6 => 'Invoiced',
-        7 => 'Invoice Sent'
+        AWAITING_PO => 'Awaiting PO',
+        QUOTE => 'Quote',
+        CONFIRMED => 'Confirmed',
+        CANCELLED => 'Cancelled',
+        PENCIL => 'Pencil',
+        INVOICED => 'Invoiced',
+        INVOICE_SENT => 'Invoice Sent'
     );
     if ($tbc_status) {
         $statuses['tbc'] = 'To be confirmed';

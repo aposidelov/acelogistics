@@ -565,13 +565,12 @@ function acecrew_del_job_session($ses_id) {
 
 function acecrew_toogle_status_job_session($ses_id) {
   $node = node_load($ses_id);
-  $node->status = !$node->status;  
-  //watchdog('nnn', '<pre>'.print_r($node, TRUE).'</pre>');  
-  /*if ($node->field_cancellation_status[0]['value'] != CANCELLATION_NA) {
+  
+  if ($node->field_cancellation_status[0]['value'] != CANCELLATION_NA) {
     $node->field_cancellation_status[0]['value'] = CANCELLATION_NA;
   } else {
-    $node->field_cancellation_status[0]['value'] = CANCELLATION_24HOURS_MORE_NOTICE;
-  }*/
+    $node->field_cancellation_status[0]['value'] = CANCELLATION_NORMAL;
+  }
 
   node_save($node);
 }
@@ -1055,15 +1054,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
     $tbc_scheduler_date = array();
     $tbc_index = 0;
 
-    $job_statuses = array(
-        AWAITING_PO  => 'Awaiting PO',
-        QUOTE        => 'Quote',
-        CONFIRMED    => 'Confirmed',
-        CANCELLED    => 'Cancelled',
-        PENCIL       => 'Pencil',
-        INVOICED     => 'Invoiced',
-        INVOICE_SENT => 'Invoice Sent'
-    );
+    $job_statuses = acecrew_get_statuses(TRUE, TRUE);
+    $cancellation_statuses = acecrew_get_diary_cancellations();
 
     foreach ($main_rows_dates as $date_item) {
         $scheduler = $current_scheduler = array();
@@ -1083,26 +1075,33 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $venue_name          = $row->venue_name;
             $ses_count_crews     = $row->job_session_crew;
             $ses_count_hours     = $row->job_session_hours;
-            $ses_number_vehicles = $row->num_vehicles;
-            $job_status_code     = $job_status;
-            $job_status          = $job_statuses[$job_status_code];
+            $ses_number_vehicles = $row->num_vehicles;            
+            $job_status_label    = $job_statuses[$job_status];
+            $is_call_cancelled   = $row->call_cancellation_status != CANCELLATION_NA;
+            $is_job_cancelled    = $row->job_cancellation_status != CANCELLATION_NA;
             
+            // if job status is 'quote' it should not appear on diary page
+            // --- removed 'canceled'
+            if (in_array($job_status, array(QUOTE))) { // CANCELLED, 
+                continue;
+            }
 
+            // To be confirmed
             if ($row->call_time_tbc || 
               $row->call_crew_tbc || 
               $row->call_hours_tbc || 
               $row->call_contract_tbc) {
-              $job_status = t('To be confirmed');
+              $job_status_label = $job_statuses['tbc'];
             }
 
-            if (!$row->call_status) {
-              $job_status = t('Cancelled');
+            // Call cancellation
+            if ($is_call_cancelled) {              
+              $job_status_label = $cancellation_statuses[$row->call_cancellation_status];
             }
-
-            // if job status is 'canceled' or 'quote' it should not appear on diary page
-            if (in_array($job_status, array(CANCELLED, QUOTE))) {
-                continue;
-            }
+            // Job cancellation
+            elseif ($is_job_cancelled) {              
+              $job_status_label = $cancellation_statuses[$row->job_cancellation_status];
+            }         
 
             $call_supp = _get_call_supplement($row->nid);
             $supp_name = '';
@@ -1173,6 +1172,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
               'job_ref' => drupal_lookup_path('alias',"node/" . $job_nid),
               'job_status_code' => $job_status_code,
               'job_status' => $job_status,
+              'job_status_label' => $job_status_label,
               'ses_count_crews' => $ses_count_crews,
               'ses_count_hours' => $ses_count_hours,
               'ses_number_vehicles' => $ses_number_vehicles,
@@ -1187,7 +1187,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
               'call_crew_tbc' => $row->call_crew_tbc,
               'call_hours_tbc' => $row->call_hours_tbc,
               'call_contract_tbc' => $row->call_contract_tbc,
-              'is_call_cancelled' => !$row->call_status,
+              'is_call_cancelled' => $row->call_cancellation_status != CANCELLATION_NA,
               'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
               'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
             );
@@ -1197,6 +1197,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
               $row->call_crew_tbc || 
               $row->call_hours_tbc || 
               $row->call_contract_tbc ||
+              $call_item_data['is_job_cancelled'] ||
               $call_item_data['is_call_cancelled']) {
                 $tbc_scheduler_date[$date_item]['scheduler'][] = $call_item_data;
                 $tbc_scheduler_date[$date_item]['date'] = $date_item;
@@ -2220,7 +2221,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
         $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
 
-        $call_status_text = $event['job_status'];
+        $call_status_text = $event['job_status_label'];
         $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
         $call_crew_amount = !$event['call_crew_tbc'] ? $event['ses_count_crews'] . ' crew' : $tbc_short;
         $call_hours       = !$event['call_hours_tbc'] ? $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '') : $tbc_short;
@@ -2815,15 +2816,24 @@ function acecrew_is_plus_call($nid) {
 function acecrew_get_cancellations() {
   return array(
     CANCELLATION_NA => 'N/A', 
-    CANCELLATION_24HOURS_MORE_NOTICE => 'Cancellation >24hrs Notice',
-    CANCELLATION_24HOURS_LESS_NOTICE => 'Cancellation <24hrs & >12hrs Notice',
+    CANCELLATION_NORMAL => 'Cancellation Normal',
+    CANCELLATION_24HOURS_LESS_NOTICE => 'Cancellation <24hrs Notice',
     CANCELLATION_12HOURS_LESS_NOTICE => 'Cancellation <12hrs Notice',    
+  );
+}
+
+function acecrew_get_diary_cancellations() {
+  return array(    
+    CANCELLATION_NA => 'N/A',
+    CANCELLATION_NORMAL => 'Cancelled',
+    CANCELLATION_24HOURS_LESS_NOTICE => 'Cancelled <24hrs',
+    CANCELLATION_12HOURS_LESS_NOTICE => 'Cancelled <12hrs',    
   );
 }
 
 function acecrew_get_inv_cancellation_titles($status) {
   $statuses = array(    
-    CANCELLATION_24HOURS_MORE_NOTICE => 'No Cancellation Fee',
+    CANCELLATION_NORMAL => 'No Cancellation Fee',
     CANCELLATION_24HOURS_LESS_NOTICE => '50% Cancellation Fee',
     CANCELLATION_12HOURS_LESS_NOTICE => '100% Cancellation Fee',    
   );

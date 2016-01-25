@@ -189,8 +189,14 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $date = substr($call->field_job_session_date_time_value, 0, 10);
       $time = substr($call->field_job_session_date_time_value, 11, 20);
 
-      // number of standard crews
-      $number_of_standard_crews = count($call_data);
+      //watchdog('cc', '<pre>'.print_r($call->field_job_session_crew_value, TRUE).'</pre>');
+      
+      if (acecrew_is_cancellation_notice($call->cancellation_status) ||
+          acecrew_is_cancellation_notice($job->cancellation_status)) {
+        $number_of_standard_crews = $call->field_job_session_crew_value;
+      } else {
+        $number_of_standard_crews = count($call_data);          
+      }            
 
       // quoted hours
       $quoted_hours = $call->field_job_session_hours_value;
@@ -295,8 +301,13 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       if($total_adjust_add || $total_adjust_reduce) {
           $call_amount = $call_amount + $total_adjust_add - $total_adjust_reduce;
           $total_adjusted = true;
-      }      
+      } 
 
+      if ($call->cancellation_status == CANCELLATION_NORMAL ||
+        ($job->cancellation_status == CANCELLATION_NORMAL &&
+        $call->cancellation_status == CANCELLATION_NA)) {
+        $call_amount = 0;
+      }
       $sum += acecrew_cancellation_price_total($call_amount, 
                                                $call->cancellation_status, 
                                                $job->cancellation_status);

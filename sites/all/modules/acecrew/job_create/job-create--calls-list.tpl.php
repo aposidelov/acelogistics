@@ -2,12 +2,18 @@
 <?php foreach ($acecrew_assigned_sessions as $ses_id => $session) : ?>    
 	<?php $call = node_load($ses_id); ?>
     <?php $job = node_load($call->field_session_job_nid[0]['value']); ?>    
-	<?php $status_label = $call->status ? t('Cancel') : t('Activate'); ?>
-    <?php $classes = !$call->status ? ' cancel-btn' : ''; ?>
+	<?php $is_cancelled_call = $call->field_cancellation_status[0]['value'] != CANCELLATION_NA; ?>
+    <?php $is_cancelled_job = $job->field_cancellation_status[0]['value'] != CANCELLATION_NA; ?>
     
-    <?php $classes .= !$call->status || $job->field_cancellation_status[0]['value'] != CANCELLATION_NA || 
-                      $call->field_cancellation_status[0]['value'] != CANCELLATION_NA ? 
-                      ' cancel-notice' : ''; ?>
+    <?php if ($is_cancelled_call) : ?>
+        <?php $status_label = t('Activate'); ?>
+        <?php $classes = ' cancel-btn'; ?>
+    <?php else : ?>
+        <?php $status_label = t('Cancel'); ?>
+        <?php $classes = ''; ?>
+    <?php endif; ?>
+    
+    <?php $classes .= $is_cancelled_job || $is_cancelled_call ? ' cancel-notice' : ''; ?>
 
     <div class="acecrew_sessions_container">
         <div class="acecrew_session_content<?php print $classes; ?>" id="acecrew_session_content_<?php print $ses_id; ?>"> <?php print $session['content']; ?> </div>

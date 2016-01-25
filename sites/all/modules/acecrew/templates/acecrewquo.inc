@@ -184,6 +184,21 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     //watchdog('calli', '<pre>'.print_r($callings, TRUE).'</pre>');
     foreach ($callings as $data) {
         $call = $data['data'];
+
+        if ($call->cancellation_status == CANCELLATION_NORMAL ||
+          ($job->cancellation_status == CANCELLATION_NORMAL &&
+          $call->cancellation_status == CANCELLATION_NA)) {
+          
+          continue;
+        }
+
+        if ($call->cancellation_status != CANCELLATION_NA) {
+          $call->cancellation_status = CANCELLATION_12HOURS_LESS_NOTICE;
+        }
+        if ($job->cancellation_status != CANCELLATION_NA) {
+          $job->cancellation_status = CANCELLATION_12HOURS_LESS_NOTICE;
+        }
+
         $call_number = explode('-', $call->field_session_callid_value);
         $call_number = $call_number[1];
         $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
@@ -238,9 +253,9 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         } 
 
         $call_cancelation_status = '';
-        if ($call->cancellation_status != CANCELLATION_NA) {
-          $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
-        }
+        //if ($call->cancellation_status != CANCELLATION_NA) {
+        //  $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+        //}
 
         echo '
         <tr>
@@ -262,32 +277,32 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $default_boundary_charge = get_default_boundary_charge();
             echo '
             <tr>
-                <td colspan=4 valign=top>Boundary Charge:</td>
-                <td colspan=4 valign=top>' . $call->field_job_session_crew_value . '</td>
-                <td valign=top>&#xd7;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($default_boundary_charge, 'unit_price', $call->cancellation_status, $job->cancellation_status)) . '</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td colspan=4 valign=top>Boundary Charge:</td>
+              <td colspan=4 valign=top>' . $call->field_job_session_crew_value . '</td>
+              <td valign=top>&#xd7;</td>
+              <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($default_boundary_charge, 'unit_price', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
         if ($call->field_session_num_vehicles_value >= 1) {
             echo '
             <tr>
-                <td colspan=4 valign=top>Mileage Charge(' . $distance . ' miles): </td>
-                <td colspan=4 valign=top>' . $call->field_session_num_vehicles_value . '</td>
-                <td valign=top>&#xd7;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_unit, 'unit_price', $call->cancellation_status, $job->cancellation_status)) . '</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td colspan=4 valign=top>Mileage Charge(' . $distance . ' miles): </td>
+              <td colspan=4 valign=top>' . $call->field_session_num_vehicles_value . '</td>
+              <td valign=top>&#xd7;</td>
+              <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_unit, 'unit_price', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($mileage_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
 
         if ($additional_client_charge >= 1) {
             echo '
             <tr>
-                <td colspan=2 valign=top>Additional Charges: </td>
-                <td colspan=6 valign=top>' . $additional_client_desc . '</td>
-                <td width=2% valign=top>=</td>
-                <td width=7% valign=top>&nbsp;</td>
-                <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_client_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td colspan=2 valign=top>Additional Charges: </td>
+              <td colspan=6 valign=top>' . $additional_client_desc . '</td>
+              <td width=2% valign=top>=</td>
+              <td width=7% valign=top>&nbsp;</td>
+              <td valign=top>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($additional_client_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
 

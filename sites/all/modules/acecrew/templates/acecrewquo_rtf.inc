@@ -168,11 +168,18 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $call_index = 1;
     $sum = 0;
     $row = 0;
-    foreach ($callings as $data) {
-        $row++;
-
+    foreach ($callings as $data) {        
         $call = $data['data'];
         
+        if ($call->cancellation_status == CANCELLATION_NORMAL ||
+          ($job->cancellation_status == CANCELLATION_NORMAL &&
+          $call->cancellation_status == CANCELLATION_NA)) {
+          
+          continue;
+        }
+
+        $row++;
+
         $call_number = explode('-', $call->field_session_callid_value);
         $call_number = $call_number[1];
 
@@ -184,9 +191,9 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $venue_name = $venue->field_venue_name[0]['value'];
 
         $call_cancelation_status = '';
-        if ($call->cancellation_status != CANCELLATION_NA) {
-          $call_cancelation_status = '<br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
-        }
+        //if ($call->cancellation_status != CANCELLATION_NA) {
+        //  $call_cancelation_status = '<br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+        //}
 
         $li_table->addRow(1);
 

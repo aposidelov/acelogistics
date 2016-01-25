@@ -162,7 +162,7 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
     $sum = 0;
     foreach ($callings as $data) {
       $call_amount = 0;
-      $call = $data['data'];
+      $call = $data['data'];      
 
       $call_number = explode('-', $call->field_session_callid_value);
       $call_number = $call_number[1];
@@ -182,7 +182,12 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
       $time = substr($call->field_job_session_date_time_value, 11, 20);
 
       // number of standard crews
-      $number_of_standard_crews = count($call_data);
+      if (acecrew_is_cancellation_notice($call->cancellation_status) ||
+        acecrew_is_cancellation_notice($job->cancellation_status)) {
+        $number_of_standard_crews = $call->field_job_session_crew_value;
+      } else {
+        $number_of_standard_crews = count($call_data);          
+      }
 
       // quoted hours
       $quoted_hours = $call->field_job_session_hours_value;
@@ -284,11 +289,16 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
       $call_amount += $mileage_charge;
 
       //If client total is adjusted, adjust the $call_amount
-      if($total_adjust_add || $total_adjust_reduce) {
+      if ($total_adjust_add || $total_adjust_reduce) {
           $call_amount = $call_amount + $total_adjust_add - $total_adjust_reduce;
           $total_adjusted = true;
       }      
 
+      if ($call->cancellation_status == CANCELLATION_NORMAL ||
+        ($job->cancellation_status == CANCELLATION_NORMAL &&
+        $call->cancellation_status == CANCELLATION_NA)) {
+        $call_amount = 0;
+      }
       $sum += acecrew_cancellation_price_total($call_amount, 
                                                $call->cancellation_status, 
                                                $job->cancellation_status);
