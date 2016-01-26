@@ -142,10 +142,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $qi_table2->writeToCell(3, 2, $venue->field_venue_post_code_value, $small_font);
 
     $job_cancelation_status = '';
-    if ($job->cancellation_status != CANCELLATION_NA) {
-        $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
-        $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
-    }
+    //if ($job->cancellation_status != CANCELLATION_NA) {
+    //    $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
+    //    $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
+    //}
 
     //Listing table top
     $li_top_table = $section->addTable();
@@ -214,9 +214,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         $li_table->addRow(1);
 
         $call_cancelation_status = '';
-        if ($call->cancellation_status != CANCELLATION_NA) {
-            $call_cancelation_status = '<br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
-        }
+        //if ($call->cancellation_status != CANCELLATION_NA) {
+        //    $call_cancelation_status = '<br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+        //}
 
         $li_table->mergeCellRange($row,1,$row,11);
         $li_table->writeToCell($row, 1, 'Call: ' . $call_number. '. @ '. $venue_name . $call_cancelation_status, $bold);

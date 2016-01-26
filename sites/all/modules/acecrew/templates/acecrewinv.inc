@@ -159,10 +159,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
     
     $job_cancelation_status = '';
-    if ($job->cancellation_status != CANCELLATION_NA) {
-      $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
-      $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
-    }
+    //if ($job->cancellation_status != CANCELLATION_NA) {
+    //  $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
+    //  $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
+    //}
 
     echo '<table width=90% border=1 cellspacing=0 cellpadding=5 style="margin-bottom:120px;border:0px solid;border-collapse:collapse;margin-left:5%;">';
       echo '<tr><td style="vertical-align:middle;" colspan=9>'.$job_cancelation_status.'</td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
@@ -325,9 +325,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       if ($additional_hours > 0) $inc++;
       
       $call_cancelation_status = '';
-      if ($call->cancellation_status != CANCELLATION_NA) {
-        $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
-      }
+      //if ($call->cancellation_status != CANCELLATION_NA) {
+      //  $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
+      //}
 
       echo '
         <tr>

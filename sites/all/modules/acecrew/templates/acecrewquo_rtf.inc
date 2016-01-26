@@ -88,7 +88,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
 
     $qi_table->writeToCell(1, 1, 'Client:', $bold);
     $qi_table->writeToCell(1, 2, $client->field_client_name_value, $small_font);
-    $qi_table->writeToCell(1, 3, 'Reference:', $bold);
+    $qi_table->writeToCell(1, 3, 'Our Reference:', $bold);
     $qi_table->writeToCell(1, 4, $job->job_id, $small_font);
     $qi_table->writeToCell(2, 1, 'Booked by:', $bold);
     $qi_table->writeToCell(2, 2, $booked_by, $small_font);
@@ -128,10 +128,10 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $qi_table2->writeToCell(3, 2, $venue->field_venue_post_code_value, $small_font);
 
     $job_cancelation_status = '';
-    if ($job->cancellation_status != CANCELLATION_NA) {
-      $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
-      $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
-    }
+    //if ($job->cancellation_status != CANCELLATION_NA) {
+    //  $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
+    //  $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
+    //}
 
     //Listing table top
     $li_top_table = $section->addTable();
