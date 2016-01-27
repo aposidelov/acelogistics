@@ -100,7 +100,7 @@ function job_content_default_fields() {
     'field_name' => 'field_document',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '51',
+      'weight' => '52',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -166,7 +166,7 @@ function job_content_default_fields() {
       'max_filesize_per_file' => '',
       'max_filesize_per_node' => '',
       'label' => 'Document',
-      'weight' => '51',
+      'weight' => '52',
       'description' => '',
       'type' => 'filefield_widget',
       'module' => 'filefield',
@@ -178,7 +178,7 @@ function job_content_default_fields() {
     'field_name' => 'field_invoice_notes',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '48',
+      'weight' => '49',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -245,7 +245,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Invoice Notes',
-      'weight' => '48',
+      'weight' => '49',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -257,7 +257,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_booked_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '49',
+      'weight' => '50',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -324,7 +324,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Booked By',
-      'weight' => '49',
+      'weight' => '50',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -493,7 +493,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_comments',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '47',
+      'weight' => '48',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -560,7 +560,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Comments',
-      'weight' => '47',
+      'weight' => '48',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -572,7 +572,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_created_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '50',
+      'weight' => '51',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -639,7 +639,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Created By',
-      'weight' => '50',
+      'weight' => '51',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -738,7 +738,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '45',
+      'weight' => '46',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -805,7 +805,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount',
-      'weight' => '45',
+      'weight' => '46',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -817,7 +817,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount_desc',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '46',
+      'weight' => '47',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -884,7 +884,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount description',
-      'weight' => '46',
+      'weight' => '47',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -1293,6 +1293,92 @@ return $items;',
     ),
   );
 
+  // Exported field: field_po_total_excl_vat
+  $fields['job-field_po_total_excl_vat'] = array(
+    'field_name' => 'field_po_total_excl_vat',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '45',
+      'parent' => '',
+      'label' => array(
+        'format' => 'inline',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_decimal',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'number',
+    'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'precision' => '10',
+    'scale' => '2',
+    'decimal' => '.',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_po_total_excl_vat][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'P.O Total Excl VAT',
+      'weight' => '45',
+      'description' => '',
+      'type' => 'number',
+      'module' => 'number',
+    ),
+  );
+
   // Translatables
   // Included for use with string extractors like potx.
   t('Booked By');
@@ -1309,6 +1395,7 @@ return $items;',
   t('Job Number');
   t('Job status');
   t('Names needed');
+  t('P.O Total Excl VAT');
   t('PO Number');
   t('Venue');
 

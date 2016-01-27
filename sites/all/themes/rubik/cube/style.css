@@ -934,7 +934,25 @@ div#ui-datepicker-div.ui-datepicker.ui-widget {width: 222px !important;}
 table.ui-datepicker-calendar {margin: 0 !important;}
 .ui-datepicker th {text-align: center;}
 
-#edit-field-job-client-name-0-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-client-contact-value-wrapper, #edit-field-job-venue-0-value-wrapper, #edit-field-job-status-value-wrapper, #edit-field-job-po-number-0-value-wrapper, #edit-field-job-discount-0-value-wrapper, #edit-field-job-booked-by-0-value-wrapper, #edit-field-job-created-by-0-value-wrapper, #edit-field-additional-charge-ammount-0-value-wrapper, #edit-field-additional-charge-desc-0-value-wrapper {float: left; width: 23%; overflow: hidden; height: 70px; margin-right: 3px !important;}
+#edit-field-job-client-name-0-value-wrapper, 
+#edit-field-job-client-contact-value-wrapper, 
+#edit-field-job-client-contact-value-wrapper, 
+#edit-field-job-venue-0-value-wrapper, 
+#edit-field-job-status-value-wrapper, 
+#edit-field-job-po-number-0-value-wrapper, 
+#edit-field-po-total-excl-vat-0-value-wrapper,
+#edit-field-job-discount-0-value-wrapper, 
+#edit-field-job-booked-by-0-value-wrapper, 
+#edit-field-job-created-by-0-value-wrapper, 
+#edit-field-additional-charge-ammount-0-value-wrapper, 
+#edit-field-additional-charge-desc-0-value-wrapper {
+    float: left; 
+    width: 23%; 
+    overflow: hidden; 
+    height: 70px; 
+    margin-right: 3px !important;
+}
+
 .modalframe-page-container .form-item  {float: none !important; width: 100% !important;}
 .modalframe-page-container .form-textarea.resizable {min-height: 300px !important;}
 .buttons, #acecrew_session_add_buttons {clear: both}
@@ -954,7 +972,8 @@ table.ui-datepicker-calendar {margin: 0 !important;}
     clear: both;
 }
 
-.node-type-job .field-type-text, 
+.node-type-job .field-type-text,
+.node-type-job .field-type-number-decimal, 
 .node-type-job .field-type-number-integer.field-field-names-needed,
 .node-job > .column-main > .column-wrapper > .node-content > .field-field-cancellation-status, 
 .page-node .field-type-datestamp { float: left; width: 30%; overflow: hidden; margin-right: 30px !important; background: #f7f7f7; border: 1px solid #D5D5D5; padding: 8px 0; text-align: center; margin-bottom: 10px;}

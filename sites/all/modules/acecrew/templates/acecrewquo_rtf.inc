@@ -65,7 +65,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     //Quote info
     $qi_table = $section->addTable();
 
-    $qi_table->addRows(2, 0.7);
+    $qi_table->addRows(3, 0.7);
     $qi_table->addColumnsList(array(3,6,3,6.8));
 
     //Style quote table
@@ -78,7 +78,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     );
 
     $qi_table->setBorderForCellRange($border,1,1,2,4);
-    for($i = 1; $i <=2; $i++) {
+    for($i = 1; $i <=3; $i++) {
         for($j = 1; $j <= 4; $j++) {
             $cell = $qi_table->getCell($i, $j);
             $cell->setVerticalAlignment('center');
@@ -94,6 +94,11 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $qi_table->writeToCell(2, 2, $booked_by, $small_font);
     $qi_table->writeToCell(2, 3, 'Date:', $bold);
     $qi_table->writeToCell(2, 4, date("d/m/Y", $job->created), $small_font);
+    $qi_table->writeToCell(3, 1, 'Purchase Order:', $bold);
+    $qi_table->writeToCell(3, 2, $job->field_job_po_number_value, $small_font);
+    $qi_table->writeToCell(3, 3, 'PO Total Excl VAT:', $bold);
+    $qi_table->writeToCell(3, 4, $job->field_po_total_excl_vat_value, $small_font);
+
 
 
     $qi_table2 = $section->addTable();

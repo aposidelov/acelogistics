@@ -145,6 +145,12 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         <td style="font-weight:bold;">'. t('Date') .':</td>
         <td>'. date("d/m/Y", $job->created) .'</td>
     </tr>
+    <tr>
+        <td style="font-weight:bold;">' . t('Purchase Order') . ':</td>
+        <td>' . $job->field_job_po_number_value . '</td>
+        <td style="font-weight:bold;">'. t('PO Total Excl VAT') .':</td>
+        <td>'. $job->field_po_total_excl_vat_value .'</td>
+    </tr>
   </table><br/><br/>
   <table width=80% style="margin-left:40px;border:0px solid;border-collapse:collapse;">
     <tr>

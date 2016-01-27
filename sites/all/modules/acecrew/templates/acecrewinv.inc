@@ -97,9 +97,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
 
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
-	$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
-	$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
-
+  	$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
+  	$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
+    //watchdog('jjj', '<pre>'.print_r($job, TRUE).'</pre>');    
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
     <tr>
@@ -119,7 +119,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         <td  style="font-weight:bold;">' . t('Client') . ':</td>
         <td>' . $client->field_client_name_value . '</td>
         <td style="font-weight:bold;"> ' . t('Purchase Order') . ':</td>
-        <td> ' . $job->field_job_po_number_value . ' </td>
+        <td> ' . $job->field_job_po_number_value . '</td>
         <td style="font-weight:bold;"> ' . t('Job Number') . ':</td>
         <td> ' . $job->job_id . ' </td>
     </tr>
