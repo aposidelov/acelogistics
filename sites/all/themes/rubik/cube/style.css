@@ -1027,7 +1027,7 @@ html {overflow-y: scroll;}
     height: 30px; width: 40px; text-indent: -9999px;}
 .acecrew_session_content .field-type-text {background: none !important; border: 0 !important; float: none !important;}
 .acecrew_session_content .field-type-text .field-label, .acecrew_session_content .field-type-text .field-items, .acecrew_session_content .field-field-job-session-crew .field-label, .acecrew_session_content .field-field-job-session-date-time .field-label, .acecrew_session_content .field-field-job-session-hours .field-label {float: left !important;}
-.acecrew_session_content .field-field-session-callid {width: 90px !important; line-height: 2; position: absolute; left: 20px; top: 5px; padding: 0 !important; margin: 0 !important;}
+.acecrew_session_content .field-field-session-callid {width: 110px !important; line-height: 2; position: absolute; left: 20px; top: 5px; padding: 0 !important; margin: 0 !important;}
 .acecrew_session_content .field-field-job-session-date-time .field-label {background: url("images/call-time.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
 .acecrew_session_content .field-field-job-session-crew .field-label {background: url("images/call-crew.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
 .acecrew_session_content .field-field-job-session-hours .field-label {background: url("images/call-hours.png") no-repeat scroll 0 0 transparent; display: inline-block; height: 30px; width: 40px; text-indent: -9999px;}
