@@ -30,6 +30,14 @@ function acereview_menu() {
     'access arguments' => array('admin content'),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/settings/acereview/email-test'] = array(
+    'title' => 'Acecrew review - Email test',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acereview_email_test_form'),
+    'access arguments' => array('admin content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['acecrew/send_review/%'] = array(
     'title' => 'Send Review',
     'page callback' => 'drupal_get_form',
@@ -74,6 +82,48 @@ function acereview_menu() {
   );
 
   return $items;
+}
+
+function acereview_email_test_form(&$form_state) {
+  $form = array();
+  
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#title' => t('E-mail'),    
+  );
+  $form['send_drupalphpmailer'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by drupalphpmailer',  
+  );
+  $form['send_mimemailmail'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by mimemail',  
+  );
+
+  return $form;
+}
+
+function acereview_email_test_form_submit($form, &$form_state) {
+  $email = $form_state['values']['email'];
+  $message = 'Notification to Acecrew administrator';
+  //drupal_set_message('<pre>'.print_r($form_state, TRUE).'</pre>');
+  //drupal_set_message($email);
+  if ($form_state['clicked_button']['#parents'][0] == 'send_drupalphpmailer') {
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = $email;
+    $mail->AddAddress($email);
+    $mail->CreateBody();
+    $mail->Subject  = t('Test mail by DrupalPHPMailer method');        
+    $mail->Body = $message;
+    $mail->Send();
+    drupal_set_message('Sent by DrupalPHPMailer method');
+  } elseif ($form_state['clicked_button']['#parents'][0] == 'send_mimemailmail') {
+    mimemail($email, $email, t('Test mail by Mimemail method'), $message);
+    drupal_set_message('Sent by Mimemail method');
+  }
 }
 
 function acereview_send_review_contract_popup($js = NULL, $job_id) {
@@ -330,6 +380,10 @@ function acecrew_review_node_form_submit($form, &$form_state) {
   }
 }
 
+/*
+ * Sends email to admin if review has at least one low option 
+ * (below 7 or Late)
+ */
 function acereview_crew_local_bad($crew, $jod_id) {
   $bad_details = '';
   if ($crew['timeKeeping'] > 0 && $crew['timeKeeping'] < 2) {
@@ -353,6 +407,10 @@ function acereview_crew_local_bad($crew, $jod_id) {
   }
 }
 
+/*
+ * Sends email to admin if at least one option has specific average value
+ * (below 7 or Late)
+ */
 function acereview_crew_average_bad($crew, $jod_id) {
   $sql = "SELECT AVG(ur.field_user_review_time_keeping_value) AS keeping,
       AVG(ur.field_user_review_manner_value) AS manner,
