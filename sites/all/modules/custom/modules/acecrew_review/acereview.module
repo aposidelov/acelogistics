@@ -101,29 +101,75 @@ function acereview_email_test_form(&$form_state) {
     '#value' => 'Send by mimemail',  
   );
 
+  $form['send_drupalphpmailer_gm'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by drupalphpmailer from Gmail',  
+  );
+  $form['send_drupalphpmailer_ace'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by drupalphpmailer from Acecrew',  
+  );
+  $form['send_mimemailmail_gm'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by mimemail from Gmail',  
+  );
+  $form['send_mimemailmail_ace'] = array(
+    '#type' => 'submit',
+    '#value' => 'Send by mimemail from Acecrew',  
+  );
+
   return $form;
 }
 
 function acereview_email_test_form_submit($form, &$form_state) {
+  $op = $form_state['clicked_button']['#parents'][0];
   $email = $form_state['values']['email'];
   $message = 'Notification to Acecrew administrator';
   //drupal_set_message('<pre>'.print_r($form_state, TRUE).'</pre>');
   //drupal_set_message($email);
-  if ($form_state['clicked_button']['#parents'][0] == 'send_drupalphpmailer') {
+  if ($op == 'send_drupalphpmailer') {
     module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
     $mail = new DrupalPHPMailer();
     $mail->IsMail();
     $mail->From = $email;
     $mail->AddAddress($email);
     $mail->CreateBody();
-    $mail->Subject  = t('Test mail by DrupalPHPMailer method');        
+    $mail->Subject  = t('Test mail by DrupalPHPMailer method to myself');        
     $mail->Body = $message;
     $mail->Send();
-    drupal_set_message('Sent by DrupalPHPMailer method');
-  } elseif ($form_state['clicked_button']['#parents'][0] == 'send_mimemailmail') {
-    mimemail($email, $email, t('Test mail by Mimemail method'), $message);
-    drupal_set_message('Sent by Mimemail method');
-  }
+    drupal_set_message('Sent by DrupalPHPMailer method to myself');
+  } elseif ($op == 'send_mimemailmail') {
+    mimemail($email, $email, t('Test mail by Mimemail method to myself'), $message);
+    drupal_set_message('Sent by Mimemail method to myself');
+  } elseif ($op == 'send_drupalphpmailer_gm') {
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = $email;
+    $mail->AddAddress('alex.posidelov@gmail.com');
+    $mail->CreateBody();
+    $mail->Subject  = t('Test mail by DrupalPHPMailer method to Gmail');        
+    $mail->Body = $message;
+    $mail->Send();
+    drupal_set_message('Sent by DrupalPHPMailer method to Gmail');
+  } elseif ($op == 'send_mimemailmail_gm') {
+    mimemail($email, 'alex.posidelov@gmail.com', t('Test mail by Mimemail method to Gmail'), $message);
+    drupal_set_message('Sent by Mimemail method to Gmail');
+  } elseif ($op == 'send_drupalphpmailer_ace') {
+    module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+    $mail = new DrupalPHPMailer();
+    $mail->IsMail();
+    $mail->From = $email;
+    $mail->AddAddress('brian@acecrew.co.uk');
+    $mail->CreateBody();
+    $mail->Subject  = t('Test mail by DrupalPHPMailer method to brian@acecrew.co.uk');        
+    $mail->Body = $message;
+    $mail->Send();
+    drupal_set_message('Sent by DrupalPHPMailer method to Brian');
+  } elseif ($op == 'send_mimemailmail_ace') {
+    mimemail($email, 'brian@acecrew.co.uk', t('Test mail by Mimemail method to Brian'), $message);
+    drupal_set_message('Sent by Mimemail method to Brian');
+  } // brian@acecrew.co.uk
 }
 
 function acereview_send_review_contract_popup($js = NULL, $job_id) {
