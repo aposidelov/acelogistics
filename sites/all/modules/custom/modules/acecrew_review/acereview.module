@@ -103,7 +103,7 @@ function acereview_email_test_form(&$form_state) {
 
   $form['send_drupalphpmailer_gm'] = array(
     '#type' => 'submit',
-    '#value' => 'Send by drupalphpmailer from Gmail',  
+    '#value' => 'Send by drupalphpmailer to Gmail',  
   );
   $form['send_mimemailmail_gm'] = array(
     '#type' => 'submit',
@@ -115,7 +115,7 @@ function acereview_email_test_form(&$form_state) {
   );  
   $form['send_mimemailmail_ace'] = array(
     '#type' => 'submit',
-    '#value' => 'Send by mimemail to Acecrew',  
+    '#value' => 'Send by mimemail to Brian',  
   );
 
   return $form;
