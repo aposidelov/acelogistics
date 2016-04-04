@@ -928,6 +928,8 @@ EOD;
     $query1 =  "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE cid='%s');";
     $query_result1 =  db_query($query1, $ses_call_id);
     while ($row1 = db_fetch_object($query_result1)) {
+        
+        /* 
         $crew_mobile = "undefined";
         $query2 = "SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 12";
         $query_result2 = db_query($query2, $row1->uid);
@@ -935,8 +937,13 @@ EOD;
             $crew_mobile = $row2->value;
             if(trim($crew_mobile) == "" )
                 $crew_mobile = "undefined";
-        }
-        $crew_name = $row1->name;
+        }*/
+
+        $crew_mobile = db_result(db_query("SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 12", $row1->uid));
+        $preferred_name = db_result(db_query("SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 47", $row1->uid));
+        $crew_mobile = trim($crew_mobile) != "" ? $crew_mobile : 'undefined';
+        $crew_name = trim($preferred_name) != "" ? $preferred_name : $row1->name;
+        
         $output .= "$crew_name $crew_mobile<br/>";
     }
 

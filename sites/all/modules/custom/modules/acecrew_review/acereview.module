@@ -325,8 +325,12 @@ function acereview_form_alter(&$form, &$form_state, $form_id) {
           $defaults->field_user_review_com_skills_value   = 0;
           $defaults->field_user_review_add_comments_value = '';
         }
+
+        $preferred_name = db_result(db_query("SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 47", $crew->uid));       
+        $crew_name = trim($preferred_name) != "" ? $preferred_name : $crew->name;
+
         $form['crews']['rows'][$crew->uid]['username'] = array(
-          '#value' => $crew->name,
+          '#value' => $crew_name,
           '#title' => 'Username',
         );
         $form['crews']['rows'][$crew->uid]['uid'] = array(

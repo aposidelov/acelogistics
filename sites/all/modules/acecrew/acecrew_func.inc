@@ -1332,15 +1332,11 @@ function acecrew_get_crew_with_supplements($ses_call_id) {
             }
         }
 
-        $crew_mobile = "undefined";
-        $query2 = "SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 12";
-        $query_result2 = db_query($query2, $row1->uid);
-        while ($row2 = db_fetch_object($query_result2)) {
-            $crew_mobile = $row2->value;
-            if(trim($crew_mobile) == "" )
-                $crew_mobile = "undefined";
-        }
-        $crew_name = $row1->name;
+        $crew_mobile = db_result(db_query("SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 12", $row1->uid));
+        $preferred_name = db_result(db_query("SELECT value FROM {profile_values} WHERE uid='%s' AND fid = 47", $row1->uid));
+        $crew_mobile = trim($crew_mobile) != "" ? $crew_mobile : 'undefined';
+        $crew_name = trim($preferred_name) != "" ? $preferred_name : $row1->name;
+        
         $supp = "";
         if($supplements) {
             $supp = implode(', ', $supplements);
