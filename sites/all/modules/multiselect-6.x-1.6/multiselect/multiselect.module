@@ -252,7 +252,7 @@ function multiselect_theme() {
  * $element['#field_name'] contains the field name
  * $element['#delta]  is the position of this element in the group
  */
-function theme_multiselect_select($element) {
+function theme_multiselect_select($element) {  
   return $element['#children'];
 }
 

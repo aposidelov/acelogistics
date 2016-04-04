@@ -155,3 +155,12 @@ function call_rules_defaults() {
     ),
   );
 }
+
+/**
+ * Implementation of hook_views_api().
+ */
+function call_views_api() {
+  return array(
+    'api' => '2',
+  );
+}

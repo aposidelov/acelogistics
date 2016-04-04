@@ -1361,3 +1361,7 @@ ul.call-listing li.cancel-btn,
     
     margin-bottom: 30px;
 }
+
+#edit-profile-start-date-wrapper {
+    clear: both;
+}
