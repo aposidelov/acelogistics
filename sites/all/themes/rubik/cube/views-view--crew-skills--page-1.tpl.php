@@ -51,7 +51,24 @@ if (isset($_POST['edit_submit_save'])) {
   } else {
     $query = "UPDATE  {profile_values} SET `value` = '$payrate'  WHERE fid = 28 AND uid=$uid;";
     db_query($query);
-  }  
+  }
+  // set rate date
+  $rate_date = serialize($_POST['profile_rate_date']);
+  $query = "SELECT * FROM {profile_values} WHERE fid=48 AND uid=$uid";
+  $results = db_query($query);
+  $isnew = TRUE;
+  while ($row = db_fetch_object($results)) {
+    $isnew = FALSE;
+  } 
+  if ($isnew) {
+    watchdog('ins', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+    $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('48', '$uid', '%s');";
+    db_query($query, $rate_date);
+  } else {
+    watchdog('upd', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+    $query = "UPDATE  {profile_values} SET `value` = '%s'  WHERE fid = 48 AND uid=$uid;";
+    db_query($query, $rate_date);
+  }
   module_invoke_all('crew_supplement_skills', $skills_before, $skills, $uid);
   module_invoke_all('crew_supplement_payrate', $payrate_before, $payrate, $uid);
 }
@@ -60,6 +77,28 @@ $skills = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 41 
 $skills = explode(',', $skills);
 
 $payrate = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $uid));
+
+$rate_date = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 48 AND uid = %d", $uid));
+watchdog('rd0', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+$rate_date = unserialize($rate_date);
+watchdog('rd1', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+
+
+
+$monthes = array(
+  1 => 'Jan',
+  2 => 'Feb',
+  3 => 'Mar',
+  4 => 'Apr',
+  5 => 'May',
+  6 => 'Jun',
+  7 => 'Jul',
+  8 => 'Aug',
+  9 => 'Sep',
+  10 => 'Oct',
+  11 => 'Nov',
+  12 => 'Dec',
+);
 
 $query = "SELECT node.nid AS nid, node.title AS node_title FROM {node} node  WHERE node.type in ('supplements')";
 $results = db_query($query);
@@ -119,6 +158,36 @@ function is_skill_checked($nid, $skills) {
                 <?php } ?>
                 </select>
             </div>
+            <div class="form-item form-item-labeled" id="edit-profile-rate-date-wrapper">
+      <label for="edit-profile-rate-date">Rate Date: </label>
+    <div class="container-inline">
+
+<div class="form-item" id="edit-profile-rate-date-day-wrapper">
+  <select name="profile_rate_date[day]" class="form-select" id="edit-profile-rate-date-day">
+    <?php for ($i=1; $i<= 31; $i++) : ?>
+      <option value="<?php echo $i; ?>" <?php if ($i==$rate_date['day']) print "selected='selected'"; ?>><?php echo $i; ?></option>
+    <?php endfor; ?>
+  </select>  
+</div>
+
+<div class="form-item" id="edit-profile-rate-date-month-wrapper">
+    <select name="profile_rate_date[month]" class="form-select" id="edit-profile-rate-date-month">
+      <?php foreach ($monthes as $i => $name) : ?>
+        <option value="<?php print $i; ?>" <?php if ($i==$rate_date['month']) print "selected='selected'"; ?>><?php print $name; ?></option>
+      <?php endforeach; ?>
+    </select>  
+</div>
+
+<div class="form-item" id="edit-profile-rate-date-year-wrapper">
+  <select name="profile_rate_date[year]" class="form-select" id="edit-profile-rate-date-year">
+    <?php for ($i=2005; $i<= 2050; $i++) : ?>
+      <option value="<?php echo $i; ?>" <?php if ($i==$rate_date['year']) print "selected='selected'"; ?>><?php echo $i; ?></option>
+    <?php endfor; ?>
+  </select>  
+</div>
+
+
+</div>  </div>
         </div>
     </fieldset>
     <div class="buttons">
