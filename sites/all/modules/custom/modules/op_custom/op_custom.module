@@ -129,12 +129,21 @@ function op_custom_menu() {
     'title' => 'Invoice update',
   );
 
+  $items['crew-listing'] = array(
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('op_custom_crew_listing_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,    
+    'title' => 'Crew listing',
+    'file' => 'op_custom.crew_listing.inc',
+  );
+
 
   $items['admin/settings/allocate_skills'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_allocate_skills_form'),
     'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_CALLBACK,    
   );
 
   $items['admin/ajax/client-account/%'] = array(

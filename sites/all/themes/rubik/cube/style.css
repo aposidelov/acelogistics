@@ -719,7 +719,16 @@ ul.nice-menu li.menuparent ul li a {display: block; float: none; padding: 8px;}
 
 
 /*create user profile page*/
-#user-profile-form .form-item{ float:left; width: 150px; margin-right: 20px;}
+#user-profile-form .form-item, #op-custom-crew-listing-form .form-checkboxes .form-item { float:left; width: 150px; margin-right: 20px;}
+#op-custom-crew-listing-form #edit-employment-type-wrapper {    
+    clear: both;
+}
+
+#op-custom-crew-listing-form input[type='text'],
+#op-custom-crew-listing-form select {
+    width: 100px;
+}
+
 #edit-acecrew-payrate-id-wrapper {clear: both; float: none; margin-top: 30px;}
 .profile_title {
     background: #40444d url(images/heading-bg.png) 0px 0 repeat-x; border-radius: 4px; padding: 6px 10px; border: 0;

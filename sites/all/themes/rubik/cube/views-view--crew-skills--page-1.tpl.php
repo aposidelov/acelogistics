@@ -60,12 +60,10 @@ if (isset($_POST['edit_submit_save'])) {
   while ($row = db_fetch_object($results)) {
     $isnew = FALSE;
   } 
-  if ($isnew) {
-    watchdog('ins', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+  if ($isnew) {    
     $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('48', '$uid', '%s');";
     db_query($query, $rate_date);
-  } else {
-    watchdog('upd', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+  } else {    
     $query = "UPDATE  {profile_values} SET `value` = '%s'  WHERE fid = 48 AND uid=$uid;";
     db_query($query, $rate_date);
   }
