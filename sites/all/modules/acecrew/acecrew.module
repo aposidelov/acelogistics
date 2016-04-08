@@ -506,7 +506,7 @@ function acecrew_user($op, &$edit, &$account, $category = NULL) {
     }
     //??saf
     if ('view' == $op) {
-        $sql = "SELECT * FROM {content_type_user_bookedoff} WHERE field_ub_owner_uid = %d ORDER BY field_ub_date_start_value";
+        $sql = "SELECT * FROM {content_type_user_bookedoff} WHERE field_ub_owner_uid = %d ORDER BY field_ub_date_start_value DESC";
         $query = db_query($sql, array($account->uid));
         $ret = array();
         while($row = db_fetch_array($query)){
