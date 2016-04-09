@@ -301,7 +301,7 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Nearest Station/Tube',
-      'weight' => '42',
+      'weight' => '43',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -371,7 +371,7 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Address',
-      'weight' => '36',
+      'weight' => '37',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -511,7 +511,7 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Contact Telephone',
-      'weight' => '40',
+      'weight' => '41',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -854,7 +854,7 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Notes',
-      'weight' => '45',
+      'weight' => '39',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -924,7 +924,7 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Post Code',
-      'weight' => '37',
+      'weight' => '38',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -994,10 +994,91 @@ function venue_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Telephone',
-      'weight' => '41',
+      'weight' => '42',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
+    ),
+  );
+
+  // Exported field: field_venue_type
+  $fields['venue-field_venue_type'] = array(
+    'field_name' => 'field_venue_type',
+    'type_name' => 'venue',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '1|Hotel
+2|Airport
+3|Palace. Private Residence',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Type',
+      'weight' => '36',
+      'description' => '',
+      'type' => 'optionwidgets_select',
+      'module' => 'optionwidgets',
     ),
   );
 
@@ -1015,6 +1096,7 @@ function venue_content_default_fields() {
   t('Post Code');
   t('Round Trip In Miles');
   t('Telephone');
+  t('Type');
   t('Venue ID');
   t('Venue Job Call Comments Box');
 

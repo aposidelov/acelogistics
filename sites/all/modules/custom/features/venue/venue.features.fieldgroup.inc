@@ -209,9 +209,10 @@ function venue_fieldgroup_default_groups() {
     'fields' => array(
       '0' => 'field_venue_id',
       '1' => 'field_venue_name',
-      '2' => 'field_venue_address',
-      '3' => 'field_venue_post_code',
-      '4' => 'field_venue_notes',
+      '2' => 'field_venue_type',
+      '3' => 'field_venue_address',
+      '4' => 'field_venue_post_code',
+      '5' => 'field_venue_notes',
     ),
   );
 
