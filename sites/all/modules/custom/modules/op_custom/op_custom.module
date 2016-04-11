@@ -551,7 +551,7 @@ function op_custom_views_query_alter(&$view, &$query) {
       $min = isset($_GET['date_filter']['min']['date']) ? $_GET['date_filter']['min']['date'] : '';
       $max = isset($_GET['date_filter']['max']['date']) ? $_GET['date_filter']['max']['date'] : '';
       
-      if (!empty($min) || !empty($max)) {
+      if (!empty($min) || !empty($max)) {        
         $query->having[0]['args'] = array();
       }
 
