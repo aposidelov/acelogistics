@@ -19,5 +19,6 @@
   * regardless of any changes in the aliasing that might happen if
   * the view is modified.
   */
+ //watchdog('rrr', '<pre>'.print_r($row, TRUE).'</pre>');
 ?>
-<?php print date('D, d/m/Y', $row->job_field_job_date_value); ?>
+<?php print date('D, d/m/Y', $row->first_call_date); ?>

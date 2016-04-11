@@ -488,33 +488,17 @@ function op_custom_views_query_alter(&$view, &$query) {
       'table' => 'node',
       'alias' => 'node_uid',
     );
-    /*$query->fields['node_revisions_format'] = array(
-      'field' => 'format',
-      'table' => 'node_revisions',
-      'alias' => 'node_revisions_format',
-    );*/
+
+    $query->fields['first_call_date'] = array(
+      'field' => '(SELECT UNIX_TIMESTAMP(MIN(js.field_job_session_date_time_value)) FROM `drupal_content_type_job_session` js WHERE js.field_session_job_nid_value = node.nid)',      
+      'alias' => 'first_call_date',
+    );
 
     $query->where = array();
     $query->where[0]['clauses'][0] = "node.type in ('%s')";
     $query->where[0]['args'][0] = 'job';
     $query->where[0]['type'] = "AND";
-
-    // Date picker
-    if (isset($_GET['date_filter'])) {
-      $min = isset($_GET['date_filter']['min']['date']) ? $_GET['date_filter']['min']['date'] : '';
-      $max = isset($_GET['date_filter']['max']['date']) ? $_GET['date_filter']['max']['date'] : '';
-      if (!empty($min) && !empty($max)) {
-        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min' AND DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
-      } elseif (!empty($min) && empty($max)) { // ONLY MIN DATE IS SET
-        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min'";
-      } elseif (!empty($max) && empty($min)) {  // ONLY MAX DATE IS SET
-        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
-      }
-      if (!empty($min) || !empty($max)) {
-        $query->where['date']['args'] = array();
-        $query->where['date']['type'] = 'AND';
-      }
-    }
+    
     // Status (job) (select list)
     if (isset($_GET['field_job_status_value_many_to_one']) &&
       $_GET['field_job_status_value_many_to_one'] != 'All') {
@@ -561,8 +545,40 @@ function op_custom_views_query_alter(&$view, &$query) {
       $query->where[0]['clauses'][] = "aji.invoice_number = '%s'";
       $query->where[0]['args'][] = $_GET['field_invoice_number_value'];
     }
+    
+    // Date picker
+    if (isset($_GET['date_filter'])) {
+      $min = isset($_GET['date_filter']['min']['date']) ? $_GET['date_filter']['min']['date'] : '';
+      $max = isset($_GET['date_filter']['max']['date']) ? $_GET['date_filter']['max']['date'] : '';
+      
+      if (!empty($min) || !empty($max)) {
+        $query->having[0]['args'] = array();
+      }
 
-    $query->orderby = array('job_field_job_number_value DESC');
+      if (!empty($min) && !empty($max)) {        
+        $query->having[0]['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(first_call_date), '%Y-%m-%%d') >= '$min' AND DATE_FORMAT(FROM_UNIXTIME(first_call_date), '%Y-%m-%%d') <= '$max'";
+      } elseif (!empty($min) && empty($max)) { // ONLY MIN DATE IS SET
+        $query->having[0]['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(first_call_date), '%Y-%m-%%d') >= '$min'";
+      } elseif (!empty($max) && empty($min)) {  // ONLY MAX DATE IS SET
+        $query->having[0]['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(first_call_date), '%Y-%m-%%d') <= '$max'";
+      }            
+      
+      
+
+      /*if (!empty($min) && !empty($max)) {
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min' AND DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
+      } elseif (!empty($min) && empty($max)) { // ONLY MIN DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') >= '$min'";
+      } elseif (!empty($max) && empty($min)) {  // ONLY MAX DATE IS SET
+        $query->where['date']['clauses'][] = "DATE_FORMAT(FROM_UNIXTIME(job.field_job_date_value), '%Y-%m-%%d') <= '$max'";
+      }*/
+      /*if (!empty($min) || !empty($max)) {
+        $query->where['date']['args'] = array();
+        $query->where['date']['type'] = 'AND';
+      }*/
+    }
+
+    $query->orderby = array('job_field_job_number_value ASC');
     if (isset($_GET['order'])) {
       // Order by Job Number
       if ($_GET['order'] == 'field_job_number_value') {
@@ -591,9 +607,9 @@ function op_custom_views_query_alter(&$view, &$query) {
       //
       if ($_GET['order'] == 'field_job_date_value') {
         if (!isset($_GET['sort']) || $_GET['sort'] == 'asc') {
-          $query->orderby = array('field_job_date_value ASC');
+          $query->orderby = array('first_call_date ASC');
         } else {
-          $query->orderby = array('field_job_date_value DESC');
+          $query->orderby = array('first_call_date DESC');
         }
       }
       //
@@ -604,7 +620,7 @@ function op_custom_views_query_alter(&$view, &$query) {
           $query->orderby = array('field_job_client_name_value DESC');
         }
       }
-    }
+    }   
 
   }
   elseif ($view->name == 'call_search') {

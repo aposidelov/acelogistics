@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_row_fields.inc,v 1.2 2009/07/01 22:52:41 merlinofchaos Exp $
 /**
  * @file
  * Contains the base row style plugin.
@@ -27,10 +26,7 @@ class views_plugin_row_fields extends views_plugin_row {
    * Provide a form for setting options.
    */
   function options_form(&$form, &$form_state) {
-    $options = array();
-    foreach ($this->display->handler->get_handlers('field') as $field => $handler) {
-      $options[$field] = $handler->ui_name();
-    }
+    $options = $this->display->handler->get_field_labels();
 
     if (empty($this->options['inline'])) {
       $this->options['inline'] = array();
@@ -64,7 +60,7 @@ class views_plugin_row_fields extends views_plugin_row {
    * Perform any necessary changes to the form values prior to storage.
    * There is no need for this function to actually store the data.
    */
-  function options_submit($form, &$form_state) {
+  function options_submit(&$form, &$form_state) {
     $form_state['values']['row_options']['inline'] = array_filter($form_state['values']['row_options']['inline']);
   }
 }
