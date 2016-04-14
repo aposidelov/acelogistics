@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * Implements hook_update_6001().
+ */
+function ace_client_job_update_6001() {
+  
+
+  drupal_set_message(t('2h/3h charges have been copied from clients to related jobs'));
+}
+
+/**
+ * Implements hook_menu().
+ */
+function ace_client_job_menu() {
+  $items['admin/ajax/client-rate/%'] = array(
+    'page callback' => 'op_custom_ajax_client_rate',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/admin-settings/move-client-charges'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ace_client_job_move_charges_form'),
+    'access arguments' => array('admin content'),
+    'type' => MENU_NORMAL_ITEM,    
+    'title' => 'Move charges',
+  );
+
+  return $items;
+}
+
+function ace_client_job_move_charges_form($form_state) {
+  $form = array();
+  $form['job_nid'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#title' => t('Job nid'),    
+  );  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Update jobs with 2h/3h client charges',
+  );
+
+  return $form;
+}
+
+function ace_client_job_move_charges_form_submit($form, $form_state) {
+  //$job_nid = $form_state['values']['job_nid'];
+  $result = db_query('SELECT nid FROM `drupal_content_type_job`');  
+  $operations = array();
+  while ($data = db_fetch_object($result)) {  
+    $operations[] = array('_ace_client_job_batch_process', array($data->nid, $row));
+  }  
+
+  $batch = array(
+    'operations' => $operations,
+    'finished' => '_ace_client_job_batch_finished',
+    'title' => t('Performing jobs update with clients 2h/3h charges on selected rows...'),
+  );  
+  batch_set($batch);
+  //  field_client_id_value
+  //field_job_client_name_value
+
+  //$client = 
+
+  //$job = node_load($job_nid);
+  //drupal_set_message('<pre>'.print_r($job, TRUE).'</pre>');
+  //drupal_flush_all_caches();  
+}
+
+function ace_client_job_update_job($job_nid) {
+  $query = "SELECT c.field_2_hour_default_value, 
+  c.field_3_hour_default_value FROM `drupal_content_type_client` c INNER JOIN `drupal_content_type_job` j ON c.field_client_id_value = j.field_job_client_name_value WHERE j.nid = %d";
+
+  $client_data = db_fetch_array(db_query($query, $job_nid));
+
+  db_query('UPDATE `drupal_content_type_job` SET field_client_2h_default_value = %f, field_client_3h_default_value = %f WHERE nid = %d', $client_data['field_2_hour_default_value'], $client_data['field_3_hour_default_value'], $job_nid);  
+}
+
+/**
+ * Helper function to handle Batch API operations.
+ */
+function _ace_client_job_batch_process($job_nid, $row, &$context) {
+
+  ace_client_job_update_job($job_nid);
+  
+  if (!isset($context['results']['time'])) {
+    $context['results']['time'] = microtime(TRUE);
+  }
+
+  if (isset($context['results']['rows'])) {
+    $context['results']['rows'] += 1;
+  }
+  else {
+    $context['results']['rows'] = 1;
+  }
+}
+
+/**
+ * Helper function to cleanup Batch API operations.
+ */
+function _ace_client_job_batch_finished($success, $results, $operations, $display_result = NULL) {
+  if ($success) {
+    if ($results['rows'] > 0) {
+      $message = t('!results rows processed in about !time ms:', array('!results' => $results['rows'], '!time' => round((microtime(TRUE) - $results['time']) * 1000)));
+      drupal_flush_all_caches();
+    }
+    else {
+      $message = t('No rows were processed:');
+    }    
+  } else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing @operation with arguments: @arguments', 
+      array('@operation' => $error_operation[0], '@arguments' => print_r($error_operation[0], TRUE)));
+  }
+  drupal_set_message($message);
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ace_client_job_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'job_node_form') {    
+    drupal_add_js(drupal_get_path('module', 'ace_client_job').'/ace_client_job.js');      
+  }
+}
+
+function op_custom_ajax_client_rate($client_name = '') {  
+  if (!empty($client_name)) {
+    $client_data = db_fetch_object(db_query('SELECT ctc.field_2_hour_default_value, ctc.field_3_hour_default_value FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
+    $hours_2 = $client_data->field_2_hour_default_value;
+    $hours_3 = $client_data->field_3_hour_default_value;    
+  }
+
+  print json_encode(array('hours_2' => $hours_2, 'hours_3' => $hours_3));
+  exit;
+}

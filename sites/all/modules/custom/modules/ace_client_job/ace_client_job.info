@@ -1,0 +1,4 @@
+name = Ace Client Job
+description = Provide for Job to store client 2h and 3h charges
+core = 6.x
+package = Ace Crew

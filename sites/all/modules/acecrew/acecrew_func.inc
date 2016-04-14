@@ -247,6 +247,13 @@ function _acecrew_add_invoice_job_relate($job_id) {
     $query = "UPDATE {acecrew_job_invoices} SET created = '%d' WHERE job_id = %d";
     $result = db_query($query, $date, $job_id);
   }
+  $count = db_result(db_query('SELECT COUNT(*) FROM {acecrew_job_invoices} WHERE invoice_number = %d', $invoice_number));
+  if ($count > 1) {
+    $max = db_result(db_query('SELECT MAX(invoice_number) FROM {acecrew_job_invoices}'));
+    ++$max;
+    $query = "UPDATE {acecrew_job_invoices} SET invoice_number = %d WHERE job_id = %d";
+    $result = db_query($query, $max, $job_id);
+  }
 }
 
 function _acecrew_invoice_raised_job_status($job_nid) {        
@@ -1055,8 +1062,23 @@ function get_additional_costs($call) {
 function _get_call_client_charge_amount($job, $client, $call) {
   $rate = $call->field_job_session_client_rate_value == NULL ? 1 : $call->field_job_session_client_rate_value;
   $hours_quoted = $call->field_job_session_hours_value;
+  //watchdog('jjj1', '<pre>'.print_r($job, TRUE).'</pre>');
+
+  if (!empty($job->field_client_2h_default_value)) {
+    $_2hrs_call_override = $job->field_client_2h_default_value;
+  } else {
+    $_2hrs_call_override = $client->field_2_hour_default_value == NULL ? _get_2_hours_call_client_default($client, $hours_quoted) : $client->field_2_hour_default_value;
+  }
+
+  if (!empty($job->field_client_3h_default_value)) {
+    $_3hrs_call_override = $job->field_client_3h_default_value;
+  } else {
+    $_3hrs_call_override = $client->field_3_hour_default_value == NULL ? _get_3_hours_call_client_default($client, $hours_quoted) : $client->field_3_hour_default_value;
+  }  
+  /*
   $_2hrs_call_override = $client->field_2_hour_default_value == NULL ? _get_2_hours_call_client_default($client, $hours_quoted) : $client->field_2_hour_default_value;
   $_3hrs_call_override = $client->field_3_hour_default_value == NULL ? _get_3_hours_call_client_default($client, $hours_quoted) : $client->field_3_hour_default_value;
+*/
 
   if ($hours_quoted <= 2) {
     return $_2hrs_call_override;
@@ -1069,9 +1091,24 @@ function _get_call_client_charge_amount($job, $client, $call) {
 function __get_call_client_charge_amount($job, $client, $call) {
   $rate = $call->field_job_session_client_rate[0]['value'] == NULL ? 1 : $call->field_job_session_client_rate[0]['value'];
   $hours_quoted = $call->field_job_session_hours[0]['value'];
+  //watchdog('jjj2', '<pre>'.print_r($job, TRUE).'</pre>');
+  
+  if (!empty($job->field_client_2h_default[0]['value'])) {
+    $_2hrs_call_override = $job->field_client_2h_default[0]['value'];
+  } else {
+    $_2hrs_call_override = $client->field_2_hour_default_value == NULL ? _get_2_hours_call_client_default($client, $hours_quoted) : $client->field_2_hour_default_value;
+  }
+
+  if (!empty($job->field_client_3h_default[0]['value'])) {
+    $_3hrs_call_override = $job->field_client_3h_default[0]['value'];
+  } else {
+    $_3hrs_call_override = $client->field_3_hour_default_value == NULL ? _get_3_hours_call_client_default($client, $hours_quoted) : $client->field_3_hour_default_value;
+  }  
+
+  /*
   $_2hrs_call_override = $client->field_2_hour_default[0]['value'] == NULL ? _get_2_hours_call_client_default($client, $hours_quoted) : $client->field_2_hour_default[0]['value'];
   $_3hrs_call_override = $client->field_3_hour_default[0]['value'] == NULL ? _get_3_hours_call_client_default($client, $hours_quoted) : $client->field_3_hour_default[0]['value'];
-
+    */
   if ($hours_quoted <= 2) {
     return $_2hrs_call_override;
   } else if ($hours_quoted <= 3) {
