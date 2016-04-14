@@ -98,8 +98,10 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
     }
 
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
-    $comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
-    $comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
+    $comp_address_1 = $client->field_client_company_address_value;
+    $comp_address_2 = $client->field_client_company_postcode_value;
+    //$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
+    //$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
 
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
@@ -137,7 +139,7 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
         <td width=15% style="font-weight:bold;">' . t('Venue') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_name_value . '</td>
     </tr>
     <tr>
-        <td width=15% style="font-weight:bold;">' . t('Adress') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_address_value . '</td>
+        <td width=15% style="font-weight:bold;">' . t('Address') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_address_value . '</td>
     </tr>
     <tr>
         <td width=15% style="font-weight:bold;">' . t('Postcode') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_post_code_value . '</td>

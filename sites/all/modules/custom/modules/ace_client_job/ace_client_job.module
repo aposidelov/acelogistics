@@ -72,11 +72,11 @@ function ace_client_job_move_charges_form_submit($form, $form_state) {
 
 function ace_client_job_update_job($job_nid) {
   $query = "SELECT c.field_2_hour_default_value, 
-  c.field_3_hour_default_value FROM `drupal_content_type_client` c INNER JOIN `drupal_content_type_job` j ON c.field_client_id_value = j.field_job_client_name_value WHERE j.nid = %d";
+  c.field_3_hour_default_value, c.field_client_rate_value FROM `drupal_content_type_client` c INNER JOIN `drupal_content_type_job` j ON c.field_client_id_value = j.field_job_client_name_value WHERE j.nid = %d";
 
   $client_data = db_fetch_array(db_query($query, $job_nid));
 
-  db_query('UPDATE `drupal_content_type_job` SET field_client_2h_default_value = %f, field_client_3h_default_value = %f WHERE nid = %d', $client_data['field_2_hour_default_value'], $client_data['field_3_hour_default_value'], $job_nid);  
+  db_query('UPDATE `drupal_content_type_job` SET field_client_2h_default_value = %f, field_client_3h_default_value = %f, field_client_hourly_rate_default_value = %s WHERE nid = %d', $client_data['field_2_hour_default_value'], $client_data['field_3_hour_default_value'], number_format((float)$client_data['field_client_rate_value'], 2, '.', ''), $job_nid);  
 }
 
 /**
