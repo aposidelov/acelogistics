@@ -129,13 +129,14 @@ function ace_client_job_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-function op_custom_ajax_client_rate($client_name = '') {  
+function op_custom_ajax_client_rate($client_name = '') {   
   if (!empty($client_name)) {
-    $client_data = db_fetch_object(db_query('SELECT ctc.field_2_hour_default_value, ctc.field_3_hour_default_value FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
+    $client_data = db_fetch_object(db_query('SELECT ctc.field_2_hour_default_value, ctc.field_3_hour_default_value, ctc.field_client_rate_value FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
     $hours_2 = $client_data->field_2_hour_default_value;
     $hours_3 = $client_data->field_3_hour_default_value;    
+    $hourly_rate = $client_data->field_client_rate_value;
   }
 
-  print json_encode(array('hours_2' => $hours_2, 'hours_3' => $hours_3));
+  print json_encode(array('hours_2' => $hours_2, 'hours_3' => $hours_3, 'hourly_rate' => $hourly_rate));
   exit;
 }
