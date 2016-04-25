@@ -241,7 +241,13 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
 
     $form['buttons']['submit']['#submit'][0] = 'op_custom_client_before_submit';
     $form['buttons']['submit']['#submit'][1] = 'node_form_submit';
-    $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit'; 
+    $form['buttons']['submit']['#submit'][2] = 'op_custom_client_after_submit';    
+
+    $form['buttons']['duplicate'] = array('#type' => 'submit', '#value' => 'Save & Duplicate Venue', '#weight' => 10);
+    $form['buttons']['duplicate']['#submit'][0] = 'op_custom_client_before_submit';
+    $form['buttons']['duplicate']['#submit'][1] = 'node_form_submit';
+    $form['buttons']['duplicate']['#submit'][2] = 'op_custom_client_after_submit'; 
+    $form['buttons']['duplicate']['#submit'][3] = 'op_custom_client_duplicate_venue_submit'; 
 
     //watchdog('ffc', '<pre>'.print_r($form, TRUE).'</pre>');   
   } elseif ($form_id == 'job_node_form') {    
@@ -945,6 +951,28 @@ function op_custom_client_after_submit($form, &$form_state) {
   unset($_SESSION['contact_items']);
   drupal_flush_all_caches();
   drupal_set_message('cache flushed.');
+}
+
+function op_custom_client_duplicate_venue_submit($form, &$form_state) {
+  //watchdog('$fs', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  $client = $form_state['values']; 
+  
+  $venue_nid = db_result(db_query("SELECT nid FROM {content_type_venue} WHERE field_venue_name_value = '%s'", $client['field_client_name'][0]['value']));  
+  if (!empty($venue_nid)) {
+    $venue = node_load($venue_nid);        
+  } else {    
+    $venue = new StdClass();
+    $venue->title = $client['title'];
+    $venue->type = 'venue';
+    $venue->field_venue_name[0]['value'] = $client['field_client_name'][0]['value'];
+  }
+  $venue->field_venue_address[0]['value'] = $client['field_client_company_address'][0]['value'];
+  $venue->field_venue_post_code[0]['value'] = $client['field_client_company_postcode'][0]['value'];  
+  node_save($venue);
+
+  drupal_set_message('Venue has been duplicated. Check updates '. l('here', 'node/'.$venue->nid.'/edit'));
+  
+  //$form_state['redirect'] = ;
 }
 
 function acecrew_client_contracts_getItems($nid) {

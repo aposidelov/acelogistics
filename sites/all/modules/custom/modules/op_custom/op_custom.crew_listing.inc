@@ -128,7 +128,7 @@ function op_custom_crew_listing_build_rows($form, $fs_values, $exclude_link = FA
 		LEFT JOIN `drupal_profile_values` ad ON u.uid = ad.uid AND ad.fid = 5
 		LEFT JOIN `drupal_profile_values` pc ON u.uid = pc.uid AND pc.fid = 4
 		LEFT JOIN `drupal_profile_values` et ON u.uid = et.uid AND et.fid = 39
-		WHERE sp.fid = 41 $where_supplements $where_employed $where_crew_status";	
+		WHERE sp.fid = 41 $where_supplements $where_employed $where_crew_status ORDER BY u.name";	
 	//drupal_set_message($query);
 	$result = db_query($query);			
 	$items = array();
