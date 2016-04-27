@@ -953,8 +953,7 @@ function op_custom_client_after_submit($form, &$form_state) {
   drupal_set_message('cache flushed.');
 }
 
-function op_custom_client_duplicate_venue_submit($form, &$form_state) {
-  //watchdog('$fs', '<pre>'.print_r($form_state, TRUE).'</pre>');
+function op_custom_client_duplicate_venue_submit($form, &$form_state) {  
   $client = $form_state['values']; 
   
   $venue_nid = db_result(db_query("SELECT nid FROM {content_type_venue} WHERE field_venue_name_value = '%s'", $client['field_client_name'][0]['value']));  
@@ -968,11 +967,10 @@ function op_custom_client_duplicate_venue_submit($form, &$form_state) {
   }
   $venue->field_venue_address[0]['value'] = $client['field_client_company_address'][0]['value'];
   $venue->field_venue_post_code[0]['value'] = $client['field_client_company_postcode'][0]['value'];  
+
   node_save($venue);
 
   drupal_set_message('Venue has been duplicated. Check updates '. l('here', 'node/'.$venue->nid.'/edit'));
-  
-  //$form_state['redirect'] = ;
 }
 
 function acecrew_client_contracts_getItems($nid) {

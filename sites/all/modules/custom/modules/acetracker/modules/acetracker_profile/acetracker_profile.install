@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function acetracker_profile_install() {
+  drupal_install_schema('acetracker_profile');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function acetracker_profile_uninstall() {
+  drupal_uninstall_schema('acetracker_profile');
+}
+
+/**
+ * Implementation of hook_schema() 
+ */
+function acetracker_profile_schema() {
+  $schema = array();
+
+  $schema['acetracker_profile'] = array(
+    'fields' => array(      
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'crew_uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'author' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'type' => array('type' => 'varchar', 'length' => 16, 'not null' => TRUE),
+      'field_name' => array('type' => 'varchar', 'length' => 32, 'not null' => TRUE),
+      'value' => array('type' => 'varchar', 'length' => 128, 'not null' => TRUE),
+      'created' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('id'),        
+  );
+
+  return $schema;
+}

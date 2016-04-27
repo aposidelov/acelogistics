@@ -1,0 +1,4 @@
+name = Ace User Profile
+description = Provide user profile additional functionality like storage crew rate change etc
+core = 6.x
+package = Ace Crew

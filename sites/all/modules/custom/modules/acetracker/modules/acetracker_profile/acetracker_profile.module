@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * Implements hook_user().
+ */
+function acetracker_profile_user($op, &$edit, &$account, $category = NULL) {
+  if ($op == 'submit') {    
+    $edit['uid']  = $account->uid;
+    $edit['name'] = $account->name;
+    $crew_before  = $account;    
+    $crew_after   = (object)$edit;
+
+    //watchdog('cat', '<pre>'.print_r($category, TRUE).'</pre>');
+  }
+}
+
+function acetracker_profile_get_rates_dates($crew_uid) {
+  $rows = array();
+  $results = db_query("
+    SELECT apr.value AS rate, apd.value AS date
+    FROM `drupal_acetracker_profile` apr
+    INNER JOIN `drupal_acetracker_profile` apd ON apr.created = apd.created
+    WHERE apr.crew_uid = %d 
+    AND apd.crew_uid = %d
+    AND apr.field_name <> apd.field_name
+    AND apr.field_name = 'profile_payrateid'
+    AND apd.field_name = 'profile_rate_date'
+    ORDER BY apd.created DESC", $crew_uid, $crew_uid);  
+  while ($row = db_fetch_object($results)) {
+    $date = unserialize($row->date);
+    $rows[] = array(
+      'rate' => $date['day'].'.'.$date['month'].'.'.$date['year'],
+      'date' => $row->rate,
+    );
+  }
+
+  return $rows;  
+}
+
+function acetracker_profile_is_rates_dates_exists($crew_uid) {  
+  $result = db_result(db_query("
+    SELECT COUNT(*)
+    FROM `drupal_acetracker_profile` apr
+    INNER JOIN `drupal_acetracker_profile` apd ON apr.created = apd.created
+    WHERE apr.crew_uid = %d 
+    AND apd.crew_uid = %d
+    AND apr.field_name <> apd.field_name
+    AND apr.field_name = 'profile_payrateid'
+    AND apd.field_name = 'profile_rate_date'
+    ", $crew_uid, $crew_uid));
+  
+  return $result;  
+}

@@ -53,12 +53,14 @@ if (isset($_POST['edit_submit_save'])) {
     db_query($query);
   }
   // set rate date
+  $rate_date_before = '';
   $rate_date = serialize($_POST['profile_rate_date']);
   $query = "SELECT * FROM {profile_values} WHERE fid=48 AND uid=$uid";
   $results = db_query($query);
   $isnew = TRUE;
   while ($row = db_fetch_object($results)) {
     $isnew = FALSE;
+    $rate_date_before = $row->value;
   } 
   if ($isnew) {    
     $query = "INSERT INTO  {profile_values} (`fid` ,`uid` ,`value`) VALUES ('48', '$uid', '%s');";
@@ -77,11 +79,70 @@ $skills = explode(',', $skills);
 $payrate = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $uid));
 
 $rate_date = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 48 AND uid = %d", $uid));
-watchdog('rd0', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+
+//watchdog('rd1', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+$rate_date_before_unser = unserialize($rate_date_before);
+
+$rate_date_table = '';
+if (module_exists('acetracker_profile')) {
+  if (isset($_POST['edit_submit_save'])) {
+    global $user;
+    $created = time();
+
+    // if no rows
+    if (!acetracker_profile_is_rates_dates_exists($uid)) {
+      // profile_payrateid
+      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
+        VALUES (%d, %d, '%s', '%s', %f, %d)", 
+        $uid,
+        $user->uid, 
+        'rate_change', 
+        'profile_payrateid', 
+        $payrate_before,    
+        $created - 10
+      );
+      // profile_rate_date
+      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
+        VALUES (%d, %d, '%s', '%s', '%s', %d)", 
+        $uid,
+        $user->uid, 
+        'rate_change', 
+        'profile_rate_date', 
+        $rate_date_before,    
+        $created - 10
+      );
+    }
+
+    if ($_POST['acecrew_payrate_id'] != $payrate_before ||
+        ($_POST['profile_rate_date']['day'] != $rate_date_before_unser['day'] ||
+         $_POST['profile_rate_date']['month'] != $rate_date_before_unser['month'] ||
+         $_POST['profile_rate_date']['year'] != $rate_date_before_unser['year'])) {
+      // profile_payrateid
+      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
+        VALUES (%d, %d, '%s', '%s', %f, %d)", 
+        $uid,
+        $user->uid, 
+        'rate_change', 
+        'profile_payrateid', 
+        $payrate,    
+        $created
+      );
+      // profile_rate_date
+      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
+        VALUES (%d, %d, '%s', '%s', '%s', %d)", 
+        $uid,
+        $user->uid, 
+        'rate_change', 
+        'profile_rate_date', 
+        $rate_date,    
+        $created
+      );
+    } 
+  }
+  $rows = acetracker_profile_get_rates_dates($uid);
+  $rate_date_table = theme('table', array(t('Date'), t('Rate')), $rows);
+}
 $rate_date = unserialize($rate_date);
-watchdog('rd1', '<pre>'.print_r($rate_date, TRUE).'</pre>');
-
-
 
 $monthes = array(
   1 => 'Jan',
@@ -186,6 +247,8 @@ function is_skill_checked($nid, $skills) {
 
 
 </div>  </div>
+
+<?php print $rate_date_table; ?>
         </div>
     </fieldset>
     <div class="buttons">

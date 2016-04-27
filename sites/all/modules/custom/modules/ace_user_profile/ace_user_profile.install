@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function ace_crew_profile_install() {
+  drupal_install_schema('ace_crew_profile');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function ace_user_profile_uninstall() {
+  drupal_uninstall_schema('ace_user_profile');
+}
+
+/**
+ * Implementation of hook_schema() 
+ */
+function ace_user_profile_schema() {
+  $schema = array();
+
+  $schema['ace_user_rate'] = array(
+    'fields' => array(      
+      'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'rate' => array('type' => 'float', 'not null' => TRUE),
+      'date' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),            
+    ),
+    'primary key' => array('id'),    
+    'indexes' => array(
+      'uid' => array('uid'),      
+    ),
+  );
+
+  return $schema;
+}
