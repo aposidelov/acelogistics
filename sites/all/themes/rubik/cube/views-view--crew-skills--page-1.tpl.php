@@ -88,31 +88,7 @@ if (module_exists('acetracker_profile')) {
   if (isset($_POST['edit_submit_save'])) {
     global $user;
     $created = time();
-
-    // if no rows
-    if (!acetracker_profile_is_rates_dates_exists($uid)) {
-      // profile_payrateid
-      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
-        VALUES (%d, %d, '%s', '%s', %f, %d)", 
-        $uid,
-        $user->uid, 
-        'rate_change', 
-        'profile_payrateid', 
-        $payrate_before,    
-        $created - 10
-      );
-      // profile_rate_date
-      db_query("INSERT INTO {acetracker_profile} (crew_uid, author, type, field_name, value, created) 
-        VALUES (%d, %d, '%s', '%s', '%s', %d)", 
-        $uid,
-        $user->uid, 
-        'rate_change', 
-        'profile_rate_date', 
-        $rate_date_before,    
-        $created - 10
-      );
-    }
-
+    
     if ($_POST['acecrew_payrate_id'] != $payrate_before ||
         ($_POST['profile_rate_date']['day'] != $rate_date_before_unser['day'] ||
          $_POST['profile_rate_date']['month'] != $rate_date_before_unser['month'] ||
