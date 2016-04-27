@@ -864,6 +864,13 @@ function call_content_default_fields() {
       'default_value' => NULL,
       'default_value_php' => '$client_nid = acecrewmodule::getInstance()->getCurrentClientId();
 $c = node_load($client_nid);
+$job_nid = acecrewmodule::getInstance()->getCurrentJobId();
+if (!empty($job_nid)) {
+$hourly_rate = db_result(db_query("SELECT field_client_hourly_rate_default_value FROM `drupal_content_type_job` WHERE nid = %d", $job_nid));
+if (!empty($hourly_rate)) {
+return array(0=>array(\'value\'=>$hourly_rate));
+}
+}
 $ret = isset($c->field_client_rate[0][\'value\'])? $c->field_client_rate[0][\'value\']:null;
 return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
       'label' => 'Client rate',

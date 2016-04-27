@@ -95,6 +95,257 @@ function job_content_default_fields() {
     ),
   );
 
+  // Exported field: field_client_2h_default
+  $fields['job-field_client_2h_default'] = array(
+    'field_name' => 'field_client_2h_default',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '53',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_decimal',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'number',
+    'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'precision' => '10',
+    'scale' => '2',
+    'decimal' => '.',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_client_2h_default][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Client 2 hour default',
+      'weight' => '53',
+      'description' => '',
+      'type' => 'number',
+      'module' => 'number',
+    ),
+  );
+
+  // Exported field: field_client_3h_default
+  $fields['job-field_client_3h_default'] = array(
+    'field_name' => 'field_client_3h_default',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '54',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_decimal',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'number',
+    'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'precision' => '10',
+    'scale' => '2',
+    'decimal' => '.',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_client_3h_default][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Client 3 hour default',
+      'weight' => '54',
+      'description' => '',
+      'type' => 'number',
+      'module' => 'number',
+    ),
+  );
+
+  // Exported field: field_client_hourly_rate_default
+  $fields['job-field_client_hourly_rate_default'] = array(
+    'field_name' => 'field_client_hourly_rate_default',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => 'return acecrew_get_ads(\'field_admins_clientrates\');',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Client hourly rate default',
+      'weight' => '55',
+      'description' => '',
+      'type' => 'optionwidgets_select',
+      'module' => 'optionwidgets',
+    ),
+  );
+
   // Exported field: field_document
   $fields['job-field_document'] = array(
     'field_name' => 'field_document',
@@ -1383,7 +1634,10 @@ return $items;',
   // Included for use with string extractors like potx.
   t('Booked By');
   t('Cancellation');
+  t('Client 2 hour default');
+  t('Client 3 hour default');
   t('Client contact');
+  t('Client hourly rate default');
   t('Client name');
   t('Comments');
   t('Created By');
