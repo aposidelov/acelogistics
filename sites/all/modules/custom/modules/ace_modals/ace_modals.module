@@ -81,7 +81,7 @@ function ace_modals_form_alter(&$form, &$form_state, $form_id) {
   drupal_add_js($sample_style, 'setting');
   ctools_add_js('ctools-ajax-sample', 'ctools_ajax_sample');
   ctools_add_css('ctools-ajax-sample', 'ctools_ajax_sample');
-    watchdog('ffj', '<pre>'.print_r($form, TRUE).'</pre>');
+    //watchdog('ffj', '<pre>'.print_r($form, TRUE).'</pre>');
     $form['field_job_venue']['#suffix'] = '<div class="venue-add-container">'.ctools_modal_text_button(t('Add venue'), 'ace_modals/nojs/popup', t('Open')).'</div>';
     $client_id = $form['field_job_client_name'][0]['#default_value']['value'];
     $styles = '';
@@ -101,7 +101,7 @@ function ace_modals_client_contact_add_form($form_state, $client_nid) {
   $form = array();  
 
   $form['contact_name'] = array(
-    '#title' => 'Contact Name:'.$client_nid,
+    '#title' => 'Contact Name',
     '#type' => 'textfield',
     '#default_value' => '',
     '#requred' => TRUE,
