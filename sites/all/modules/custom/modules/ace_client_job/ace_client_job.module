@@ -24,7 +24,7 @@ function ace_client_job_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ace_client_job_move_charges_form'),
     'access arguments' => array('admin content'),
-    'type' => MENU_NORMAL_ITEM,    
+    'type' => MENU_CALLBACK,    
     'title' => 'Move charges',
   );
 

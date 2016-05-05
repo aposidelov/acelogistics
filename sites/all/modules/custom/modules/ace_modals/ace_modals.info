@@ -1,0 +1,5 @@
+name = Ace Modals
+description = Provide Ace Modals functionality for Ace Crew project.
+package = Ace Crew
+core = 6.x
+

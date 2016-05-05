@@ -1378,3 +1378,19 @@ ul.call-listing li.cancel-btn,
 #edit-field-client-2h-default-0-value-wrapper {
     clear: both;
 }
+
+#ace-modals-client-contact-add-form.ctools-ajaxing #edit-submit {
+    cursor: wait !important;
+}
+
+#edit-field-job-venue-0-value-wrapper, 
+#edit-field-job-client-contact-value-wrapper {
+    width: 180px;
+}
+.venue-add-container,
+.client-contact-add-container {
+    width: 84px;
+    float: left;
+
+    margin-top: 25px;    
+}

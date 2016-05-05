@@ -1,0 +1,402 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function ace_modals_menu() {  
+  $items['ace_modals'] = array(
+    'title' => '',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ace_modals_test_main_form'),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,    
+  );
+  $items['ace_modals/add_contact/%'] = array(
+    'title' => '',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ace_modals_client_contact_add_form', 2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,    
+  );
+
+  $items['ace_modals/popup_form'] = array(
+    'title' => '',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ace_modals_test_popup_form'),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,    
+  );
+  
+  $items['ace_modals/%ctools_js/popup'] = array(
+      'title' => 'Test popup',
+      'page callback' => 'ace_modals_test_popup',
+      'page arguments' => array(1),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+  );
+  $items['ace_modals/%ctools_js/client_contact_add/%'] = array(
+      'title' => 'Test popup',
+      'page callback' => 'ace_modals_client_contact_add_popup',
+      'page arguments' => array(1,3),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+  );
+
+  
+  return $items;
+}	
+
+/**
+ * Implements hook_form_alter().
+ */
+function ace_modals_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'job_node_form') {
+    // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+
+  // Create our own javascript that will be used to theme a modal.
+  $sample_style = array(
+    'ctools-sample-style' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 500,
+        'height' => 300,
+        'addWidth' => 20,
+        'addHeight' => 15,
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'CToolsSampleModal',
+      'throbber' => theme('image', ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'), t('Loading...'), t('Loading')),
+    ),
+  );
+
+  drupal_add_js($sample_style, 'setting');
+  ctools_add_js('ctools-ajax-sample', 'ctools_ajax_sample');
+  ctools_add_css('ctools-ajax-sample', 'ctools_ajax_sample');
+    watchdog('ffj', '<pre>'.print_r($form, TRUE).'</pre>');
+    $form['field_job_venue']['#suffix'] = '<div class="venue-add-container">'.ctools_modal_text_button(t('Add venue'), 'ace_modals/nojs/popup', t('Open')).'</div>';
+    $client_id = $form['field_job_client_name'][0]['#default_value']['value'];
+    $styles = '';
+    if (empty($client_id)) {
+      $client_nid = 'new';
+      $styles = 'style="display: none;"';
+    } else {
+      $client_nid = db_result(db_query("SELECT nid 
+        FROM {content_type_client} 
+        WHERE field_client_id_value = %d", $client_id));
+    }
+    $form['field_job_client_contact']['#suffix'] = '<div '.$styles.' class="client-contact-add-container">'.ctools_modal_text_button(t('Add Contact'), 'ace_modals/nojs/client_contact_add/'.$client_nid, t('Open')).'</div>';
+  }
+}
+
+function ace_modals_client_contact_add_form($form_state, $client_nid) {
+  $form = array();  
+
+  $form['contact_name'] = array(
+    '#title' => 'Contact Name:'.$client_nid,
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#requred' => TRUE,
+  );
+  $form['contact_mobile'] = array(
+    '#title' => 'Contact Mobile',
+    '#type' => 'textfield',
+    '#default_value' => '',
+  );
+  $form['contact_email'] = array(
+    '#title' => 'Contact Email',
+    '#type' => 'textfield',
+    '#default_value' => '',    
+  );    
+  $form['client_nid'] = array(
+    '#type' => 'value',
+    '#value' => $client_nid,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Contact'),
+  );
+
+  return $form;
+}
+
+function ace_modals_client_contact_add_form_submit($form, &$form_state) {
+  //drupal_set_message('<pre>'.print_r($form_state['values'], TRUE).'</pre>');  
+  $client_nid = $form_state['values']['client_nid'];
+  $contact_name = $form_state['values']['contact_name'];
+  $contact_mobile = $form_state['values']['contact_mobile'];
+  $contact_email = $form_state['values']['contact_email'];
+  $client = node_load($client_nid);
+
+  $form_state['values']['client'] = $client;
+
+  $client->field_client_contact[] = array(
+    'type' => 'client_contact',
+    'value' => array(
+      'field_client_contact_email' => array(array('email' => $contact_email)),
+      'field_client_contact_mobile' => array(array('value' => $contact_mobile)),
+      'field_client_contact_name' => array(array('value' => $contact_name)),
+    ),
+  );  
+  
+  $temp_fs = array('values' => array('nid' => $client_nid));
+  op_custom_client_before_submit(NULL, $temp_fs);
+  node_save($client);
+  op_custom_client_after_submit(NULL, $temp_fs);
+}
+
+function ace_modals_test_main_form($form_state) {
+  // Include the CTools tools that we need.
+  ctools_include('ajax');
+  ctools_include('modal');
+
+  // Add CTools' javascript to the page.
+  ctools_modal_add_js();
+
+  // Create our own javascript that will be used to theme a modal.
+  $sample_style = array(
+    'ctools-sample-style' => array(
+      'modalSize' => array(
+        'type' => 'fixed',
+        'width' => 500,
+        'height' => 300,
+        'addWidth' => 20,
+        'addHeight' => 15,
+      ),
+      'modalOptions' => array(
+        'opacity' => .5,
+        'background-color' => '#000',
+      ),
+      'animation' => 'fadeIn',
+      'modalTheme' => 'CToolsSampleModal',
+      'throbber' => theme('image', ctools_image_path('ajax-loader.gif', 'ctools_ajax_sample'), t('Loading...'), t('Loading')),
+    ),
+  );
+
+  drupal_add_js($sample_style, 'setting');
+  ctools_add_js('ctools-ajax-sample', 'ctools_ajax_sample');
+  ctools_add_css('ctools-ajax-sample', 'ctools_ajax_sample');
+
+  $form = array();  
+  
+  $form['results_textfield'] = array(
+    '#title' => 'Venues',
+    '#type' => 'textfield',
+    '#default_value' => '',    
+  );
+  $form['client_contact'] = array(
+    '#title' => 'Client contact',
+    '#type' => 'select',
+    '#options' => array(
+      0 => 'Andrew Thomson',
+      24576 => 'Andrew Thomson111',
+      24577 => 'Victor Crow',
+      24578 => 'Andrew1',
+      24579 => 'Andrew2',
+      24580 => 'Andrew Thomson',
+      24581 => 'Andrew Thomson',
+    ),
+    '#default_value' => 24576,
+    '#validated' => TRUE,
+  );  
+
+  $form['results_label'] = array(
+    '#type' => 'markup',
+    '#value' => '<div id="results">None</div>',
+  );
+
+
+  $form['contact_name'] = array(
+    '#title' => 'Contact Name',
+    '#type' => 'textfield',
+    '#default_value' => 'Andrew2',
+  );
+  $form['contact_mobile'] = array(
+    '#title' => 'Contact Mobile',
+    '#type' => 'textfield',
+    '#default_value' => '0953210033',
+  );
+  $form['contact_email'] = array(
+    '#title' => 'Contact Email',
+    '#type' => 'textfield',
+    '#default_value' => 'posidelov@mail.ru1',
+  );
+
+  $form['open'] = array(
+    '#type' => 'markup',
+    '#value' => ctools_modal_text_button(t('Add venue'), 'ace_modals/nojs/popup', t('Open')),
+  );
+  $form['open2'] = array(
+    '#type' => 'markup',
+    '#value' => ctools_modal_text_button(t('Add client contact'), 'ace_modals/nojs/client_contact_add/2509', t('Open')),
+  );
+
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+function ace_modals_test_main_form_submit($form, &$form_state) {
+  watchdog('fssf', '<pre>'.print_r($form_state, TRUE).'</pre>');
+  return;
+  $nid = 2509;
+  $client = node_load($nid);
+  $contact_name = $form_state['values']['contact_name'];
+  $contact_mobile = $form_state['values']['contact_mobile'];
+  $contact_email = $form_state['values']['contact_email'];
+
+  $client->field_client_contact[] = array(
+    'type' => 'client_contact',
+    'value' => array(
+      'field_client_contact_email' => array(array('email' => $contact_email)),
+      'field_client_contact_mobile' => array(array('value' => $contact_mobile)),
+      'field_client_contact_name' => array(array('value' => $contact_name)),
+    ),
+  );
+  //watchdog('cl0', '<pre>'.print_r($client, TRUE).'</pre>');
+  
+  $temp_fs = array('values' => array('nid' => $nid));
+  op_custom_client_before_submit(NULL, $temp_fs);
+
+  node_save($client);
+
+  op_custom_client_after_submit(NULL, $temp_fs);
+
+  //watchdog('cl', '<pre>'.print_r($client, TRUE).'</pre>');
+}
+
+function ace_modals_test_popup_form($form_state) {
+  $form = array();  
+  $form['venues'] = array(
+    '#title' => 'Venues',
+    '#type' => 'textfield',
+    '#default_value' => 'Hello world',    
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+function ace_modals_test_popup_form_submit($form, &$form_state) {
+  drupal_set_message($form_state['values']['venues']);
+}  
+
+/**
+ * A modal Test callback.
+ */
+function ace_modals_test_popup($js = NULL) {
+  global $user;  
+  $type = 'venue';
+  $node = array('uid' => $user->uid, 'name' => $user->name, 'type' => $type);
+  $form_id = $type.'_node_form';
+  
+  // Fall back if $js is not set.
+  if (!$js) {
+    return drupal_get_form($form_id, $node);
+  }
+
+  //
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_include('node.pages', 'node', '');  
+
+  $form_state['title'] = t('Venue');
+  $form_state['ajax'] = TRUE;  
+  //$file = drupal_get_path('module', 'node') . '/node.pages.inc';
+  //include_once './' . $file;
+  // This piece of information can let other modules know that more files
+  // need to be included if this form is loaded from cache:
+  //$form_state['form_load_files'] = array($file);
+  //$form_state['executed'] = TRUE;
+  //$form_state['want form'] = TRUE;
+  $form_state['node'] = $node;
+  $form_state['args'] = array($node);
+  
+
+  $output = ctools_modal_form_wrapper($form_id, $form_state);
+  if (empty($output)) {
+    // empty $output signifies success, so we'll use it as our $commands
+    // array.
+    //watchdog('subm', '<pre>'.print_r($form_state['values'], TRUE).'</pre>');
+    $output = array();  
+    $venue_title = $form_state['values']['field_venue_name'][0]['value'];  
+    $output[] = ctools_ajax_command_attr(
+      '#edit-field-job-venue-0-value',//'input#edit-results-textfield', 
+      'value', 
+      array($venue_title)
+    );
+    $output[] = ctools_modal_command_dismiss();
+  }
+  ctools_ajax_render($output);
+}
+
+function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL) {
+  global $user;    
+  $form_id = 'ace_modals_client_contact_add_form';
+  
+  // Fall back if $js is not set.
+  if (!$js) {
+    return drupal_get_form($form_id, $client_nid);
+  }
+
+  //
+  ctools_include('modal');
+  ctools_include('ajax');  
+
+  $form_state['title'] = t('Add Client Contact');
+  $form_state['ajax'] = TRUE;  
+  
+  $form_state['client_nid'] = $client_nid;
+  $form_state['args'] = array($client_nid);
+  
+
+  $output = ctools_modal_form_wrapper($form_id, $form_state);
+  if (empty($output)) {
+    // empty $output signifies success, so we'll use it as our $commands
+    // array.
+    //watchdog('subm2', '<pre>'.print_r($form_state['values'], TRUE).'</pre>');
+    $output = array();  
+    $client_nid = $form_state['values']['client_nid'];
+    $items  = acecrew_client_contracts_getItems($client_nid);
+    $client = $form_state['values']['client'];
+
+    if (!empty($client->field_client_company_contact[0]['value'])) {
+      $contacts = array(
+        $client->field_client_company_contact[0]['value'],
+      );    
+      $options = '<option value="0">'.$client->field_client_company_contact[0]['value'].'</option>';
+    }
+    foreach ($items as $item) {
+      $new_contact_id = '';
+      if ($item['name'] == $form_state['values']['contact_name']) {
+        $new_contact_id = 'selected'; //$item['item_id'];
+      }
+
+      $options .= '<option '.$new_contact_id.' value="'.$item['item_id'].'">'.$item['name'].'</option>';      
+    }    
+
+    $output[] = ctools_ajax_command_html(
+      'select#edit-field-job-client-contact-value',//'select#edit-client-contact', 
+      $options      
+    );
+    $output[] = ctools_modal_command_dismiss();
+  }
+  ctools_ajax_render($output);
+}

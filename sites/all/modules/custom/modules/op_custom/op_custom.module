@@ -129,6 +129,14 @@ function op_custom_menu() {
     'title' => 'Invoice update',
   );
 
+  $items['admin/invoice-update/popup/%'] = array(
+    'title' => 'Test Popup',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_invoice_update_popup_form', 3),
+    'access arguments' => array('admin content'),
+    'type' => MENU_CALLBACK,
+  );
+
   $items['crew-listing'] = array(
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('op_custom_crew_listing_form'),
@@ -183,6 +191,7 @@ function op_custom_menu() {
   
   return $items;
 }
+
 
 /**
  * Implements hook_rules_action_info().
@@ -1067,6 +1076,18 @@ function op_custom_invoice_update_form(&$form_state) {
     '#title' => t('Invoice Number'),
     '#description' => t('update Invoice Number by Job Number'),    
   );
+  
+  $form['results'] = array(
+    '#type' => 'markup',
+    '#value' => '<div id="results">None</div>',
+  );
+
+  $form['open'] = array(
+    '#type' => 'markup',
+    '#value' => '<a href="javascript:void(0)" onclick="Drupal.modalFrame.open({url: \'/admin/invoice-update/popup/5/\', onSubmit: function() {console.log(\'subm\');}, width: 700,
+
+height: 500})">'.'Open'.'</a>',
+  );
 
   $form['check'] = array(
     '#type' => 'submit',
@@ -1080,6 +1101,41 @@ function op_custom_invoice_update_form(&$form_state) {
   $form['#validate'][] = 'op_custom_invoice_update_form_validate';
 
   return $form;
+}
+
+function op_custom_invoice_update_popup_form($form_state, $job_id) {
+  $form = array();
+  modalframe_child_js();
+
+  $form['contracts'] = array(
+    '#title' => 'Contacts',
+    '#type' => 'textfield',
+    '#default_value' => 'Hello world',
+    //'#options' => $names,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send review'),
+  );
+
+  return $form;
+}
+
+function op_custom_invoice_update_popup_form_submit($form, &$form_state) {
+  ctools_include('modal');
+  ctools_include('ajax');
+  ctools_include('wizard');
+
+  $contracts = $form_state['values']['contracts'];
+
+  $commands[] = ctools_ajax_command_html('#results', $contracts);
+  $commands[] = ctools_modal_command_dismiss();
+
+  
+  // Tell the parent window to close the modal frame dialog.
+  modalframe_close_dialog();
+  ctools_ajax_render($commands);
 }
 
 function op_custom_invoice_update_form_validate($form, &$form_state) {
@@ -1160,15 +1216,20 @@ function op_jobs_venue_autocomplete($input) {
 }
 
 function op_custom_ajax_client_account($client_name = '') {
+  //$client_name = trim($client_name);
+  if (isset($_GET['client_name'])) {
+    $client_name = trim($_GET['client_name']);
+  }
   $status = false;
   if (!empty($client_name)) {
-    $account_limit = db_result(db_query('SELECT ctc.field_credit_limit_box_value FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
-    if (!empty($account_limit) && $account_limit > 0) {
+    $data = db_fetch_object(db_query('SELECT ctc.nid, ctc.field_credit_limit_box_value AS account_limit  FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
+    if (!empty($data->account_limit) && $data->account_limit > 0) {
       $status = true;
     }
+    $nid = $data->nid;
   }
 
-  print json_encode(array('status' => $status));
+  print json_encode(array('client_name' => $client_name, 'status' => $status, 'client_nid' => $nid));
   exit;
 }
 
