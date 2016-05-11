@@ -1402,3 +1402,7 @@ ul.call-listing li.cancel-btn,
 #edit-field-no-po-required-value-wrapper {
     margin-top: 30px;
 }
+
+#edit-field-job-status-value-wrapper {
+    clear: both;
+}
