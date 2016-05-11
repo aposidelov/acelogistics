@@ -100,7 +100,7 @@ function job_content_default_fields() {
     'field_name' => 'field_client_2h_default',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '53',
+      'weight' => '55',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -174,7 +174,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Client 2 hour default',
-      'weight' => '53',
+      'weight' => '55',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -186,7 +186,7 @@ function job_content_default_fields() {
     'field_name' => 'field_client_3h_default',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '54',
+      'weight' => '56',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -260,7 +260,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Client 3 hour default',
-      'weight' => '54',
+      'weight' => '56',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -272,9 +272,10 @@ function job_content_default_fields() {
     'field_name' => 'field_client_hourly_rate_default',
     'type_name' => 'job',
     'display_settings' => array(
+      'weight' => '57',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -339,7 +340,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Client hourly rate default',
-      'weight' => '55',
+      'weight' => '57',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -351,7 +352,7 @@ function job_content_default_fields() {
     'field_name' => 'field_document',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '52',
+      'weight' => '54',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -417,7 +418,7 @@ function job_content_default_fields() {
       'max_filesize_per_file' => '',
       'max_filesize_per_node' => '',
       'label' => 'Document',
-      'weight' => '52',
+      'weight' => '54',
       'description' => '',
       'type' => 'filefield_widget',
       'module' => 'filefield',
@@ -429,7 +430,7 @@ function job_content_default_fields() {
     'field_name' => 'field_invoice_notes',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '49',
+      'weight' => '51',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -496,7 +497,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Invoice Notes',
-      'weight' => '49',
+      'weight' => '51',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -508,7 +509,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_booked_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '50',
+      'weight' => '52',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -575,7 +576,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Booked By',
-      'weight' => '50',
+      'weight' => '52',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -652,6 +653,86 @@ function job_content_default_fields() {
       'default_value_php' => NULL,
       'label' => 'Client contact',
       'weight' => '40',
+      'description' => '',
+      'type' => 'optionwidgets_select',
+      'module' => 'optionwidgets',
+    ),
+  );
+
+  // Exported field: field_job_client_contact_second
+  $fields['job-field_job_client_contact_second'] = array(
+    'field_name' => 'field_job_client_contact_second',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '41',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => 'return acecrew_get_job_client_contacts();',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Client contact (second)',
+      'weight' => '41',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -744,7 +825,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_comments',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '48',
+      'weight' => '50',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -811,7 +892,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Comments',
-      'weight' => '48',
+      'weight' => '50',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -823,7 +904,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_created_by',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '51',
+      'weight' => '53',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -890,7 +971,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Created By',
-      'weight' => '51',
+      'weight' => '53',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -902,7 +983,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_date',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '43',
+      'weight' => '44',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -977,7 +1058,7 @@ function job_content_default_fields() {
       'year_range' => '-3:+3',
       'label_position' => 'above',
       'label' => 'Date',
-      'weight' => '43',
+      'weight' => '44',
       'description' => '',
       'type' => 'date_popup',
       'module' => 'date',
@@ -989,7 +1070,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '46',
+      'weight' => '48',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1056,7 +1137,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount',
-      'weight' => '46',
+      'weight' => '48',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -1068,7 +1149,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_discount_desc',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '47',
+      'weight' => '49',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1135,7 +1216,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Discount description',
-      'weight' => '47',
+      'weight' => '49',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -1226,7 +1307,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_po_number',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '44',
+      'weight' => '46',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1293,7 +1374,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'PO Number',
-      'weight' => '44',
+      'weight' => '46',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -1305,7 +1386,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_status',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '42',
+      'weight' => '43',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1369,7 +1450,7 @@ function job_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Job status',
-      'weight' => '42',
+      'weight' => '43',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -1381,7 +1462,7 @@ function job_content_default_fields() {
     'field_name' => 'field_job_venue',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '41',
+      'weight' => '42',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1454,7 +1535,7 @@ return $items;',
       'autocomplete_case' => '0',
       'i18n_flddata' => 0,
       'label' => 'Venue',
-      'weight' => '41',
+      'weight' => '42',
       'description' => '',
       'type' => 'autocomplete_widgets_allowvals',
       'module' => 'autocomplete_widgets',
@@ -1544,12 +1625,95 @@ return $items;',
     ),
   );
 
+  // Exported field: field_no_po_required
+  $fields['job-field_no_po_required'] = array(
+    'field_name' => 'field_no_po_required',
+    'type_name' => 'job',
+    'display_settings' => array(
+      'weight' => '45',
+      'parent' => '',
+      'label' => array(
+        'format' => 'hidden',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 1,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'number_integer',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'number',
+    'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '0|
+1|no PO required',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'default_value' => array(
+        '0' => array(
+          'value' => NULL,
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'no PO required',
+      'weight' => '45',
+      'description' => '',
+      'type' => 'optionwidgets_onoff',
+      'module' => 'optionwidgets',
+    ),
+  );
+
   // Exported field: field_po_total_excl_vat
   $fields['job-field_po_total_excl_vat'] = array(
     'field_name' => 'field_po_total_excl_vat',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '45',
+      'weight' => '47',
       'parent' => '',
       'label' => array(
         'format' => 'inline',
@@ -1623,7 +1787,7 @@ return $items;',
       ),
       'default_value_php' => NULL,
       'label' => 'P.O Total Excl VAT',
-      'weight' => '45',
+      'weight' => '47',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -1637,6 +1801,7 @@ return $items;',
   t('Client 2 hour default');
   t('Client 3 hour default');
   t('Client contact');
+  t('Client contact (second)');
   t('Client hourly rate default');
   t('Client name');
   t('Comments');
@@ -1652,6 +1817,7 @@ return $items;',
   t('P.O Total Excl VAT');
   t('PO Number');
   t('Venue');
+  t('no PO required');
 
   return $fields;
 }

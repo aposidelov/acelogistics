@@ -945,7 +945,7 @@ table.ui-datepicker-calendar {margin: 0 !important;}
 
 #edit-field-job-client-name-0-value-wrapper, 
 #edit-field-job-client-contact-value-wrapper, 
-#edit-field-job-client-contact-value-wrapper, 
+#edit-field-client-contact-second-value-wrapper, 
 #edit-field-job-venue-0-value-wrapper, 
 #edit-field-job-status-value-wrapper, 
 #edit-field-job-po-number-0-value-wrapper, 
@@ -982,6 +982,7 @@ table.ui-datepicker-calendar {margin: 0 !important;}
 }
 
 .node-type-job .field-type-text,
+.node-type-job .field-field-no-po-required,
 .node-type-job .field-type-number-decimal, 
 .node-type-job .field-type-number-integer.field-field-names-needed,
 .node-job > .column-main > .column-wrapper > .node-content > .field-field-cancellation-status, 
@@ -1384,13 +1385,20 @@ ul.call-listing li.cancel-btn,
 }
 
 #edit-field-job-venue-0-value-wrapper, 
-#edit-field-job-client-contact-value-wrapper {
+#edit-field-job-client-contact-value-wrapper,
+#edit-field-job-client-contact-second-value-wrapper {
     width: 180px;
+    float: left;
 }
+
 .venue-add-container,
 .client-contact-add-container {
     width: 84px;
     float: left;
 
     margin-top: 25px;    
+}
+
+#edit-field-no-po-required-value-wrapper {
+    margin-top: 30px;
 }

@@ -100,6 +100,9 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
     $comp_address_1 = $client->field_client_company_address_value;
     $comp_address_2 = $client->field_client_company_postcode_value;
+
+    $comp_address_1 = trim(preg_replace('/\s\s+/', ' ', $comp_address_1));
+    $comp_address_1 = preg_replace('/\x03/', '', $comp_address_1);
     //$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
     //$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
 

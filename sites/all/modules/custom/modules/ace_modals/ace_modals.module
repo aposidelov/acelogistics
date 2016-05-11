@@ -34,10 +34,10 @@ function ace_modals_menu() {
       'access callback' => TRUE,
       'type' => MENU_CALLBACK,
   );
-  $items['ace_modals/%ctools_js/client_contact_add/%'] = array(
+  $items['ace_modals/%ctools_js/client_contact_add/%/%'] = array(
       'title' => 'Test popup',
       'page callback' => 'ace_modals_client_contact_add_popup',
-      'page arguments' => array(1,3),
+      'page arguments' => array(1,3,4),
       'access callback' => TRUE,
       'type' => MENU_CALLBACK,
   );
@@ -93,11 +93,26 @@ function ace_modals_form_alter(&$form, &$form_state, $form_id) {
         FROM {content_type_client} 
         WHERE field_client_id_value = %d", $client_id));
     }
-    $form['field_job_client_contact']['#suffix'] = '<div '.$styles.' class="client-contact-add-container">'.ctools_modal_text_button(t('Add Contact'), 'ace_modals/nojs/client_contact_add/'.$client_nid, t('Open')).'</div>';
+    
+    $second_contact = '';
+    if (isset($form['field_job_client_contact_second']['#default_value'][0])) {
+      $second_contact = $form['field_job_client_contact_second']['#default_value'][0]['value'];
+      if (!empty($second_contact)) {
+        $second_contact = db_result(db_query("SELECT field_client_contact_value 
+        FROM {content_field_client_contact} 
+        WHERE field_client_contact_item_id = %d", $second_contact));
+        $second_contact = unserialize($second_contact);        
+        $second_contact = $second_contact['field_client_contact_name'][0]['value'];
+      }
+    }
+
+    $form['field_job_client_contact']['#suffix'] = '<div '.$styles.' class="client-contact-add-container">'.ctools_modal_text_button(t('Add Contact'), 'ace_modals/nojs/client_contact_add/'.$client_nid.'/'.$second_contact, t('Open')).'</div>';
+
+    $form['field_job_client_contact_second']['#suffix'] = '<span style="display: none;" id="second-contact-label">'.$second_contact.'</span>';
   }
 }
 
-function ace_modals_client_contact_add_form($form_state, $client_nid) {
+function ace_modals_client_contact_add_form($form_state, $client_nid, $second_contact_name) {
   $form = array();  
 
   $form['contact_name'] = array(
@@ -120,7 +135,11 @@ function ace_modals_client_contact_add_form($form_state, $client_nid) {
     '#type' => 'value',
     '#value' => $client_nid,
   );
-
+  $form['second_contact_name'] = array(
+    '#type' => 'value',
+    '#value' => $second_contact_name,
+  );
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save Contact'),
@@ -347,13 +366,13 @@ function ace_modals_test_popup($js = NULL) {
   ctools_ajax_render($output);
 }
 
-function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL) {
+function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL, $second_contact_name = '-') {
   global $user;    
   $form_id = 'ace_modals_client_contact_add_form';
   
   // Fall back if $js is not set.
   if (!$js) {
-    return drupal_get_form($form_id, $client_nid);
+    return drupal_get_form($form_id, $client_nid, $second_contact_name);
   }
 
   //
@@ -364,7 +383,8 @@ function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL) {
   $form_state['ajax'] = TRUE;  
   
   $form_state['client_nid'] = $client_nid;
-  $form_state['args'] = array($client_nid);
+  $form_state['second_contact_name'] = $second_contact_name;
+  $form_state['args'] = array($client_nid, $second_contact_name);
   
 
   $output = ctools_modal_form_wrapper($form_id, $form_state);
@@ -374,6 +394,7 @@ function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL) {
     //watchdog('subm2', '<pre>'.print_r($form_state['values'], TRUE).'</pre>');
     $output = array();  
     $client_nid = $form_state['values']['client_nid'];
+    $second_contact_name = $form_state['values']['second_contact_name'];
     $items  = acecrew_client_contracts_getItems($client_nid);
     $client = $form_state['values']['client'];
 
@@ -383,19 +404,39 @@ function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL) {
       );    
       $options = '<option value="0">'.$client->field_client_company_contact[0]['value'].'</option>';
     }
+
+    $options_second = $options;
+
+    $created_contact_name = $form_state['values']['contact_name'];
+    $created_contact_id = '';
+    
+    $second_contact_id = '';
+
     foreach ($items as $item) {
-      $new_contact_id = '';
+      $is_created_selected = '';
+      $is_second_selected = '';
       if ($item['name'] == $form_state['values']['contact_name']) {
-        $new_contact_id = 'selected'; //$item['item_id'];
+        $is_created_selected = 'selected'; //$item['item_id'];
+        $created_contact_id = $item['item_id'];
+      }
+      if ($item['name'] == $second_contact_name) {
+        $is_second_selected = 'selected';
+        $second_contact_id = $item['item_id'];
       }
 
-      $options .= '<option '.$new_contact_id.' value="'.$item['item_id'].'">'.$item['name'].'</option>';      
+      $options .= '<option '.$is_created_selected.' value="'.$item['item_id'].'">'.$item['name'].'</option>';    
+      $options_second .= '<option '.$is_second_selected.' value="'.$item['item_id'].'">'.$item['name'].'</option>';   
     }    
 
     $output[] = ctools_ajax_command_html(
       'select#edit-field-job-client-contact-value',//'select#edit-client-contact', 
       $options      
     );
+    $output[] = ctools_ajax_command_html(
+      'select#edit-field-job-client-contact-second-value',//'select#edit-client-contact', 
+      $options_second      
+    );
+    
     $output[] = ctools_modal_command_dismiss();
   }
   ctools_ajax_render($output);
