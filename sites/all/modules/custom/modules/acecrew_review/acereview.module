@@ -715,10 +715,8 @@ function acereview_sent_email_to_client($email_address, $link, $job_number = 'TJ
     $mail->CreateBody();
     $mail->Subject  = t('Ace Crew Review');
 
-
-
     $message = "Dear $contact_name\n\n";
-    $message .= "We recently completed job:$job_number and invoiced you. We would appreciate if you could take a few minutes to complete a review of the job for us.\n\n";
+    $message .= "We recently completed job:$job_number and invoiced you. We would appreciate if you could take a few minutes to complete a review of the job for us. As a thank you for taking the time to give us your valuable feedback, you will be entered into a monthly prize draw of £100.00 store gift voucher of your choice. Winners will be notified by email and listed on our website.\n\n";
     $message .= "Job Details:\n\n";
     $message .= ">> Client: " . $job_details['client_name'] . "\n\n";
     $message .= ">> Venue: " . $job_details['venue_name']. "\n\n";
