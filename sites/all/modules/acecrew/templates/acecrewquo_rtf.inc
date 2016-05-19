@@ -556,6 +556,14 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.2, 0, 0, 0);
 
+    // red label
+    $section->setSpaceBetweenColumns(0.2);
+    $message_font = new PHPRtfLite_Font(11, 'Arial', '#ff0000');
+    $message_text_format = new PHPRtfLite_ParFormat();
+    $message_text_format->setIndentLeft(0.5);
+    $message_text_format->setIndentRight(0.5);
+    $message_text_format->setTextAlignment('left');
+    $section->writeText('FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.', $message_font, $message_text_format);
 
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_quo_footer_text_value;

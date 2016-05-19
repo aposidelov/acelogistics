@@ -81,7 +81,7 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Form alias id',
-      'weight' => '37',
+      'weight' => '8',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -163,7 +163,7 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Job id',
-      'weight' => '36',
+      'weight' => '7',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -245,7 +245,7 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Review code',
-      'weight' => '35',
+      'weight' => '6',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -327,7 +327,7 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Review date',
-      'weight' => '32',
+      'weight' => '3',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -409,7 +409,7 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Review expiration date',
-      'weight' => '34',
+      'weight' => '5',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -489,10 +489,92 @@ function review_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Review status',
-      'weight' => '33',
+      'weight' => '4',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
+    ),
+  );
+
+  // Exported field: field_review_submitted_by
+  $fields['review-field_review_submitted_by'] = array(
+    'field_name' => 'field_review_submitted_by',
+    'type_name' => 'review',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => 5,
+      'size' => '60',
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_review_submitted_by][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'Review submitted By',
+      'weight' => '9',
+      'description' => '',
+      'type' => 'text_textfield',
+      'module' => 'text',
     ),
   );
 
@@ -1193,6 +1275,7 @@ L|Late',
   t('Review date');
   t('Review expiration date');
   t('Review status');
+  t('Review submitted By');
   t('Time Keeping');
   t('User review user id');
   t('Work Ability');

@@ -1406,3 +1406,11 @@ ul.call-listing li.cancel-btn,
 #edit-field-job-status-value-wrapper {
     clear: both;
 }
+
+#edit-field-review-submitted-by-0-value-wrapper {
+  width: 250px;
+}
+
+#acecrew-review-prize-form #edit-timesheets-filter {
+    margin-top: 10px;
+}

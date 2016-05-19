@@ -46,6 +46,16 @@ function acereview_menu() {
     'type' => MENU_CALLBACK,
   );  
 
+  $items['admin/reports/review_prize'] = array(
+    'title' => 'Acecrew Review Prize',
+    'description' => "Acecrew Review Prize.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_review_prize_form'),
+    'access arguments' => array('admin content'),
+    'file' => 'acereview.review_prize.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['admin/reports/review_spreadsheet'] = array(
     'title' => 'Review spreadsheet',
     'description' => "Review spreadsheet Reports.",
@@ -273,11 +283,20 @@ function acereview_theme($existing, $type, $theme, $path) {
   );
 }
 
+function acereview_form_validate($form, &$form_state) {  
+  $submitted_by = trim($form_state['values']['field_review_submitted_by'][0]['value']);
+  if (empty($submitted_by)) {
+    form_set_error('field_review_submitted_by', t('Please submit your name in order to complete this review'));
+  }
+}
+
 /**
  * Implements hook_form_alter().
  */
 function acereview_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'review_node_form') {
+    $form['#validate'][] = 'acereview_form_validate';
+
     drupal_set_title('Review');
     if (user_is_anonymous()) {
       $form['title']['#access'] = 0;
