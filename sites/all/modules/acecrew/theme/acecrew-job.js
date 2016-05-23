@@ -64,10 +64,10 @@ $(document).ready(function() {
         $(this).find('[name*="field_job_session_venue"]').change(function() {
             venueName = $(this).val();            
         });
-                            
+        
         $('<a class="update_comment" href="#">Client & Venue comments update</a>')
             .appendTo(commentDiv.find('label'))
-            .click(function() {                     
+            .click(function() {                                     
                 acecrewUpdateComments(commentField, jobNid, venueName);
                 return false;
             });
@@ -87,7 +87,7 @@ $(document).ready(function() {
                         
     $('<a class="update_comment" href="#">Client & Venue comments update</a>')
         .appendTo(commentDiv.find('label'))
-        .click(function() {                                                        
+        .click(function() {                                                
             acecrewUpdateComments(commentField, jobNid, venueName);
             return false;
         });

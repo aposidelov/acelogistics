@@ -1,5 +1,42 @@
 $(document).ready(function() {	
+    console.log('dddd5');    
+
 	$('.form-submit.ajax-trigger').click(function() {
+        var date = $('#edit-field-job-session-date-time-0-value-datepicker-popup-0').val(),
+            time = $('#edit-field-job-session-date-time-0-value-timeEntry-popup-1').val();
+
+        var months = {
+            Jan: 0,
+            Feb: 1,
+            Mar: 2,
+            Apr: 3,
+            May: 4,
+            Jun: 5,
+            Jul: 6,
+            Aug: 7,
+            Sep: 8,
+            Oct: 9,
+            Nov: 10,
+            Dec: 11
+        }
+
+        var year = date.substr(0, 4),
+            month = date.substr(5, 3),
+            day = date.substr(9),
+            hour = time.substr(0, 2),
+            min = time.substr(3, 2);
+
+        var call_date = new Date(year, months[month], day, hour, min);
+        var result = true;
+        if (call_date < new Date()) {
+            result = confirm('The session you are creating have a date that is set in the past.');
+        }
+
+        if (!result) {
+            return false;
+        }
+       
+
 		var button = $(this);
 		var fid = function() {
 			if (button.attr('value') == 'Save') {				
@@ -17,9 +54,10 @@ $(document).ready(function() {
     $('[name*="field_job_session_venue"]').change(function() {
             venueName = $(this).val();            
         });
-    $('<a class="update_comment" href="#">Client & Venue comments update</a>')
+
+    $('<a class="update_comment" href="#">Client & Venue comments update2</a>')
         .appendTo(commentDiv.find('label'))
-        .click(function() {                     
+        .click(function() {                                 
             acecrewUpdateComments(commentField, jobNid, venueName);
             return false;
         });
