@@ -829,7 +829,7 @@ function acecrew_get_client_by_job_id($job_id) {
 
 function acereview_review_tx() {
   drupal_set_title('Thank you for help');
-  $output = '<h3>Your review feedback has been saved. Thank you for help</h3>';
+  $output = '<h3>Your review feedback has been saved. Thank you for your help</h3>';
   return $output;
 }
 

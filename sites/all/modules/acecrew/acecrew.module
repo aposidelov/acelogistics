@@ -1041,7 +1041,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         FROM {content_type_job_session} js
         INNER JOIN {content_type_job} ctj ON ctj.nid = js.field_session_job_nid_value
         INNER JOIN {content_type_client} ctc ON ctc.field_client_id_value = ctj.field_job_client_name_value
-        INNER JOIN {content_type_venue} ctv ON ctv.field_venue_id_value = ctj.field_job_venue_value
+        INNER JOIN {content_type_venue} ctv ON ctv.field_venue_id_value = js.field_job_session_venue_value
         INNER JOIN {node} jsn ON jsn.nid = js.nid
         INNER JOIN {users} u ON jsn.uid = u.uid
         LEFT JOIN {content_field_cancellation_status} csc ON js.nid = csc.nid
@@ -1052,6 +1052,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
 
     $main_rows = array();
     while ($main_row = db_fetch_object($main_query_result)) {
+      watchdog('mr', '<pre>'.print_r($main_row, TRUE).'</pre>');
         $main_rows[$main_row->jsdate][] = $main_row;
     }
 
@@ -2224,9 +2225,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 
         $is_call_cancelled = $event['is_call_cancelled'] ? 'call-status-canceled' : '';
         $is_job_cancelled = $event['is_job_cancelled'] ? 'job-notify-canceled' : '';
-        $jobs_notify[$event['job_nid']] = $is_job_cancelled;
-
-        $venue_name = (acecrew_get_call_venue_by_call_id($event['nodeid']) ? acecrew_get_call_venue_by_call_id($event['nodeid']) : $event['venue']);
+        $jobs_notify[$event['job_nid']] = $is_job_cancelled;        
+        $venue_name = $event['venue'];
 
         $call_status_text = $event['job_status_label'];
         $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;

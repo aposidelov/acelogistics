@@ -1,6 +1,4 @@
-$(document).ready(function() {	
-    console.log('dddd5');    
-
+$(document).ready(function() {	       
 	$('.form-submit.ajax-trigger').click(function() {
         var date = $('#edit-field-job-session-date-time-0-value-datepicker-popup-0').val(),
             time = $('#edit-field-job-session-date-time-0-value-timeEntry-popup-1').val();
@@ -55,7 +53,7 @@ $(document).ready(function() {
             venueName = $(this).val();            
         });
 
-    $('<a class="update_comment" href="#">Client & Venue comments update2</a>')
+    $('<a class="update_comment" href="#">Client & Venue comments update</a>')
         .appendTo(commentDiv.find('label'))
         .click(function() {                                 
             acecrewUpdateComments(commentField, jobNid, venueName);
