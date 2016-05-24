@@ -1177,9 +1177,19 @@ function op_custom_jobs_venue_form($form_state) {
 }
 
 function op_custom_jobs_venue_form_submit($form, &$form_state) {
-  
-  $crews = acecrew_get_bookoff_crews('2014-09-18');
-  drupal_set_message('<pre>'.print_r($crews, TRUE).'</pre>');
+  $skill_nid = 647;
+  $uid = 303;
+  $call_vid = 23384;
+  $hours = op_get_call_hours_by_vid($call_vid);
+
+  $skill_values = acecrew_supplement_get_item($skill_nid, $hours);
+
+
+
+  drupal_set_message('<pre>'.print_r($skill_values, TRUE).'</pre>');
+
+  //$crews = acecrew_get_bookoff_crews('2014-09-18');
+  //drupal_set_message('<pre>'.print_r($crews, TRUE).'</pre>');
 
   /*$row = new stdClass();
   $row->src = 'node/6534/edit';
@@ -1194,6 +1204,12 @@ function op_custom_jobs_venue_form_submit($form, &$form_state) {
   //drupal_set_message('submit: ' . $form_state['values']['nid']);
   //
 
+}
+
+function op_get_call_hours_by_vid($call_vid) {
+  $hours = db_result(db_query('SELECT field_job_session_hours_value FROM {content_type_job_session} WHERE vid = %d', $call_vid));
+    
+  return $hours;
 }
 
 function op_jobs_venue_autocomplete($input) {

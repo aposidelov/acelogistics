@@ -878,9 +878,8 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
     }
     $blocked_users = crew_allocation_get_blocked_users();
     $blocked_by_cv = acecrew_get_blocked_crews_by_cv($call_id);
-    watchdog('call_id', '<pre>'.print_r($call_id, TRUE).'</pre>');
-    watchdog('bl', '<pre>'.print_r($blocked_by_cv, TRUE).'</pre>');
-    foreach($users as $user) {
+  
+    foreach ($users as $user) {
         $blocked_by_cv_class = '';
         if (in_array($user->uid, $blocked_by_cv)) {
           $blocked_by_cv_class = 'blocked-by-cv';
@@ -977,8 +976,17 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
         }
 
         foreach($form['bookedoff'] as $item_of_bookedoff) {
-            if ($item_of_bookedoff['#type'] == 'item') {
-                db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", substr($item_of_bookedoff['#id'], 5) , $vars[2], $vars[1]);
+            if ($item_of_bookedoff['#type'] == 'item') {                
+                $call_number = $vars[2];
+                $call_vid = $vars[1];
+                db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", substr($item_of_bookedoff['#id'], 5) , $call_number, $call_vid);
+
+                if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                  $skill_nid = $_POST['supplements'];
+                  
+                  db_query("DELETE FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d AND supplement_id = %d", $crew_uid, $call_vid, $skill_nid);
+                }
+
                 continue;
             }
         }
@@ -989,7 +997,16 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
             foreach ($crew_list_by_emp_type as $crew) {
                 $crew_uid = substr($crew['#id'], 5);
                 if ($crew['#type'] == 'item') {
-                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $vars[2], $vars[1]);
+                    $call_number = $vars[2];
+                    $call_vid = $vars[1];
+                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $call_number, $call_vid);
+
+                    if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                      $skill_nid = $_POST['supplements'];
+                      
+                      db_query("DELETE FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d AND supplement_id = %d", $crew_uid, $call_vid, $skill_nid);
+                    }
+
                     continue;
                 }
                 if ($crew['#type'] != 'checkbox') {
@@ -1022,11 +1039,26 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
                         $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
                         $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
 
+                        $call_number = $vars[2];
+                        $call_vid = $vars[1];
+
                         db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+
+                        if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                          $skill_nid = $_POST['supplements'];
+                          crew_allocation_add_supplement($crew_uid, $skill_nid, $call_vid);
+                        }
                     }
                 }
                 else {
-                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $vars[2], $vars[1]);
+                    $call_number = $vars[2];
+                    $call_vid = $vars[1];
+                    db_query("DELETE FROM {crew_call} WHERE uid = %d AND cid = '%s' AND jsid = %d", $crew_uid , $call_number, $call_vid);                    
+                    if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                      $skill_nid = $_POST['supplements'];                      
+
+                      db_query("DELETE FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d AND supplement_id = %d", $crew_uid, $call_vid, $skill_nid);                      
+                    } 
                 }
             }
 
@@ -1057,8 +1089,18 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
                             $crew_user = user_load($crew_uid);
                             $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
                             $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
+                           
+                            $call_number = $vars[2];
+                            $call_vid = $vars[1];
 
                             db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+
+                            //$call_number = $vars[2];
+                            //$call_vid = $vars[1];
+                            if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                              $skill_nid = $_POST['supplements'];
+                              crew_allocation_add_supplement($crew_uid, $skill_nid, $call_vid);                              
+                            } 
                         }
                     }
                 }
@@ -1092,7 +1134,15 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
                             $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
                             $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
 
+                            $call_number = $vars[2];
+                            $call_vid = $vars[1];
+
                             db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+
+                            if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                              $skill_nid = $_POST['supplements'];
+                              crew_allocation_add_supplement($crew_uid, $skill_nid, $call_vid);
+                            } 
                         }
                     }
                 }
@@ -1126,7 +1176,15 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
                             $profile_2_hour_default = _get_2_hours_call_crew_default($crew_user);
                             $profile_3_hour_default = _get_3_hours_call_crew_default($crew_user);
 
-                            db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $vars[2], $vars[1], '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+                            $call_number = $vars[2];
+                            $call_vid = $vars[1];
+
+                            db_query("INSERT INTO {crew_call} (uid, cid, jsid, supplements, job_id, additional_hours, payrate, pay_default_2h, pay_default_3h) VALUES (%d, '%s', %d, '%s', '%s', '%s', %f, %f, %f)", $crew_uid, $call_number, $call_vid, '', $job_id, $hours, $crew_payrate, $profile_2_hour_default, $profile_3_hour_default);
+
+                            if ($_POST['supplements'] !== 'All' && is_numeric($_POST['supplements'])) {
+                              $skill_nid = $_POST['supplements'];                              
+                              crew_allocation_add_supplement($crew_uid, $skill_nid, $call_vid);                              
+                            }                           
                         }
                     }
                 }
@@ -1138,6 +1196,23 @@ function _crew_allocation_top_form_submit($form, &$form_state) {
             'message' => t('Hey!'),
         ));
     }
+}
+
+function crew_allocation_add_supplement($crew_uid, $skill_nid, $call_vid) {
+  $hours = op_get_call_hours_by_vid($call_vid);
+  $skill_values = acecrew_supplement_get_item($skill_nid, $hours);  
+
+  $skill_values['crew_single'] = !empty($skill_values['crew_single']) ? $skill_values['crew_single'] : 'NULL';
+  $skill_values['crew_hour'] = !empty($skill_values['crew_hour']) ? $skill_values['crew_hour'] : 'NULL';
+  $skill_values['client_single'] = !empty($skill_values['client_single']) ? $skill_values['client_single'] : 'NULL';
+  $skill_values['client_hour'] = !empty($skill_values['client_hour']) ? $skill_values['client_hour'] : 'NULL';
+  
+  if ($skill_values['crew_single'] != 'NULL' ||
+    $skill_values['crew_hour'] != 'NULL' ||
+    $skill_values['client_single'] != 'NULL' ||
+    $skill_values['client_hour'] != 'NULL') {
+    db_query("INSERT INTO {crew_js_supplement} (uid, jsid, supplement_id, crew_ph, crew_of, client_ph, client_of, comment) VALUES (%s, %s, %s, %s, %s, %s, %s, '%s')", $crew_uid, $call_vid, $skill_nid, $skill_values['crew_hour'], $skill_values['crew_single'], $skill_values['client_hour'], $skill_values['client_single'], '');
+  }
 }
 
 function crew_allocation_form_alter(&$form, $form_state, $form_id) {

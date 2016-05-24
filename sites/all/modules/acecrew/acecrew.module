@@ -1051,9 +1051,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
     $main_query_result =  db_query($main_query, $date, $max_date);
 
     $main_rows = array();
-    while ($main_row = db_fetch_object($main_query_result)) {
-      watchdog('mr', '<pre>'.print_r($main_row, TRUE).'</pre>');
-        $main_rows[$main_row->jsdate][] = $main_row;
+    while ($main_row = db_fetch_object($main_query_result)) {     
+      $main_rows[$main_row->jsdate][] = $main_row;
     }
 
     // get Dates list to group array by dates
@@ -2543,13 +2542,13 @@ function acecrew_calendar_set_supplements_status($args) {
         $supplements = $arg_arr[$i];
         $i++;
         if ($supplements != 'delete') {
-            $query = "UPDATE {crew_call} SET `supplements` = '$supplements' WHERE `uid`='$uid'";
-            $query .= " AND `jsid`='$jsid'";
-        } else {
-            $query = "DELETE FROM {crew_call} WHERE `uid`='$uid'";
-            $query .= " AND `jsid`='$jsid'";
+          db_query('UPDATE {crew_call} SET supplements = %d WHERE uid = %d', $supplements, $uid);
+        } else {          
+          db_query('DELETE FROM {crew_call} WHERE uid = %d AND jsid = %d', $uid, $jsid);
+          db_query('DELETE FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d', $uid, $jsid);
+          watchdog('del', '<pre>'.print_r($uid.','.$jsid, TRUE).'</pre>');
         }
-        $res = db_query($query);
+        
     }
 }
 
