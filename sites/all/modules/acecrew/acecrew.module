@@ -1090,8 +1090,13 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             
             // if job status is 'quote' it should not appear on diary page
             // --- removed 'canceled'
-            if (in_array($job_status, array(QUOTE))) { // CANCELLED, 
+            /*if (in_array($job_status, array(QUOTE))) { // CANCELLED, 
                 continue;
+            }*/
+
+            // Job calls with ‘cancelled status’ must not appear on the diary page at all.
+            if ($is_job_cancelled || $is_call_cancelled) { 
+              continue;
             }
 
             // To be confirmed
@@ -1201,7 +1206,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             );
             // conditions when call should go to Top category 
             // (also grouped by days)
-            if ($row->call_time_tbc || 
+            if ($job_status == QUOTE ||
+              $row->call_time_tbc || 
               $row->call_crew_tbc || 
               $row->call_hours_tbc || 
               $row->call_contract_tbc ||
@@ -2294,11 +2300,10 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                     <span class="call-status">
                         <strong>Call Status:</strong> ' . $call_status_text . '
                     </span>
-                    <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  l($event['client'], 'node/'.$event['client_nid'], array('attributes' => array('target' => '_blank'))) . '</span></span>
-                    <span class="call-cleint-contact"><strong>Client Contact:</strong> ' .  $client_contact[0] . '</span>
-                    <span class="call-venue"><strong>Venue:</strong> ' .  l($venue_name, 'node/'.$event['venue_nid'], array('attributes' => array('target' => '_blank'))) . '</span>
-                    <span class="call-venue-address"><strong>Venue Address:</strong> ' .  $event['venue_address'] . ' (' . $event['venue_postcode'] .')</span>  
                     <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
+                    <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  l($event['client'], 'node/'.$event['client_nid'], array('attributes' => array('target' => '_blank'))) . '</span></span>                    
+                    <span class="call-venue"><strong>Venue:</strong> ' .  l($venue_name, 'node/'.$event['venue_nid'], array('attributes' => array('target' => '_blank'))) . '</span>
+                    <span class="call-venue-address"><strong>Venue Address:</strong> ' .  $event['venue_address'] . ' (' . $event['venue_postcode'] .')</span>                      
                 </div>
                 <div class="call-third-row"><strong>Skills Required:</strong>'. $event['supplement'] . '</div>
                 <div class="call-fourth-row"><strong>Crew Names:</strong> ' . $crew_placeholder . '</div>
