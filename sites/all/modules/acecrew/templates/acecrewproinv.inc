@@ -17,15 +17,18 @@
  * - http://www.digitaljunkies.ca/dompdf/faq.php
  * - http://www.digitaljunkies.ca/dompdf/usage.php
  */
-function _acecrew_invoice_get_template_output($quote, $type=NULL) {
-    ob_start();
+function _acecrew_proinv_get_template_output($proinv, $type = NULL) {
+    ob_start();    
 
-    $job = $quote['job'];
-    $client = $quote['client'];
-    $client_contact = $quote['client_contact'];
-    $booked_by = $quote['job']->field_job_booked_by_value;
-    $venue = $quote['venue'];
-    $callings = $quote['callings'];
+    $job = $proinv['job'];
+    $client = $proinv['client'];
+    $client_contact = $proinv['client_contact'];
+    $booked_by = $proinv['job']->field_job_booked_by_value;
+    $venue = $proinv['venue'];
+    $callings = $proinv['callings'];
+    $job_number = $job->field_job_number_value;
+
+    //watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
 
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_inv_footer_text_value;
@@ -36,14 +39,12 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $footer_content_s3 = isset($footer_txt[2]) ? $footer_txt[2] : "";
     $footer_content_s4 = isset($footer_txt[3]) ? $footer_txt[3] : "";
     $footer_content_s5 = isset($footer_txt[4]) ? $footer_txt[4] : "";
-    
-    $credit_image = drupal_get_path('module', 'acecrew') . '/theme/invoice-footer-credit.png';
-    
+
     if ($type == 'pdf') {
-      $footer = '<script type="text/php">
+    $footer = '<script type="text/php">
                 if (isset($pdf)) {
                   $footer = $pdf->open_object();
-                  
+
                   $w = $pdf->get_width();
                   $h = $pdf->get_height();
                   
@@ -54,12 +55,13 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                   $a_line_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
                     "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
                     "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
-                  
+                                    
+
                   $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
                     "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
                     "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
                     
-                  $pdf->line(40, $h-120, $w-40, $h-120, $a_line_color, 1, array()); 
+                  $pdf->line(40, $h-60, $w-40, $h-60, $a_line_color, 1, array()); 
                     
                   $footer_content_font_size = 8;
                   $footer_content_font_space = 1;
@@ -69,8 +71,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                   $footer_content_s3 = \'' . $footer_content_s3 . '\';
                   $footer_content_s4 = \'' . $footer_content_s4 . '\';
                   $footer_content_s5 = \'' . $footer_content_s5 . '\';
-                  
-                  $offset = 120;
 
                   $footer_content_s1_len  = $pdf->get_text_width($footer_content_s1, $font, $footer_content_font_size);
                   $footer_content_s2_len  = $pdf->get_text_width($footer_content_s2, $font, $footer_content_font_size);
@@ -78,16 +78,20 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                   $footer_content_s4_len  = $pdf->get_text_width($footer_content_s4, $font, $footer_content_font_size);
                   $footer_content_s5_len  = $pdf->get_text_width($footer_content_s5, $font, $footer_content_font_size);
 
-                  $pdf->text(($w - $footer_content_s1_len) / 2, $h - $offset + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s2_len) / 2, $h - $offset + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s3_len) / 2, $h - $offset + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s4_len) / 2, $h - $offset + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s5_len) / 2, $h - $offset + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s1_len) / 2, $h - 60 + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s2_len) / 2, $h - 60 + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s3_len) / 2, $h - 60 + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s4_len) / 2, $h - 60 + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s5_len) / 2, $h - 60 + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
                   
-                  $pdf->image("'.$credit_image.'", "png", (($w - $footer_content_s5_len) / 2) + 20, $h - 100 + $footer_content_font_space + $footer_content_font_size*4, 162, 60);
+                  $r=128; $g=128; $b=128;
 
+                  $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
+                    "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
+                    "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
+                  
                   $pdf->page_text($w-57, $h-39, "{PAGE_NUM}/{PAGE_COUNT}", $font, 10, $a_text_color);
-                                                                                        
+                  
                   $pdf->close_object();
                 
                   $pdf->add_object($footer, "all");
@@ -98,52 +102,48 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
     else {
     $footer = $footer_content;
-    }    
+    }
 
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
-  	$comp_address_1 = $client->field_client_company_address_value;
+    $comp_address_1 = $client->field_client_company_address_value;
     $comp_address_2 = $client->field_client_company_postcode_value;
 
     $comp_address_1 = trim(preg_replace('/\s\s+/', ' ', $comp_address_1));
     $comp_address_1 = preg_replace('/\x03/', '', $comp_address_1);
+    //$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
+    //$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
 
-    $venue_postcode = '';
-    $venue_postcode = !empty($venue->field_venue_post_code_value) ? ' ('.$venue->field_venue_post_code_value.')' : '';
- 
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
-    <tr>
-    <td width=50%><h1 style="padding-top:75px;">' . t('Invoice') . ' - ' . _get_invoice_number($job->job_id) . '</h1></td>
-    <td class=acecrew_logo>
-        <img src=' . $image . ' width=270 height=220 alt=Acecrew style=margin-left:250px; />
+  <tr>
+    <td style="width:390px;"><h1 style="padding-top:75px;">Pro Forma Invoice - ' . $job_number . '</h1></td>
+    <td>
+        <img src=' . $image . ' width=270 height=220 alt="Acecrew" style="margin-left:0px;" />
     </td>
+  </tr>
+  </table>
+  <br/><br/>
+  <hr width="95%" style="margin:0 auto;"/><br/><br/>
+  <table width=90% border=1 cellspacing=-1 cellpadding=5 style="margin:0 auto;border:0px solid;border-collapse:collapse;">
+    <tr>
+        <td width=30% style="font-weight:bold;">' . t('Client') . ':</td>
+        <td width=70%>' . $client->field_client_name_value . '</td>
+        <td width=30% style="font-weight:bold;"> ' . t('Our Reference') . ':</td>
+        <td width=70%> ' . $job->job_id . ' </td>
     </tr>
     <tr>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    </tr>  
-    </table>
-    <hr width="95%" style="margin:0 auto;"/><br/><br/>
-    <table width=90% border=1 cellspacing=-1 cellpadding=5 style="margin:0 auto;border:0px solid;border-collapse:collapse;">
-    <tr>
-        <td  style="font-weight:bold;">' . t('Client') . ':</td>
-        <td>' . $client->field_client_name_value . '</td>
-        <td style="font-weight:bold;"> ' . t('Purchase Order') . ':</td>
-        <td> ' . $job->field_job_po_number_value . '</td>
-        <td style="font-weight:bold;"> ' . t('Job Number') . ':</td>
-        <td> ' . $job->job_id . ' </td>
-    </tr>
-    <tr> 
-        <td style="font-weight:bold;">' . t('Address') . ':</td>
-        <td colspan=5>' . $comp_address_1 . ', ' . $comp_address_2 . '</td>
-    </tr>
-    <tr> 
         <td style="font-weight:bold;">' . t('Booked by') . ':</td>
-        <td colspan=2>' . $booked_by . '</td>
+        <td>' . $booked_by . '</td>
         <td style="font-weight:bold;">'. t('Date') .':</td>
-        <td colspan=2>'. date("d/m/Y", $job->created) .'</td>
+        <td>'. date("d/m/Y", $job->created) .'</td>
     </tr>
-    </table><br/><br/>
+    <tr>
+        <td style="font-weight:bold;">' . t('Purchase Order') . ':</td>
+        <td>' . $job->field_job_po_number_value . '</td>
+        <td style="font-weight:bold;">'. t('PO Total Excl VAT') .':</td>
+        <td>'. $job->field_po_total_excl_vat_value .'</td>
+    </tr>
+  </table><br/><br/>
     <table width=80% style="margin-left:40px;border:0px solid;border-collapse:collapse;">
     <tr>
         <td width=15% style="font-weight:bold;">' . t('Venue') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_name_value . '</td>
@@ -158,7 +158,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $vat = NULL;
     $multiple_vat_values = FALSE;
-    if (isset($invoice->invoice_items)) {
     foreach ($invoice->invoice_items as $item) {
       if (is_null($vat)) {
         $vat = $item['vat'];
@@ -167,7 +166,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       if ($item['vat'] !== $vat) {
         $multiple_vat_values = TRUE;
       }
-    }
     }
     
     $job_cancelation_status = '';
@@ -182,7 +180,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $sum = 0;
     foreach ($callings as $data) {
       $call_amount = 0;
-      $call = $data['data'];
+      $call = $data['data'];      
 
       $call_number = explode('-', $call->field_session_callid_value);
       $call_number = $call_number[1];
@@ -205,14 +203,13 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $date = substr($call->field_job_session_date_time_value, 0, 10);
       $time = substr($call->field_job_session_date_time_value, 11, 20);
 
-      //watchdog('cc', '<pre>'.print_r($call->field_job_session_crew_value, TRUE).'</pre>');
-      
+      // number of standard crews
       if (acecrew_is_cancellation_notice($call->cancellation_status) ||
-          acecrew_is_cancellation_notice($job->cancellation_status)) {
+        acecrew_is_cancellation_notice($job->cancellation_status)) {
         $number_of_standard_crews = $call->field_job_session_crew_value;
       } else {
         $number_of_standard_crews = count($call_data);          
-      }            
+      }
 
       // quoted hours
       $quoted_hours = $call->field_job_session_hours_value;
@@ -314,10 +311,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $call_amount += $mileage_charge;
 
       //If client total is adjusted, adjust the $call_amount
-      if($total_adjust_add || $total_adjust_reduce) {
+      if ($total_adjust_add || $total_adjust_reduce) {
           $call_amount = $call_amount + $total_adjust_add - $total_adjust_reduce;
           $total_adjusted = true;
-      } 
+      }      
 
       if ($call->cancellation_status == CANCELLATION_NORMAL ||
         ($job->cancellation_status == CANCELLATION_NORMAL &&
@@ -327,16 +324,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       $sum += acecrew_cancellation_price_total($call_amount, 
                                                $call->cancellation_status, 
                                                $job->cancellation_status);
-      /*
-      // half totals for >24hrs&<12hrs
-      if ($call->cancellation_status == CANCELLATION_24HOURS_LESS_NOTICE) {
-        $sum += ($call_amount / 2);
-      } 
-      // exclude >24hrs variant - it should be absent for Total Sum
-      elseif ($call->cancellation_status != CANCELLATION_24HOURS_MORE_NOTICE) {
-        $sum += $call_amount;
-      }*/
-      
 
       if ($additional_hours > 0) $inc++;
       
@@ -443,7 +430,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     echo '<tr><td colspan="11" align="right">Total (Excluding VAT)</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, 'excluding_vat')) . '</td></tr>';
     echo '<tr><td colspan="11" align="right">+ VAT</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat')) . '</td></tr>';
     echo '<tr><td colspan="11" align="right">TOTAL</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat')) . '</td></tr>';
-    echo '</table>';      
+
+    echo '</table>';
 
     $content = ob_get_contents(); ob_end_clean();
     return $content;

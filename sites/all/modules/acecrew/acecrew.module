@@ -3,12 +3,22 @@
 require_once dirname(__FILE__) .'/acecrew_func.inc';
 
 /**
- * Implements hook_update_N().
+ * Implements hook_update_6001().
  */
 function acecrew_update_6001() {    
   $schema = drupal_get_schema('acecrew_job_costs', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_job_costs', $schema);
+  return $ret;
+}
+
+/**
+ * Implements hook_update_6002().
+ */
+function acecrew_update_6002() {    
+  $schema = drupal_get_schema('acecrew_job_pro_inv', TRUE);
+  $ret = array();
+  db_create_table($ret, 'acecrew_job_pro_inv', $schema);
   return $ret;
 }
 
@@ -182,6 +192,29 @@ function acecrew_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  // Pro Invoices
+  $items['acecrew/generate-proinv/%'] = array(
+    'title' => 'Ace Crew Generate Final Costs',
+    'page callback' => 'acecrew_generate_proinv',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/delete-proinv/%'] = array(
+    'title' => 'Ace Crew  Delete Invoice',
+    'page callback' => 'acecrew_delete_proinv',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['acecrew/email-proinv/%'] = array(
+    'title' => 'Ace Crew Email Final Costs',
+    'page callback' => 'acecrew_email_proinv',
+    'page arguments' => array(2),
+    'access arguments' => array('delete any job_session content'),
+    'type' => MENU_CALLBACK,
+  );
+
   // Quote
   $items['acecrew/generatequote/%'] = array(
     'title' => 'Ace Crew Generate quote',
@@ -333,10 +366,19 @@ function acecrew_menu() {
   $items['acecrew/costs/pdf/%'] = array(
     'title' => 'Del crew from session',
     'page callback' => 'acecrew_cost_view_pdf',
+    'page arguments' => array(3,4),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['acecrew/proinv/pdf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_proinv_view_pdf',
     'page arguments' => array(3),
     'access arguments' => array('edit field_job_session_crews'),
     'type' => MENU_CALLBACK,
   );
+
 
   $items['acecrew/quote/rtf/%'] = array(
     'title' => 'Del crew from session',
@@ -357,6 +399,14 @@ function acecrew_menu() {
    $items['acecrew/costs/rtf/%'] = array(
     'title' => 'Del crew from session',
     'page callback' => 'acecrew_cost_view_rtf',
+    'page arguments' => array(3),
+    'access arguments' => array('edit field_job_session_crews'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['acecrew/proinv/rtf/%'] = array(
+    'title' => 'Del crew from session',
+    'page callback' => 'acecrew_proinv_view_rtf',
     'page arguments' => array(3),
     'access arguments' => array('edit field_job_session_crews'),
     'type' => MENU_CALLBACK,
@@ -818,6 +868,62 @@ function acecrew_email_costs($cost_id) {
 
     unlink($filepath . $filename);    
     drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+function acecrew_generate_proinv($job_id) {
+    $job = _acecrew_get_job_node_by_id($job_id);
+    _acecrew_add_proinv_job_relate($job_id);    
+
+    module_invoke_all('proinv_generate', $job_id);
+
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// delete proinv from custom table {acecrew_job_invoices}
+function acecrew_delete_proinv($proinv_id) {    
+  db_query("DELETE FROM {acecrew_job_pro_inv} WHERE acecrew_job_pro_inv_id = %d", $proinv_id);
+  drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+// Generate Final Costs Pdf and send mail it to client
+function acecrew_email_proinv($proinv_id) {
+  $module_path = drupal_get_path('module', 'acecrew');
+  require_once($module_path .'/dompdf/dompdf_config.inc.php');
+  $html = _acecrew_invoice_get_html($proinv_id, 'pdf');
+  $dompdf = new DOMPDF();
+  $dompdf->load_html($html);
+  $dompdf->render();
+  $pdf = $dompdf->output();
+
+  $filename = 'ProInv.pdf';
+  $filepath = $module_path . '/temp/';
+  file_put_contents($filepath . $filename, $pdf);
+
+  if (empty($_POST['client_emails'])){
+      $client_email = acecrew_get_client_email_by_proinv_id($proinv_id);
+      //$client_email = $client->field_client_company_email[0]['email'];
+  } else {
+      $client_email = $_POST['client_emails'];
+  }
+
+  module_load_include('inc', 'phpmailer', 'includes/phpmailer.drupal');
+  $mail = new DrupalPHPMailer();
+  $mail->IsMail();
+  $mail->From     = variable_get('site_mail', "crewreview@example.com");
+  $mail->AddAddress($client_email);
+  $mail->CreateBody();
+  $mail->Subject  = t('Ace Crew Pro Invoices');
+  $mail->Body = t('This is your pro invoices. Please see that attached file.');
+  $mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
+
+  if (!$mail->Send()) {
+      drupal_set_message(t('Can\'t send email'));
+  } else {
+      drupal_set_message(t('Email has been sent'));
+  }
+
+  unlink($filepath . $filename);    
+  drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
 /*
@@ -2116,6 +2222,14 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
     if (!empty($costs_html)){
         $costs_html = '<ul>' . $costs_html . '</ul>';
     }
+    watchdog('proinv', '<pre>'.print_r($docs, TRUE).'</pre>');
+    $proinv_html = '';
+    foreach ($docs['pro_inv'] as $pro_inv_id => $cost) {
+        $proinv_html .= "<li><a href=\"$base_path" . "acecrew/proinv/pdf/$pro_inv_id\">PDF</a> <a href=\"$base_path" . "acecrew/proinv/rtf/$pro_inv_id\">RTF</a> <a href=\"$base_path" . "acecrew/delete-proinv/$pro_inv_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$cost_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/email-proinv/$pro_inv_id\" class=\"client_emails_form\" id=\"client_emails_form_$pro_inv_id\"> $clientEmailsSelectbox </form> </li>";
+    }
+    if (!empty($proinv_html)){
+        $proinv_html = '<ul>' . $proinv_html . '</ul>';
+    }
 
     $output = '<div class="acecrew_job_docs">';
 	$output .= '<h2>Ace Crew Documents</h2>	
@@ -2131,6 +2245,10 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
         <h3>Final Costs</h3>
         ' . $costs_html . '
         <a href="' .$base_path . 'acecrew/generate-costs/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-costs-btn" id="acecrew_job_button_costs">Generate Final Costs</a></div>
+        <div class="document-wrapper">
+        <h3>Pro Forma Invoices</h3>
+        ' . $proinv_html . '
+        <a href="' .$base_path . 'acecrew/generate-proinv/' . $docs['job_id'] . '" class="acecrew_job_button acecrew-proinv-btn" id="acecrew_job_button_proinv">Generate Pro Forma Invoices</a></div>
         ';
     
 
@@ -2615,6 +2733,18 @@ function acecrew_cost_view_pdf($cost_id) {
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
 
+function acecrew_proinv_view_pdf($proinv_id) {
+    $job_number = acecrew_get_job_by_proinv_id($proinv_id);
+    _quote_dompdf_include_lib();
+    $html = _acecrew_proinv_get_html($proinv_id, 'pdf');
+    $dompdf = new DOMPDF();
+    $dompdf->set_paper('a4','portrait');
+    $dompdf->load_html($html);
+    $dompdf->render();
+    $dompdf->stream("Ace-ProInv-" . $job_number . ".pdf", array('Attachment' => 1));
+    drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
 function acecrew_email_quote($quote_id){
     $path = drupal_get_path('module', 'invoice');
     require_once($path . '/dompdf/dompdf_config.inc.php');
@@ -2700,16 +2830,26 @@ function acecrew_quote_view_rtf($quote_id) {
 }
 
 function acecrew_cost_view_rtf($cost_id) {    
-    $job_number = acecrew_get_job_by_cost_id($cost_id);
-    require_once('rtf/PHPRtfLite.php');
-    global $base_url;
+  $job_number = acecrew_get_job_by_cost_id($cost_id);
+  require_once('rtf/PHPRtfLite.php');
+  global $base_url;
 
-    $html = _acecrew_cost_rtf_get_html($cost_id);
-    $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-FinalCosts-' . $job_number . '.rtf';
+  $html = _acecrew_cost_rtf_get_html($cost_id);
+  $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-FinalCosts-' . $job_number . '.rtf';
 
-    drupal_goto($file);
+  drupal_goto($file);
 }
 
+function acecrew_proinv_view_rtf($proinv_id) {    
+  $job_number = acecrew_get_job_by_proinv_id($proinv_id);
+  require_once('rtf/PHPRtfLite.php');
+  global $base_url;
+
+  $html = _acecrew_proinv_rtf_get_html($proinv_id);
+  $file =  $base_url . '/' . drupal_get_path('module', 'acecrew') . '/rtf/files/Ace-ProInv-' . $job_number . '.rtf';
+
+  drupal_goto($file);
+}
 
 drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-list.css', 'module', 'all', false);
 

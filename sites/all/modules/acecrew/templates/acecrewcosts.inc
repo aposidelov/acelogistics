@@ -20,6 +20,10 @@
 function _acecrew_cost_get_template_output($cost, $type = NULL) {
     ob_start();
 
+    $a1 = arg(1);
+
+    watchdog('a1', '<pre>'.print_r($a1, TRUE).'</pre>');
+
     $job = $cost['job'];
     $client = $cost['client'];
     $client_contact = $cost['client_contact'];
