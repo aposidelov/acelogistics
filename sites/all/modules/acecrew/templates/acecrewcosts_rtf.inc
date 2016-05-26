@@ -200,6 +200,10 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
 
         $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
         $venue_name = $venue->field_venue_name[0]['value'];
+        $venue_code = $venue->field_venue_post_code[0]['value'];
+        if (!empty($venue_code)) {
+            $venue_code = ' ('.$venue_code.')';
+        }
 
         if ($call->field_job_session_plus_call_value === '1') {
           $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
@@ -215,7 +219,7 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
         //}
 
         $li_table->mergeCellRange($row,1,$row,11);
-        $li_table->writeToCell($row, 1, 'Call: ' . $call_number. '. @ '. $venue_name . $call_cancelation_status, $bold);
+        $li_table->writeToCell($row, 1, 'Call: ' . $call_number. '. @ '. $venue_name . $venue_code . $call_cancelation_status, $bold);
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
         $cell->setCellPaddings(0.2, 0, 0, 0);

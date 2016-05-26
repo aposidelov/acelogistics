@@ -189,6 +189,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
       $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
       $venue_name = $venue->field_venue_name[0]['value'];
+      $venue_code = $venue->field_venue_post_code[0]['value'];
+      if (!empty($venue_code)) {
+        $venue_code = ' ('.$venue_code.')';
+      }
 
       if ($call->field_job_session_plus_call_value === '1') {
         $call->field_job_session_hours_value = $call->field_job_session_hours_value.'+';
@@ -343,7 +347,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
       echo '
         <tr>
-          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $call_cancelation_status . '</td>
+          <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $venue_code . $call_cancelation_status . '</td>
           <td width=4% valign=top>Date: </td>
           <td width=10% valign=top>' . $date . '</td>
           <td width=4% valign=top>Time: </td>

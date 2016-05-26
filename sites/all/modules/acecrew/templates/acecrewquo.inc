@@ -209,6 +209,10 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $call_number = $call_number[1];
         $venue = acecrew_get_venue_by_id($call->field_job_session_venue_value);
         $venue_name = $venue->field_venue_name[0]['value'];
+        $venue_code = $venue->field_venue_post_code[0]['value'];
+        if (!empty($venue_code)) {
+          $venue_code = ' ('.$venue_code.')';
+        }
         $supplements = $data['supplements'];
         $call_amount = _get_call_client_charge_amount($job, $client, $call);
         $total = $call_amount * $call->field_job_session_crew_value;
@@ -265,7 +269,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
 
         echo '
         <tr>
-            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $call_cancelation_status . '</td>
+            <td width=13% rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $venue_code . $call_cancelation_status . '</td>
             <td width=4% valign=top>Date: </td>
             <td width=10% valign=top>' . substr($call->field_job_session_date_time_value, 0, 10) . '</td>
             <td width=4% valign=top>Time: </td>
