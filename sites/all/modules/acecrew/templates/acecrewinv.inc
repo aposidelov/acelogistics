@@ -27,8 +27,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $venue = $quote['venue'];
     $callings = $quote['callings'];
 
-    //watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
-
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_inv_footer_text_value;
     $footer_txt = explode("\r\n", $footer_text);
@@ -38,12 +36,14 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $footer_content_s3 = isset($footer_txt[2]) ? $footer_txt[2] : "";
     $footer_content_s4 = isset($footer_txt[3]) ? $footer_txt[3] : "";
     $footer_content_s5 = isset($footer_txt[4]) ? $footer_txt[4] : "";
-
+    
+    $credit_image = drupal_get_path('module', 'acecrew') . '/theme/invoice-footer-credit.png';
+    
     if ($type == 'pdf') {
-    $footer = '<script type="text/php">
+      $footer = '<script type="text/php">
                 if (isset($pdf)) {
                   $footer = $pdf->open_object();
-
+                  
                   $w = $pdf->get_width();
                   $h = $pdf->get_height();
                   
@@ -59,7 +59,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                     "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
                     "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
                     
-                  $pdf->line(40, $h-60, $w-40, $h-60, $a_line_color, 1, array()); 
+                  //$pdf->line(40, $h-60, $w-40, $h-60, $a_line_color, 1, array()); 
                     
                   $footer_content_font_size = 8;
                   $footer_content_font_space = 1;
@@ -69,6 +69,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                   $footer_content_s3 = \'' . $footer_content_s3 . '\';
                   $footer_content_s4 = \'' . $footer_content_s4 . '\';
                   $footer_content_s5 = \'' . $footer_content_s5 . '\';
+                  
+                  $offset = 120;
 
                   $footer_content_s1_len  = $pdf->get_text_width($footer_content_s1, $font, $footer_content_font_size);
                   $footer_content_s2_len  = $pdf->get_text_width($footer_content_s2, $font, $footer_content_font_size);
@@ -76,14 +78,16 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
                   $footer_content_s4_len  = $pdf->get_text_width($footer_content_s4, $font, $footer_content_font_size);
                   $footer_content_s5_len  = $pdf->get_text_width($footer_content_s5, $font, $footer_content_font_size);
 
-                  $pdf->text(($w - $footer_content_s1_len) / 2, $h - 60 + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s2_len) / 2, $h - 60 + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s3_len) / 2, $h - 60 + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s4_len) / 2, $h - 60 + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s5_len) / 2, $h - 60 + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s1_len) / 2, $h - $offset + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s2_len) / 2, $h - $offset + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s3_len) / 2, $h - $offset + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s4_len) / 2, $h - $offset + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
+                  $pdf->text(($w - $footer_content_s5_len) / 2, $h - $offset + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
                   
+                  $pdf->image("'.$credit_image.'", "png", (($w - $footer_content_s5_len) / 2) + 20, $h - 100 + $footer_content_font_space + $footer_content_font_size*4, 162, 60);
+
                   $pdf->page_text($w-57, $h-39, "{PAGE_NUM}/{PAGE_COUNT}", $font, 10, $a_text_color);
-                  
+                                                                                        
                   $pdf->close_object();
                 
                   $pdf->add_object($footer, "all");
@@ -94,7 +98,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
     else {
     $footer = $footer_content;
-    }
+    }    
 
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
   	$comp_address_1 = $client->field_client_company_address_value;
@@ -103,9 +107,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $comp_address_1 = trim(preg_replace('/\s\s+/', ' ', $comp_address_1));
     $comp_address_1 = preg_replace('/\x03/', '', $comp_address_1);
 
-    //$comp_address_1 = isset($client->field_client_company_address_value) ? preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_address_value) : '';
-  	//$comp_address_2 = isset($client->field_client_company_postcode_value) ?  preg_replace("/[^ \r\na-zA-Z0-9]+/", "", $client->field_client_company_postcode_value) : '';
-    //watchdog('jjj', '<pre>'.print_r($job, TRUE).'</pre>');    
+    $venue_postcode = '';
+    $venue_postcode = !empty($venue->field_venue_post_code_value) ? ' ('.$venue->field_venue_post_code_value.')' : '';
+ 
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
     <tr>
@@ -154,6 +158,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $vat = NULL;
     $multiple_vat_values = FALSE;
+    if (isset($invoice->invoice_items)) {
     foreach ($invoice->invoice_items as $item) {
       if (is_null($vat)) {
         $vat = $item['vat'];
@@ -162,6 +167,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       if ($item['vat'] !== $vat) {
         $multiple_vat_values = TRUE;
       }
+    }
     }
     
     $job_cancelation_status = '';
@@ -433,8 +439,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     echo '<tr><td colspan="11" align="right">Total (Excluding VAT)</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, 'excluding_vat')) . '</td></tr>';
     echo '<tr><td colspan="11" align="right">+ VAT</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat')) . '</td></tr>';
     echo '<tr><td colspan="11" align="right">TOTAL</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat')) . '</td></tr>';
-
-    echo '</table>';
+    echo '</table>';      
 
     $content = ob_get_contents(); ob_end_clean();
     return $content;

@@ -682,6 +682,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.2, 0, 0, 0);
 
+    $credit_image = dirname(__FILE__) . '/../theme/invoice-footer-credit.png';
+
 
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
     $footer_text = $settings->field_inv_footer_text_value;
@@ -690,9 +692,16 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $footer_text_format = new PHPRtfLite_ParFormat();
     $footer_text_format->setTextAlignment('center');
 
+    /*$cell = $table->getCell(1, 2);
+    $image = $cell->addImage($logo);
+    $image->setWidth(7);
+    $image->setHeight(4);*/
 
     $footer = $section->addFooter();
     $footer->writeText($footer_text, $footer_font, $footer_text_format);
+    $image = $footer->addImage($credit_image, $footer_text_format);
+    $image->setWidth(5.5);
+    $image->setHeight(2);
     /* End rtf */
     $li_table->setBorderForCellRange($border,1,1,$row,11);
     $invoice_id = $quote['job']->acecrew_job_invoice_id;

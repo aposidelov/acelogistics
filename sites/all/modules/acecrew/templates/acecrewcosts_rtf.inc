@@ -680,8 +680,8 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
 
 
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
-    $footer_text = $settings->field_inv_footer_text_value;
-    $footer_font = new PHPRtfLite_Font(9, 'Arial', '#555555');
+    $footer_text = 'This is not an Invoice'; //$settings->field_inv_footer_text_value;
+    $footer_font = new PHPRtfLite_Font(9, 'Arial', '#ff0000'); //555555
 
     $footer_text_format = new PHPRtfLite_ParFormat();
     $footer_text_format->setTextAlignment('center');

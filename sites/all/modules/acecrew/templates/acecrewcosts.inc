@@ -30,8 +30,8 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
 
     //watchdog('jbpdf', '<pre>'.print_r($job, TRUE).'</pre>');
 
-    $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
-    $footer_text = $settings->field_inv_footer_text_value;
+    //$settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
+    $footer_text = 'This is not an Invoice';//$settings->field_inv_footer_text_value;
     $footer_txt = explode("\r\n", $footer_text);
 
     $footer_content_s1 = isset($footer_txt[0]) ? $footer_txt[0] : "";
@@ -56,6 +56,8 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
                     "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
                     "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
                   
+                  $r=255; $g=0; $b=0;
+
                   $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
                     "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
                     "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
@@ -82,6 +84,12 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
                   $pdf->text(($w - $footer_content_s3_len) / 2, $h - 60 + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
                   $pdf->text(($w - $footer_content_s4_len) / 2, $h - 60 + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
                   $pdf->text(($w - $footer_content_s5_len) / 2, $h - 60 + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
+                  
+                  $r=128; $g=128; $b=128;
+
+                  $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
+                    "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
+                    "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
                   
                   $pdf->page_text($w-57, $h-39, "{PAGE_NUM}/{PAGE_COUNT}", $font, 10, $a_text_color);
                   
