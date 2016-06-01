@@ -1,7 +1,7 @@
 <?php
 
 function acecrew_report_invoices_form(&$form_state) {  
-  $day_in_sec = 3386400;
+  $day_in_sec = 86400;
   $date_start_sec = time() - ($day_in_sec * 7);
   if (isset($_GET['timesheets'])) {
     $date_start = $_GET['timesheets']['start_date']['date'];
