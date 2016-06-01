@@ -716,14 +716,3 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     return;
 }
-
-function getVAT() {
-    $vat = 0;
-    $query = "SELECT field_admins_vatrate_value FROM {content_type_admin_settings}";
-    $result = db_query($query);
-    while($row = db_fetch_object($result)) {
-        $vat = $row->field_admins_vatrate_value;
-    }
-
-    return $vat == 0 ? 20 : $vat;
-}

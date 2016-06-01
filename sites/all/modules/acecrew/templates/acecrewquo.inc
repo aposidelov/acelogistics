@@ -417,14 +417,3 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
   $content = ob_get_contents(); ob_end_clean();
   return $content;
 }
-
-function getVAT() {
-    $vat = 0;
-    $query = "SELECT field_admins_vatrate_value FROM {content_type_admin_settings}";
-    $result = db_query($query);
-    while($row = db_fetch_object($result)) {
-        $vat = $row->field_admins_vatrate_value;
-    }
-
-    return $vat == 0 ? 20 : $vat;
-}

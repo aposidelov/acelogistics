@@ -2221,8 +2221,7 @@ function theme_acecrew_assigned_docs($docs, $clientEmails) {
     }
     if (!empty($costs_html)){
         $costs_html = '<ul>' . $costs_html . '</ul>';
-    }
-    watchdog('proinv', '<pre>'.print_r($docs, TRUE).'</pre>');
+    }    
     $proinv_html = '';
     foreach ($docs['pro_inv'] as $pro_inv_id => $cost) {
         $proinv_html .= "<li><a href=\"$base_path" . "acecrew/proinv/pdf/$pro_inv_id\">PDF</a> <a href=\"$base_path" . "acecrew/proinv/rtf/$pro_inv_id\">RTF</a> <a href=\"$base_path" . "acecrew/delete-proinv/$pro_inv_id\">Delete</a> <a class=\"email_inv_quo\" id=\"email_inv_$cost_id\" href=\"#\">Email</a> <form enctype=\"multipart/form-data\" method=\"post\" accept-charset=\"UTF-8\" action=\"$base_path" . "acecrew/email-proinv/$pro_inv_id\" class=\"client_emails_form\" id=\"client_emails_form_$pro_inv_id\"> $clientEmailsSelectbox </form> </li>";
@@ -3102,4 +3101,15 @@ function acecrew_ajax_get_call_form_edit($call_id) {
   $form_state = array('type' => $node_type);
   modalframe_child_js();
   return drupal_get_form($form_id, $node);
+}
+
+function getVAT() {
+    $vat = 0;
+    $query = "SELECT field_admins_vatrate_value FROM {content_type_admin_settings}";
+    $result = db_query($query);
+    while($row = db_fetch_object($result)) {
+        $vat = $row->field_admins_vatrate_value;
+    }
+
+    return $vat == 0 ? 20 : $vat;
 }

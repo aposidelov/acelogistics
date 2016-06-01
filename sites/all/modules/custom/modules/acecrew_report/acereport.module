@@ -9,6 +9,14 @@
  * Implements hook_menu().
  */
 function acereport_menu() {
+  $items['admin/reports/invoice'] = array(
+    'title' => 'Sales Invoice',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('acecrew_report_invoices_form'),
+    'access arguments' => array('acecrew time sheets'),
+    'file' => 'acereport.invoices.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
   $items['admin/reports/fines'] = array(
     'title' => 'Fines Report',    
     'page callback' => 'drupal_get_form',

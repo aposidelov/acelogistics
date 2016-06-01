@@ -18,7 +18,7 @@
  * - http://www.digitaljunkies.ca/dompdf/usage.php
  */
 function _acecrew_invoice_get_template_output($quote, $type=NULL) {
-    ob_start();
+    ob_start();    
 
     $job = $quote['job'];
     $client = $quote['client'];
@@ -459,14 +459,4 @@ function is_exist_allocated_supplement($call_id, $supp_id) {
     }
 
     return count($allocated_supplement) > 0 ? $allocated_supplement : FALSE;
-}
-function getVAT() {
-    $vat = 0;
-    $query = "SELECT field_admins_vatrate_value FROM {content_type_admin_settings}";
-    $result = db_query($query);
-    while($row = db_fetch_object($result)) {
-        $vat = $row->field_admins_vatrate_value;
-    }
-
-    return $vat == 0 ? 20 : $vat;
 }

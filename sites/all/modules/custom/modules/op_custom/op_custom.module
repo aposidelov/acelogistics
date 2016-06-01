@@ -3,13 +3,10 @@
 define('CANCELLATION_NA', '');
 //define('CANCELLATION_12HOURS_NOTICE', 1);
 //define('CANCELLATION_24HOURS_NOTICE', 2);
-
 define('CANCELLATION_NORMAL', 4);
 define('CANCELLATION_24HOURS_LESS_NOTICE', 12);
 define('CANCELLATION_12HOURS_LESS_NOTICE', 13);
-
 define('BOOKOFF_DAILY_CREWS_COUNT', 5);
-
 
 /**
  * Implements hook_update_6001().
