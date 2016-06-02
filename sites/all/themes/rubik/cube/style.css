@@ -1438,3 +1438,7 @@ ul.call-listing li.cancel-btn,
 #acecrew-review-prize-form #edit-timesheets-filter {
     margin-top: 10px;
 }
+
+#user-profile-form table input {
+    border: 1px solid #ccc;
+}

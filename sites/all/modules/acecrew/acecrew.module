@@ -5,7 +5,8 @@ require_once dirname(__FILE__) .'/acecrew_func.inc';
 /**
  * Implements hook_update_6001().
  */
-function acecrew_update_6001() {    
+function acecrew_update_6001() { 
+  // HAVE BEEN EXECUTED ON LIVE   
   $schema = drupal_get_schema('acecrew_job_costs', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_job_costs', $schema);
@@ -16,9 +17,21 @@ function acecrew_update_6001() {
  * Implements hook_update_6002().
  */
 function acecrew_update_6002() {    
+  // HAVE NOT BEEN EXECUTED ON LIVE !!!!!!!!!!!!!!
   $schema = drupal_get_schema('acecrew_job_pro_inv', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_job_pro_inv', $schema);
+  return $ret;
+}
+
+/**
+ * Implements hook_update_6003().
+ */
+function acecrew_update_6003() {    
+  // HAVE NOT BEEN EXECUTED ON LIVE !!!!!!!!!!!!!!
+  $schema = drupal_get_schema('acecrew_user_supplement', TRUE);
+  $ret = array();
+  db_create_table($ret, 'acecrew_user_supplement', $schema);
   return $ret;
 }
 
@@ -1742,7 +1755,7 @@ function acecrew_calendar_form(){
             31=>31
         ),
         '#attributes' => array('id' => 'acecrew_calendar_forward_days'),
-        '#default_value' => 4, // DDEL
+        '#default_value' => 0, // DDEL
     );
 
     $form['date']['submit'] = array(
@@ -3112,4 +3125,8 @@ function getVAT() {
     }
 
     return $vat == 0 ? 20 : $vat;
+}
+
+function acecrew_is_valid_date_format($date) {  
+  return preg_match("/\d{4}\-\d{2}-\d{2}/", $date);
 }

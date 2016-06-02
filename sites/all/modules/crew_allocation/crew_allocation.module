@@ -613,8 +613,10 @@ function crew_allocation_list_crew_members(&$form, &$form_state, $supplement, $e
     //Get all crew members (users) that have assigned supplement and employment type
     $users = crew_allocation_get_all_users($supplement, $pure_emp_type, $call_id);
 
-    //Sort by name
-    usort($users, "cmp_crew_name2");
+    //Sort by name    
+    if (sizeof($users)) {
+      usort($users, "cmp_crew_name2");
+    }
 
     //Render users(checkbox) on form under Available Crew (full time or part time)
     crew_allocation_list_available(
@@ -872,72 +874,89 @@ AND pv.value LIKE '%%'
  * Available crew members(full time or part time)
  */
 function crew_allocation_list_available(&$form, &$form_state, $users, $booked_user_array, $unavailable_users, $emp_type, $call_id, $js_id, $status = null, $unavailable_120_61 = null) {
-    // bug fixing: array_key_exists() expects parameter 2 to be array, null given in... on line 818
-    if ($unavailable_120_61 == null) {
-        $unavailable_120_61 = array();
-    }
-    $blocked_users = crew_allocation_get_blocked_users();
-    $blocked_by_cv = acecrew_get_blocked_crews_by_cv($call_id);
+  // bug fixing: array_key_exists() expects parameter 2 to be array, null given in... on line 818
+  if ($unavailable_120_61 == null) {
+      $unavailable_120_61 = array();
+  }
+  $blocked_users = crew_allocation_get_blocked_users();
+  $blocked_by_cv = acecrew_get_blocked_crews_by_cv($call_id);
   
+  if (sizeof($users)) {
     foreach ($users as $user) {
-        $blocked_by_cv_class = '';
-        if (in_array($user->uid, $blocked_by_cv)) {
-          $blocked_by_cv_class = 'blocked-by-cv';
-        }
+      $blocked_by_cv_class = '';
+      if (in_array($user->uid, $blocked_by_cv)) {
+        $blocked_by_cv_class = 'blocked-by-cv';
+      }
 
-        if (array_key_exists($user->uid, $booked_user_array)) {
-            //If crew member(user) is booked off
-        } else if (in_array($user->uid, $blocked_users)) {
-            //If user is blocked
-        } else {
+      if (array_key_exists($user->uid, $booked_user_array)) {
+        // if crew member(user) is booked off
+      } else if (in_array($user->uid, $blocked_users)) {
+        // if user is blocked
+      } else {
+        // if user is available add it to the form list
+        if (array_key_exists($user->uid, $unavailable_users) && (strpos($emp_type, 'Unavailable') != FALSE)) {
+            // if the user is checked
+            $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();
 
-            //If user is available add it to the form list
-            if(array_key_exists($user->uid, $unavailable_users) && (strpos($emp_type, 'Unavailable') != FALSE)) {
-                //If the user is checked
-                $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();
+            // add different class to unavailable groups based on status
+            $class = "";
+            if($status == "120-61") {
+                $class = "unavailable-two";
+            } else if($status == "60-1") {
+                $class = "unavailable-one";
+            } else if($status == "normal") {
+                $class = "unavailable-normal";
+            }                
 
-                //Add different class to unavailable groups based on status
-                $class = "";
-                if($status == "120-61") {
-                    $class = "unavailable-two";
-                } else if($status == "60-1") {
-                    $class = "unavailable-one";
-                } else if($status == "normal") {
-                    $class = "unavailable-normal";
-                }                
+            //watchdog('ses', '<pre>'.print_r($_SESSION['supplement_value'], TRUE).'</pre>');
 
-                //Create the form field, $emp_type is form fieldsed(ex: Full Time Unavailable) and status is
-                //unavailable grouping type(120-61/60-1/normal)
-                $form['emp_type'][$emp_type][$status][$user->name] = array(
-                    '#type' => 'checkbox',
-                    '#id' => t('crew-'.$user->uid),
-                    '#title' => t($user->name),
-                    '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
-                    '#attributes' => $checked,
-                    '#prefix' => '<div class="' . $class . ' '.$blocked_by_cv_class.'">',
-                    '#suffix' => '</div>'
-                );
+            // if some crew was selected and saved before - it must be shown and no matter if has expired supplement or not. only unselected crews can be hidden because of supplement expiration.
+            if (!isset($checked['checked']) && isset($_SESSION['supplement_value']) AND (bool)$_SESSION['supplement_value']) {
+              $supplement_nid = $_SESSION['supplement_value'];
+              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid));
+              if ($is_exp_crew) {                
+                continue;
+              }
             }
-            //If user is available add it to the form list
-            if(!array_key_exists($user->uid, $unavailable_users) && !array_key_exists($user->uid, $unavailable_120_61) && (strpos($emp_type, 'Available') != FALSE)) {
 
-                $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();
-
-                $form['emp_type'][$emp_type][$user->name] = array(
-                    '#type' => 'checkbox',
-                    '#id' => t('crew-'.$user->uid),
-                    '#title' => t($user->name),
-                    '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
-                    '#attributes' => $checked,
-                    '#prefix' => '<div class="'.$blocked_by_cv_class.'">',
-                    '#suffix' => '</div>'
-                );
-
-
-            }
+            //Create the form field, $emp_type is form fieldsed(ex: Full Time Unavailable) and status is
+            //unavailable grouping type(120-61/60-1/normal)
+            $form['emp_type'][$emp_type][$status][$user->name] = array(
+                '#type' => 'checkbox',
+                '#id' => t('crew-'.$user->uid),
+                '#title' => t($user->name),
+                '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
+                '#attributes' => $checked,
+                '#prefix' => '<div class="' . $class . ' '.$blocked_by_cv_class.'">',
+                '#suffix' => '</div>'
+            );
         }
+        // if user is available add it to the form list
+        if (!array_key_exists($user->uid, $unavailable_users) && !array_key_exists($user->uid, $unavailable_120_61) && (strpos($emp_type, 'Available') != FALSE)) {
 
+            $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();            
+            // if some crew was selected and saved before - it must be shown and no matter if has expired supplement or not. only unselected crews can be hidden because of supplement expiration.
+            if (!isset($checked['checked']) && isset($_SESSION['supplement_value']) AND (bool)$_SESSION['supplement_value']) {
+              $supplement_nid = $_SESSION['supplement_value'];
+              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid));
+              if ($is_exp_crew) {                
+                continue;
+              }
+            }
+
+            $form['emp_type'][$emp_type][$user->name] = array(
+                '#type' => 'checkbox',
+                '#id' => t('crew-'.$user->uid),
+                '#title' => t($user->name),
+                '#value' => intval($form_state['post'][str_replace(" ", "_", $user->name)]),
+                '#attributes' => $checked,
+                '#prefix' => '<div class="'.$blocked_by_cv_class.'">',
+                '#suffix' => '</div>'
+            );
+        }
+      }
     }
+  }
 }
 
 function _crew_allocation_top_form_submit($form, &$form_state) {

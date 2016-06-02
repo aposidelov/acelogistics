@@ -97,5 +97,22 @@ function acecrew_schema()
     )
   );
 
+  $schema['acecrew_user_supplement'] = array(
+    'fields' => array(
+      'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'sid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'start_date' => array('type' => 'int', 'unsigned' => TRUE, 'not 
+        null' => TRUE, 'default' => 0),
+      'end_date' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key'        => array('uid', 'sid'),
+    'unique keys'        => array(),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'sid' => array('sid'),
+      'uid_sid' => array('uid', 'sid'),
+    )
+  );
+
   return $schema;
 }

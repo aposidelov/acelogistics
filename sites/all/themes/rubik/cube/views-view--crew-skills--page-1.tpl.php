@@ -1,11 +1,12 @@
 <?php
 $params = explode('/', $_GET['q']);
 $uid = $params[1];
+$username = db_result(db_query("SELECT name FROM {users} WHERE uid = '%s'", $uid));
 
 $skills = '';
 $payrate = 1;
-if (isset($_POST['edit_submit_save'])) {
-  //watchdog('post', '<pre>'.print_r($_POST, TRUE).'</pre>');
+
+if (isset($_POST['edit_submit_save'])) {  
   foreach ($_POST as $key=>$value) {
     $element = preg_replace('/profile_crew_skill_/', '', $key);
     if (is_numeric($element)) {
@@ -75,6 +76,10 @@ if (isset($_POST['edit_submit_save'])) {
 
 $skills = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 41 AND uid = %d", $uid));
 $skills = explode(',', $skills);
+// remove empty element if no selected skills was found for crew
+if (sizeof($skills) == 1 && isset($skills[0]) && empty($skills[0])) {
+  $skills = array();
+}
 
 $payrate = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28 AND uid = %d", $uid));
 
@@ -149,6 +154,60 @@ function is_skill_checked($nid, $skills) {
   }
   return 0;
 }
+
+// save dates of skills
+if (isset($_POST['edit_submit_save'])) {
+  $fieldpart_date_start = 'acecrew_date_start_';
+  $fieldpart_date_end = 'acecrew_date_end_';
+  // clean all prev bindings for current crew and create new ones
+  db_query('DELETE FROM {acecrew_user_supplement} WHERE uid = %d', $uid);
+  foreach ($skills as $skill_nid) {
+    $start_date = 0;
+    $end_date = 0;
+    $field_start_date = $fieldpart_date_start . $skill_nid;
+    $field_end_date = $fieldpart_date_end . $skill_nid;
+    if (isset($_POST[$field_start_date]) && !empty($_POST[$field_start_date]) && acecrew_is_valid_date_format($_POST[$field_start_date])) {
+      $start_date = strtotime($_POST[$field_start_date] . ' 00:00');
+    }
+
+    if (isset($_POST[$field_end_date]) && !empty($_POST[$field_end_date]) && acecrew_is_valid_date_format($_POST[$field_end_date])) {
+      $end_date = strtotime($_POST[$field_end_date] . ' 23:59');
+    }
+
+    // both dates have to be filled up
+    if ($start_date || $end_date) {
+      db_query("INSERT INTO {acecrew_user_supplement} (uid, sid, start_date, end_date)
+          VALUES (%d, %d, %d, %d)",
+          $uid,
+          $skill_nid,
+          $start_date,
+          $end_date
+        );  
+    }
+  }
+}
+
+$rows = array();
+foreach ($skills as $skill_nid) {
+  $title = db_result(db_query('SELECT title FROM {node} WHERE nid = %d',$skill_nid));
+
+  $result = db_fetch_object(db_query('SELECT start_date, end_date FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d', $uid, $skill_nid));
+
+  $start_date = $result->start_date ? date('Y-m-d', $result->start_date) : '';
+  $end_date = $result->end_date ? date('Y-m-d', $result->end_date) : '';
+
+  $rows[] = array(
+    $title,
+    '<input type="text" name="acecrew_date_start_'.$skill_nid. '" value="'.$start_date.'" />',
+    '<input type="text" name="acecrew_date_end_'.$skill_nid. '" value="'.$end_date.'" />',
+  );
+}
+//
+$skill_table = '';
+if (sizeof($rows)) {
+  $skill_table = theme('table', array(t('Skill'), t('Date Start'), t('Date End')), $rows);
+}
+
 ?>
 <div id="tabs">
       <div class="page-tabs limiter clear-block"><ul class="links primary-tabs"><li><a href="/users/<?php echo $user->name; ?>">View</a></li>
@@ -173,7 +232,7 @@ function is_skill_checked($nid, $skills) {
     <div class="form form-layout-default clear-block rubik-processed">
     <div class="column-main">
     <div class="column-wrapper clear-block">
-        <h1 class="supp-page" style="font-size: 20px; padding: 10px 0 10px 8px"><?php echo $user->name; ?><?php echo print_insert_link(); ?></h1>
+        <h1 class="supp-page" style="font-size: 20px; padding: 10px 0 10px 8px"><?php echo $username; ?><?php echo print_insert_link(); ?></h1>
     <fieldset class=" fieldset titled">
         <legend><span class="fieldset-title">Crew Skills</span></legend>
         <div class="fieldset-content clear-block ">
@@ -185,6 +244,16 @@ function is_skill_checked($nid, $skills) {
                 </label>
             </div>
             <?php } ?>
+            
+            <?php if (!empty($skill_table)) : ?>              
+              <div style="clear: both;">
+              <strong>Date format: 2014-06-15, 2015-11-26</strong>
+              <?php print $skill_table; ?>
+              </div>
+              <hr/>
+              <br/>
+            <?php endif; ?>
+
             <div class="form-item form-item-labeled" id="edit-acecrew-payrate-id-wrapper">
                 <label for="edit-acecrew-payrate-id">Pay Rate: <span class="form-required" title="This field is required.">*</span></label>
                 <select name="acecrew_payrate_id" class="form-select required" id="edit-acecrew-payrate-id">
@@ -206,11 +275,11 @@ function is_skill_checked($nid, $skills) {
 </div>
 
 <div class="form-item" id="edit-profile-rate-date-month-wrapper">
-    <select name="profile_rate_date[month]" class="form-select" id="edit-profile-rate-date-month">
-      <?php foreach ($monthes as $i => $name) : ?>
-        <option value="<?php print $i; ?>" <?php if ($i==$rate_date['month']) print "selected='selected'"; ?>><?php print $name; ?></option>
-      <?php endforeach; ?>
-    </select>  
+  <select name="profile_rate_date[month]" class="form-select" id="edit-profile-rate-date-month">
+    <?php foreach ($monthes as $i => $name) : ?>
+      <option value="<?php print $i; ?>" <?php if ($i==$rate_date['month']) print "selected='selected'"; ?>><?php print $name; ?></option>
+    <?php endforeach; ?>
+  </select>  
 </div>
 
 <div class="form-item" id="edit-profile-rate-date-year-wrapper">

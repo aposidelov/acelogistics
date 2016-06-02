@@ -448,6 +448,17 @@ function template_preprocess_supplement_allocation(&$variables) {
       $skills = explode(",", $r->value);
     }
 
+    // prepare Expired Skills array
+    $exp_skills = array();
+    foreach ($skills as $sid) {
+      $exp_skills[$sid] = FALSE;
+    }
+    $es_result = db_query('SELECT sid FROM {acecrew_user_supplement} WHERE uid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $crew->uid);
+    while ($es_r = db_fetch_object($es_result)) {
+      $exp_skills[$es_r->sid] = TRUE;
+    }
+    //watchdog('es', '<pre>'.print_r($exp_skills, TRUE).'</pre>');
+
     foreach ($skills as $skill) {
       $row4 = node_load($skill);
       $result5 = db_query("SELECT * FROM {node} WHERE type='supplements' AND nid='$skill'");
@@ -471,9 +482,7 @@ function template_preprocess_supplement_allocation(&$variables) {
         $supplement['comment']    = $skill_crew->comment;
         $supplement['checked']    = 1;
 
-        // if both of ph and of are -1 , use default value.
-        
-          
+        // if both of ph and of are -1 , use default value.                  
         if ($supplement['crew_ph'] == NULL && $supplement['crew_of'] == NULL) {
           $total_crew += $supplement_item['crew_hour'] > 0 ? 
           $supplement_item['crew_hour'] * $hours_worked : 
@@ -493,32 +502,12 @@ function template_preprocess_supplement_allocation(&$variables) {
           $supplement['client_ph'] * $hours_worked :
           $supplement['client_of'];          
         }
-
-        /*
-        if ($supplement['crew_ph'] == NULL && $supplement['crew_of'] == NULL) {
-          $total_crew += $variables['supp_default'][$supplement['nid']]['crew_hour'] > 0 ?
-          $variables['supp_default'][$supplement['nid']]['crew_hour'] * $hours_worked :
-          $variables['supp_default'][$supplement['nid']]['crew_single'];
-        }
-        else { // else use special value
-          $total_crew += $supplement['crew_ph'] > 0 ?
-          $supplement['crew_ph'] * $hours_worked :
-          $supplement['crew_of'];
-        }
-
-        if ($supplement['client_ph'] == NULL && $supplement['client_of'] == NULL) {
-          $total_client += $variables['supp_default'][$supplement['nid']]['client_hour'] > 0 ?
-          $variables['supp_default'][$supplement['nid']]['client_hour'] * $hours_worked :
-          $variables['supp_default'][$supplement['nid']]['client_single'];
-        } else { // else use special value
-          $total_client += $supplement['client_ph'] > 0 ?
-          $supplement['client_ph'] * $hours_worked :
-          $supplement['client_of'];
-        }
-        */
       }
       else {
         $supplement['checked'] = 0;
+        if ($exp_skills[$skill_data->nid]) {
+          continue;
+        }
       }
       $supplements[] = $supplement;
     }
