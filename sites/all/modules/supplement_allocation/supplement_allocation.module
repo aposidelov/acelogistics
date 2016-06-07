@@ -263,6 +263,7 @@ function template_preprocess_supplement_allocation(&$variables) {
   $row = db_fetch_object($results);
   $call = node_load($row->nid);
   $default_hours = $row->field_job_session_hours_value;
+  $call_date = $row->field_job_session_date_time_value;
   //... get all info from call_id
   $job_statuses = array(1 => 'Awaiting PO', 2 => 'Quote', 3 => 'Confirmed', 4 => 'Cancelled', 5 => 'Pencil', 6 => 'Invoiced', 7 => 'Invoice Sent');
 
@@ -453,7 +454,7 @@ function template_preprocess_supplement_allocation(&$variables) {
     foreach ($skills as $sid) {
       $exp_skills[$sid] = FALSE;
     }
-    $es_result = db_query('SELECT sid FROM {acecrew_user_supplement} WHERE uid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $crew->uid);
+    $es_result = db_query('SELECT sid FROM {acecrew_user_supplement} WHERE uid = %d AND "%s" NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $crew->uid, $call_date);
     while ($es_r = db_fetch_object($es_result)) {
       $exp_skills[$es_r->sid] = TRUE;
     }

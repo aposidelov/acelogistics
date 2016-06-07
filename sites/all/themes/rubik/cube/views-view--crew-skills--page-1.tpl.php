@@ -1,4 +1,9 @@
 <?php
+
+jquery_ui_add('ui.core');
+jquery_ui_add('ui.datepicker');
+drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew_profile_supplement.js');  
+
 $params = explode('/', $_GET['q']);
 $uid = $params[1];
 $username = db_result(db_query("SELECT name FROM {users} WHERE uid = '%s'", $uid));
@@ -198,8 +203,8 @@ foreach ($skills as $skill_nid) {
 
   $rows[] = array(
     $title,
-    '<input type="text" name="acecrew_date_start_'.$skill_nid. '" value="'.$start_date.'" />',
-    '<input type="text" name="acecrew_date_end_'.$skill_nid. '" value="'.$end_date.'" />',
+    '<input type="text" class="acecrew_date_field" name="acecrew_date_start_'.$skill_nid. '" value="'.$start_date.'" />',
+    '<input type="text" class="acecrew_date_field" name="acecrew_date_end_'.$skill_nid. '" value="'.$end_date.'" />',
   );
 }
 //

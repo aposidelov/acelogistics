@@ -908,12 +908,14 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
                 $class = "unavailable-normal";
             }                
 
-            //watchdog('ses', '<pre>'.print_r($_SESSION['supplement_value'], TRUE).'</pre>');
-
+            //watchdog('cid', '<pre>'.print_r($call_id.','.$js_id, TRUE).'</pre>');
+            //field_job_session_date_time_value
             // if some crew was selected and saved before - it must be shown and no matter if has expired supplement or not. only unselected crews can be hidden because of supplement expiration.
             if (!isset($checked['checked']) && isset($_SESSION['supplement_value']) AND (bool)$_SESSION['supplement_value']) {
+              $date = db_result(db_query('SELECT field_job_session_date_time_value FROM {content_type_job_session} WHERE vid = %d', $js_id));
               $supplement_nid = $_SESSION['supplement_value'];
-              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid));
+              //watchdog('cid', '<pre>'.print_r($date.','. $user->uid.','. $supplement_nid, TRUE).'</pre>');
+              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND "%s" NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid, $date));
               if ($is_exp_crew) {                
                 continue;
               }
@@ -933,12 +935,15 @@ function crew_allocation_list_available(&$form, &$form_state, $users, $booked_us
         }
         // if user is available add it to the form list
         if (!array_key_exists($user->uid, $unavailable_users) && !array_key_exists($user->uid, $unavailable_120_61) && (strpos($emp_type, 'Available') != FALSE)) {
-
+            //watchdog('cid', '<pre>'.print_r($call_id.','.$js_id, TRUE).'</pre>');
+            //field_job_session_date_time_value 
             $checked = _crew_allocation_is_crew_allocated($user->uid, $call_id, $js_id) ? array('checked' => 'checked') : array();            
             // if some crew was selected and saved before - it must be shown and no matter if has expired supplement or not. only unselected crews can be hidden because of supplement expiration.
             if (!isset($checked['checked']) && isset($_SESSION['supplement_value']) AND (bool)$_SESSION['supplement_value']) {
+              $date = db_result(db_query('SELECT field_job_session_date_time_value FROM {content_type_job_session} WHERE vid = %d', $js_id));
               $supplement_nid = $_SESSION['supplement_value'];
-              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND NOW() NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid));
+              //watchdog('cid', '<pre>'.print_r($date.','. $user->uid.','. $supplement_nid, TRUE).'</pre>');
+              $is_exp_crew = db_result(db_query('SELECT COUNT(*) FROM {acecrew_user_supplement} WHERE uid = %d AND sid = %d AND "%s" NOT BETWEEN FROM_UNIXTIME(start_date) AND FROM_UNIXTIME(end_date)', $user->uid, $supplement_nid, $date));
               if ($is_exp_crew) {                
                 continue;
               }

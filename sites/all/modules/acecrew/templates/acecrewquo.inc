@@ -414,6 +414,8 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
   echo '<span style="color:#f00;font-size:10px;">FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.</span>';
   echo '</td></tr></table>';
 
+  echo '<div style="height:60px;"></div>';
+
   $content = ob_get_contents(); ob_end_clean();
   return $content;
 }
