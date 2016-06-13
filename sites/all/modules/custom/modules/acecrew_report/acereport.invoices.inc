@@ -136,18 +136,19 @@ function acecrew_report_invoice_query($date_from, $date_to, $count = FALSE) {
     j.field_job_discount_value,
     j.field_job_po_number_value AS po_number";
   }
-
+  $status = INVOICE_SENT;
   $query = "SELECT $select    
   FROM {acecrew_job_invoices} i  
   INNER JOIN {content_type_job} j ON i.job_id = j.field_job_number_value
   INNER JOIN {content_type_client} c ON c.field_client_id_value = j.field_job_client_name_value 
   INNER JOIN {content_type_venue} v ON v.field_venue_id_value = j.field_job_venue_value
-  LEFT JOIN {content_field_cancellation_status} cs ON j.nid = cs.nid";
+  LEFT JOIN {content_field_cancellation_status} cs ON j.nid = cs.nid
+  WHERE j.field_job_status_value = $status";
 
   if (!empty($date_from) && !empty($date_to)) {    
     $date_from = strtotime($date_from . ' 00:00');
     $date_to = strtotime($date_to . ' 23:59');
-    $query .= " WHERE i.created BETWEEN $date_from AND $date_to";
+    $query .= " AND i.created BETWEEN $date_from AND $date_to";
   }
   $query .= " ORDER BY i.created ASC";
 

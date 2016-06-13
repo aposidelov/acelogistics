@@ -273,13 +273,14 @@ function _acecrew_invoice_sent_job_status($invoice_id) {
     $job_nid = db_result(db_query('SELECT j.nid FROM {content_type_job} j 
         INNER JOIN {acecrew_job_invoices} i ON j.field_job_number_value = i.job_id
         WHERE i.acecrew_job_invoice_id = %d', $invoice_id));
-    acecrew_update_job_status($job_nid, INVOICE_SENT);
+    acecrew_update_job_status($job_nid, INVOICE_SENT);    
 }
 
-function acecrew_update_job_status($job_nid, $status) {
+function acecrew_update_job_status($job_nid, $status) {    
     db_query("UPDATE {content_type_job} 
         SET field_job_status_value = %d 
-        WHERE nid = %d", $status, $job_nid);   
+        WHERE nid = %d", $status, $job_nid);  
+    db_query("DELETE FROM {cache_content} WHERE cid LIKE 'content:%s%%'", $job_nid); 
 }
 
 // set relate between job and quote

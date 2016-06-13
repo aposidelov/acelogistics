@@ -801,6 +801,8 @@ function acecrew_email_invoice($invoice_id) {
       ));
       drupal_set_message(t('Invoice email has been sent to !client_name', array('!client_name' => $client_name)));
 
+      _acecrew_invoice_sent_job_status($invoice_id);
+
     /*
     , array(
         array(
@@ -819,8 +821,7 @@ function acecrew_email_invoice($invoice_id) {
     
     //unlink($filepath . $filename);
     /*
-    unlink($filepath . $filename);
-    _acecrew_invoice_sent_job_status($invoice_id);
+    unlink($filepath . $filename);    
     */
     drupal_goto($_SERVER['HTTP_REFERER']);
 }
