@@ -11,7 +11,7 @@ function call_content_default_fields() {
     'field_name' => 'field_add_boundary_charge',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '53',
+      'weight' => '51',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -78,7 +78,7 @@ function call_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Add Boundary Charge',
-      'weight' => '49',
+      'weight' => '51',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -90,7 +90,7 @@ function call_content_default_fields() {
     'field_name' => 'field_additional_charge_ammount',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '56',
+      'weight' => '54',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -157,7 +157,7 @@ function call_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Additional charge amount',
-      'weight' => '52',
+      'weight' => '54',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -169,7 +169,7 @@ function call_content_default_fields() {
     'field_name' => 'field_additional_charge_desc',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '57',
+      'weight' => '55',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -236,7 +236,7 @@ function call_content_default_fields() {
       ),
       'default_value_php' => NULL,
       'label' => 'Additional charge description',
-      'weight' => '53',
+      'weight' => '55',
       'description' => '',
       'type' => 'text_textfield',
       'module' => 'text',
@@ -248,7 +248,7 @@ function call_content_default_fields() {
     'field_name' => 'field_call_contact',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '47',
+      'weight' => '43',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -319,12 +319,92 @@ function call_content_default_fields() {
     ),
   );
 
+  // Exported field: field_call_contact_second
+  $fields['job_session-field_call_contact_second'] = array(
+    'field_name' => 'field_call_contact_second',
+    'type_name' => 'job_session',
+    'display_settings' => array(
+      'weight' => '45',
+      'parent' => '',
+      'label' => array(
+        'format' => 'above',
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '2' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '3' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '100' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '101' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '5' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '0',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => 'return _acecrew_get_jobclient_contacts();',
+    'widget' => array(
+      'default_value' => NULL,
+      'default_value_php' => '$jobId = acecrewmodule::getInstance()->getCurrentJobId();
+		$defaultContact = db_result(db_query("SELECT field_job_client_contact_second_value FROM {content_type_job} WHERE nid=%d", $jobId));
+		return array(
+		  0 => array(\'value\' => $defaultContact) 
+		);',
+      'label' => 'Call Contact Second',
+      'weight' => '45',
+      'description' => '',
+      'type' => 'optionwidgets_select',
+      'module' => 'optionwidgets',
+    ),
+  );
+
   // Exported field: field_call_contract_tbc
   $fields['job_session-field_call_contract_tbc'] = array(
     'field_name' => 'field_call_contract_tbc',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '48',
+      'weight' => '44',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -407,7 +487,7 @@ function call_content_default_fields() {
     'field_name' => 'field_call_crew_tbc',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '58',
+      'weight' => '38',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -490,7 +570,7 @@ function call_content_default_fields() {
     'field_name' => 'field_call_hours_tbc',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '39',
+      'weight' => '40',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -573,7 +653,7 @@ function call_content_default_fields() {
     'field_name' => 'field_call_supplements',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '54',
+      'weight' => '52',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -629,7 +709,7 @@ function call_content_default_fields() {
     'viewdisplay' => 'supp_titles default',
     'widget' => array(
       'label' => 'Supplements',
-      'weight' => '50',
+      'weight' => '52',
       'description' => '',
       'type' => 'nodereference_views_multifield',
       'module' => 'nodereference_views_multifield',
@@ -641,7 +721,7 @@ function call_content_default_fields() {
     'field_name' => 'field_call_time_tbc',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '34',
+      'weight' => '35',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -724,9 +804,10 @@ function call_content_default_fields() {
     'field_name' => 'field_cancellation_status',
     'type_name' => 'job_session',
     'display_settings' => array(
+      'weight' => '31',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -812,7 +893,7 @@ function call_content_default_fields() {
     'field_name' => 'field_job_session_client_rate',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '35',
+      'weight' => '36',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -886,7 +967,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
     'field_name' => 'field_job_session_comment',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '55',
+      'weight' => '53',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -945,7 +1026,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
       ),
       'default_value_php' => NULL,
       'label' => 'Call Comments',
-      'weight' => '51',
+      'weight' => '53',
       'description' => '',
       'type' => 'text_textarea',
       'module' => 'text',
@@ -957,7 +1038,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
     'field_name' => 'field_job_session_crew',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '36',
+      'weight' => '37',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1032,7 +1113,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
     'field_name' => 'field_job_session_date_time',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '33',
+      'weight' => '34',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1113,7 +1194,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
     'field_name' => 'field_job_session_hours',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '38',
+      'weight' => '39',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1188,7 +1269,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
     'field_name' => 'field_job_session_mileage',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '50',
+      'weight' => '48',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1252,7 +1333,7 @@ return array(0=>array(\'value\'=>$c->field_client_rate[0][\'value\']));',
 $mileAge = $acecrewmodule->getMileAge();
 return array( 0 => array(\'value\' => $mileAge));',
       'label' => 'Mileage',
-      'weight' => '46',
+      'weight' => '48',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -1264,7 +1345,7 @@ return array( 0 => array(\'value\' => $mileAge));',
     'field_name' => 'field_job_session_plus_call',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '31',
+      'weight' => '32',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1343,7 +1424,7 @@ return array( 0 => array(\'value\' => $mileAge));',
     'field_name' => 'field_job_session_vat_rate',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '51',
+      'weight' => '49',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1407,7 +1488,7 @@ return array( 0 => array(\'value\' => $mileAge));',
 $vatRate = $acecrewmodule->getVatRate();
 return array( 0 => array(\'value\' => $vatRate));',
       'label' => 'VAT Rate',
-      'weight' => '47',
+      'weight' => '49',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -1419,7 +1500,7 @@ return array( 0 => array(\'value\' => $vatRate));',
     'field_name' => 'field_job_session_venue',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '32',
+      'weight' => '33',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1498,7 +1579,7 @@ return array( 0 => array(\'value\' => $venue_id));',
     'field_name' => 'field_session_boundary_charge',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '52',
+      'weight' => '50',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1562,7 +1643,7 @@ return array( 0 => array(\'value\' => $venue_id));',
 $boundaryCharge = $acecrewmodule->getBoundaryCharge();
 return array( 0 => array(\'value\' => $boundaryCharge));',
       'label' => 'Boundary Charge',
-      'weight' => '48',
+      'weight' => '50',
       'description' => '',
       'type' => 'number',
       'module' => 'number',
@@ -1574,7 +1655,7 @@ return array( 0 => array(\'value\' => $boundaryCharge));',
     'field_name' => 'field_session_callid',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '46',
+      'weight' => '42',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1650,7 +1731,7 @@ return array( 0 => array(\'value\' => $nextJbCallId));',
     'field_name' => 'field_session_job_nid',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '40',
+      'weight' => '41',
       'parent' => '',
       'label' => array(
         'format' => 'hidden',
@@ -1718,7 +1799,7 @@ return array( 0 => array(\'value\' => $currentJobId));',
     'field_name' => 'field_session_num_vehicles',
     'type_name' => 'job_session',
     'display_settings' => array(
-      'weight' => '49',
+      'weight' => '47',
       'parent' => '',
       'label' => array(
         'format' => 'above',
@@ -1784,7 +1865,7 @@ return array( 0 => array(\'value\' => $currentJobId));',
       ),
       'default_value_php' => NULL,
       'label' => 'Number of Vehicles',
-      'weight' => '45',
+      'weight' => '47',
       'description' => '',
       'type' => 'optionwidgets_select',
       'module' => 'optionwidgets',
@@ -1799,6 +1880,7 @@ return array( 0 => array(\'value\' => $currentJobId));',
   t('Boundary Charge');
   t('Call Comments');
   t('Call Contact');
+  t('Call Contact Second');
   t('Call Contract - To be confirmed');
   t('Call ID');
   t('Call Time - To be confirmed');

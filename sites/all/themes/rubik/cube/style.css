@@ -692,7 +692,7 @@ ul.call-listing li.call-listing-item {position: relative; background: #fff url(i
 .call-first-row .call-flag {background: url(images/call-flag.png) no-repeat 0 center;padding: 0px 18px;margin-left:10px;display:inline-block;height:30px;color:#fff; float: right; cursor: pointer}
 .call-first-row .call-time {background: url(images/call-time.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
 .call-first-row .call-crew-count {background: url(images/call-crew.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
-.call-first-row .call-hours {background: url(images/call-hours.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 60px; height: 30px;}
+.call-first-row .call-hours {background: url(images/call-hours.png) no-repeat 0 0; padding-left: 40px; display: inline-block; margin-right: 30px; height: 30px;}
 .call-first-row .call-vehicle {
     font-size: 0; background: url(images/call-vehicle.png) no-repeat 0 0; 
     padding-left: 50px; 

@@ -44,7 +44,7 @@
           <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
             <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
           <?php else : ?>
-            <?php print $item['view'] ?>
+            <?php print substr($item['view'], 0, -14) ?>
           <?php endif; ?>
         </div>
       <?php $count++;

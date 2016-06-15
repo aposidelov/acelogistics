@@ -277,13 +277,30 @@ function template_preprocess_supplement_allocation(&$variables) {
   $variables['call_id'] = $session_node->field_session_callid[0]['value'];
   $datetime = $session_node->field_job_session_date_time[0]['value'];
   $tmp = explode(' ', $datetime);
-  $variables['date_time']      = $field_call_time_tbc ? $tbc_short : substr($tmp[1], 0, 5);
-  $variables['count_crews']    = $field_call_crew_tbc ? $tbc_short : $session_node->field_job_session_crew[0]['value'];
+  
+
+
+  $variables['date_time']      = substr($tmp[1], 0, 5);
+
+  if ($field_call_time_tbc) {
+    $variables['date_time'] .= ' - ' . $tbc_short;
+  }
+  
+  $variables['count_crews']    = $session_node->field_job_session_crew[0]['value'];
+
+  if ($field_call_crew_tbc) {
+    $variables['count_crews'] .= ' - ' . $tbc_short;
+  }
+
   if (is_numeric($variables['count_crews'])) {
     $variables['count_crews'] .= ($variables['count_crews'] < 2) ? '&nbsp;crew' : '&nbsp;crews';
   }
 
-  $variables['count_hours']    = $field_call_hours_tbc ? $tbc_short : $session_node->field_job_session_hours[0]['value'].'&nbsp;hours';
+  $variables['count_hours']    = $session_node->field_job_session_hours[0]['value'].'&nbsp;hours';
+
+  if ($field_call_hours_tbc) {
+    $variables['count_hours'] .= ' - ' . $tbc_short;
+  }
   $hours_quoted = $session_node->field_job_session_hours[0]['value'];
 
   $job = node_load($session_node->field_session_job_nid[0]['value']);

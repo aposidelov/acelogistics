@@ -995,6 +995,8 @@ function acecrew_calendar_popup_sms($callNodeid) {
     $ses_date_time = $session_node->field_job_session_date_time[0]['value'];
     $ses_call_contact = $session_node->field_call_contact[0]['value'];
     $ses_call_contact  = _get_client_contact_for_sms($ses_call_contact, $session_node->field_session_job_nid[0]['value']);
+    $ses_call_contact_second = $session_node->field_call_contact_second[0]['value'];
+    $ses_call_contact_second  = _get_contact_data_by_contact_vid($ses_call_contact_second, $session_node->field_session_job_nid[0]['value']);
 //    $ses_call_contact = $ses_call_contact->field_client_name[0]['value'];
     $node_id = $session_node->nid;
 
@@ -1030,6 +1032,8 @@ function acecrew_calendar_popup_sms($callNodeid) {
 
     $crew_with_supp = acecrew_get_crew_with_supplements($ses_call_id);
 
+    $ses_call_contact_second = !empty($ses_call_contact_second) ? t('2nd Cont: !name !mobile', array('!name' => $ses_call_contact_second['name'], '!mobile' => $ses_call_contact_second['mobile'])) .' <br/>' : '';
+
     $output = <<<EOD
         J:$ses_call_id <br/>
         $ses_call_day $ses_call_time  <br/>
@@ -1037,7 +1041,7 @@ function acecrew_calendar_popup_sms($callNodeid) {
         $client_name <br/>
         @ $venue_name, $venu_address, $venu_post_code <br/>
         $crew_with_supp
-        Cont: {$ses_call_contact[0]} {$ses_call_contact[1]} <br/>
+        Cont: {$ses_call_contact[0]} {$ses_call_contact[1]} <br/>$ses_call_contact_second        
         $ses_call_comment <br/>        
         Please reply J: $ses_call_id OK!<br/>
         <br/>
@@ -1149,12 +1153,13 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
         ctj.field_job_number_value AS job_number,
         ctj.nid AS job_nid,
         js.field_call_contact_value AS call_contact_id,
+        js.field_call_contact_second_value AS call_contact_second_id,
         TIME(js.field_job_session_date_time_value) AS jstime,
         DATE(js.field_job_session_date_time_value) AS jsdate,
         IF( js.field_call_time_tbc_value IS NULL , 0, js.field_call_time_tbc_value ) AS call_time_tbc,
         IF( js.field_call_crew_tbc_value IS NULL , 0, js.field_call_crew_tbc_value ) AS call_crew_tbc,
         IF( js.field_call_hours_tbc_value IS NULL , 0, js.field_call_hours_tbc_value ) AS call_hours_tbc,
-        IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc,
+        IF( js.field_call_contract_tbc_value IS NULL , 0, js.field_call_contract_tbc_value ) AS call_contract_tbc,        
         jsn.status AS call_status,
         IF(csc.field_cancellation_status_value IS NULL , '', csc.field_cancellation_status_value) AS call_cancellation_status,
         IF(csj.field_cancellation_status_value IS NULL , '', csj.field_cancellation_status_value) AS job_cancellation_status        
@@ -1193,6 +1198,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $job_status          = $row->job_status;
             $job_number          = $row->job_number;
             $call_contact_id     = $row->call_contact_id;
+            $call_contact_second_id     = $row->call_contact_second_id;
             $client_contact_id   = $row->client_contact_id;
             $client_nid          = $row->client_nid;
             $client_name         = $row->client_name;
@@ -1315,10 +1321,11 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
               'nodeid' => $call_nid,                    
               'client_contact_id' => $client_contact_id,
               'call_contact_id' => $call_contact_id,
+              'call_contact_second_id' => $call_contact_second_id,
               'call_time_tbc' => $row->call_time_tbc,
               'call_crew_tbc' => $row->call_crew_tbc,
               'call_hours_tbc' => $row->call_hours_tbc,
-              'call_contract_tbc' => $row->call_contract_tbc,
+              'call_contract_tbc' => $row->call_contract_tbc,                            
               'is_call_cancelled' => $row->call_cancellation_status != CANCELLATION_NA,
               'is_job_cancelled' => $row->job_cancellation_status != CANCELLATION_NA,
               'is_notice_cancelled' => $row->call_cancellation_status != CANCELLATION_NA || $row->job_cancellation_status != CANCELLATION_NA,
@@ -1329,7 +1336,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
               $row->call_time_tbc || 
               $row->call_crew_tbc || 
               $row->call_hours_tbc || 
-              $row->call_contract_tbc ||
+              $row->call_contract_tbc ||              
               $call_item_data['is_job_cancelled'] ||
               $call_item_data['is_call_cancelled']) {
                 $tbc_scheduler_date[$date_item]['scheduler'][] = $call_item_data;
@@ -2348,8 +2355,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
     $index = 0;
 
     // 'to be confirmed' short name
-    $tbc_short = 'TBC';
-    //watchdog('sch', '<pre>'.print_r($scheduler, TRUE).'</pre>');
+    $tbc_short = 'TBC';    
     $jobs_notify = array();
     foreach ($scheduler as $event) {        
         $client_id = acecrew_get_client_id_by_job_id($event['job_nid']);
@@ -2359,17 +2365,30 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $call_contact = $contact = _get_client_contact_for_sms($event['call_contact_id'], $event['job_nid']);
         $client_contact = _get_client_contact_for_sms($event['client_contact_id'], $event['job_nid']);
 
+        $call_contact_second = _get_contact_data_by_contact_vid($event['call_contact_second_id'], $event['job_nid']);        
+
         $is_call_cancelled = $event['is_call_cancelled'] ? 'call-status-canceled' : '';
         $is_job_cancelled = $event['is_job_cancelled'] ? 'job-notify-canceled' : '';
         $jobs_notify[$event['job_nid']] = $is_job_cancelled;        
         $venue_name = $event['venue'];
 
         $call_status_text = $event['job_status_label'];
-        $call_time        = !$event['call_time_tbc'] ? $event['time'] : $tbc_short;
-        $call_crew_amount = !$event['call_crew_tbc'] ? $event['ses_count_crews'] . ' crew' : $tbc_short;
-        $call_hours       = !$event['call_hours_tbc'] ? $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '') : $tbc_short;
-        $call_contact     = !$event['call_contract_tbc'] ? $call_contact : array($tbc_short);
+        
+        $call_time        = $event['time'];
+        $call_crew_amount = $event['ses_count_crews'] . ' crew';
+        $call_hours       = $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '');
 
+        acecrew_format_tbc(
+          $call_time, 
+          $event['call_time_tbc'],
+          $call_crew_amount,
+          $event['call_crew_tbc'],
+          $call_hours,
+          $event['call_hours_tbc'],
+          $call_contact,
+          $event['call_contract_tbc']          
+        );        
+        
         $crew_placeholder = '';
 
         //Here we check for assigned crew members number and required crew members number for this call
@@ -2424,6 +2443,11 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
               
         if (intval($event['flag']) > 0) $data .= '<div class="call-flag">' .  $event['flag']['count'] . '</div>';
 
+        $contact_second_output = '';
+        if (!empty($call_contact_second)) {
+          $contact_second_output = '<span class="call-contact"><strong>Call Contact(2):</strong> ' .  ($call_contact_second['name']) . '</span>';
+        }
+
         $data .= '</div>
                 <div class="flag-msg">' . $event['flag']['msg'] . '</div>
                 <div class="call-second-row">
@@ -2431,6 +2455,8 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
                         <strong>Call Status:</strong> ' . $call_status_text . '
                     </span>
                     <span class="call-contact"><strong>Call Contact:</strong> ' .  ($call_contact[0]) . '</span>
+                    ' . $contact_second_output . '
+                    
                     <span class="call-client"><strong>Client: </strong><span class="client '.$red_class.'"> ' .  l($event['client'], 'node/'.$event['client_nid'], array('attributes' => array('target' => '_blank'))) . '</span></span>                    
                     <span class="call-venue"><strong>Venue:</strong> ' .  l($venue_name, 'node/'.$event['venue_nid'], array('attributes' => array('target' => '_blank'))) . '</span>
                     <span class="call-venue-address"><strong>Venue Address:</strong> ' .  $event['venue_address'] . ' (' . $event['venue_postcode'] .')</span>                      
@@ -2661,11 +2687,10 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
 /*
  * added by Anton
  */
-
 function acecrew_calendar_set_supplements_status($args) {
     $arg_arr = explode(":", $args);
     $jsid = $arg_arr[0];
-    $uid_status_arr = array();
+    $uid_status_arr = array();    
     for ($i = 1; $i < count($arg_arr);) {
         $tmp = explode("-", $arg_arr[$i]);
         $uid = $tmp[2];
@@ -2673,13 +2698,11 @@ function acecrew_calendar_set_supplements_status($args) {
         $supplements = $arg_arr[$i];
         $i++;
         if ($supplements != 'delete') {
-          db_query('UPDATE {crew_call} SET supplements = %d WHERE uid = %d', $supplements, $uid);
-        } else {          
+          db_query('UPDATE {crew_call} SET supplements = "%s" WHERE uid = %d AND jsid = %d', $supplements, $uid, $jsid);
+        } else {
           db_query('DELETE FROM {crew_call} WHERE uid = %d AND jsid = %d', $uid, $jsid);
           db_query('DELETE FROM {crew_js_supplement} WHERE uid = %d AND jsid = %d', $uid, $jsid);
-          watchdog('del', '<pre>'.print_r($uid.','.$jsid, TRUE).'</pre>');
         }
-        
     }
 }
 
@@ -3130,4 +3153,46 @@ function getVAT() {
 
 function acecrew_is_valid_date_format($date) {  
   return preg_match("/\d{4}\-\d{2}-\d{2}/", $date);
+}
+
+function acecrew_format_tbc(  
+    &$call_time, 
+    $call_time_tbc,
+    &$call_crew_amount,
+    $call_crew_tbc,
+    &$call_hours,
+    $call_hours_tbc,
+    &$call_contact,
+    $call_contract_tbc        
+  ) {
+  $tbc_short = 'TBC';
+
+  if ($call_time_tbc) {
+    if (empty($call_time)) {
+      $call_time = $tbc_short;
+    } else {
+      $call_time .= ' - ' . $tbc_short;
+    }
+  }
+  if ($call_crew_tbc) {
+    if (empty($call_crew_amount)) {
+      $call_crew_amount = $tbc_short;
+    } else {
+      $call_crew_amount .= ' - ' . $tbc_short;
+    }
+  }
+  if ($call_hours_tbc) {
+    if (empty($call_hours)) {
+      $call_hours = $tbc_short;
+    } else {
+      $call_hours .= ' - ' . $tbc_short;
+    }
+  }
+  if ($call_contract_tbc) {
+    if (isset($call_contact[0])) {
+      $call_contact[0] = $call_contact[0] . ' - ' . $tbc_short;
+    } else {
+      $call_contact[0] = $tbc_short;
+    }
+  }
 }

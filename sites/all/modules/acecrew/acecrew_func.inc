@@ -933,6 +933,17 @@ function _get_client_contact_for_sms($id, $job_id) {
 
 }
 
+function _get_contact_data_by_contact_vid($contact_vid, $job_nid = NULL) {    
+    if ($contact_vid == 0 && is_numeric($contact_vid) && !is_null($job_nid)) {
+        return db_fetch_array(db_query('SELECT ctc.field_client_company_telephone_value AS mobile, ctc.field_client_company_contact_value AS name FROM {content_type_job_session} js
+                            INNER JOIN {content_type_job} ctj ON ctj.nid = js.field_session_job_nid_value
+        INNER JOIN {content_type_client} ctc ON ctc.field_client_id_value = ctj.field_job_client_name_value
+        WHERE ctj.nid = %d', $job_nid));
+    }
+    
+    return db_fetch_array(db_query('SELECT field_client_contact_name_value AS name, field_client_contact_mobile_value AS mobile FROM {content_type_client_contact} WHERE vid = %d', $contact_vid));
+}
+
 function _get_client_contact_by_id($job) {
     $client_contact = NULL;
 

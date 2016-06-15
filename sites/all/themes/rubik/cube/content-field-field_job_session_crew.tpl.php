@@ -41,7 +41,7 @@
               <?php print t($label) ?>:&nbsp;</div>
           <?php } ?>
           <?php if (!empty($node->field_call_crew_tbc[0]['value']) && $node->field_call_crew_tbc[0]['value']) : ?>
-            <span class="tbc">TBC</span>
+            <span class="tbc"><?php print $item['view'] ?> - TBC</span>
           <?php else : ?>
             <?php print $item['view'] ?>
           <?php endif; ?>
