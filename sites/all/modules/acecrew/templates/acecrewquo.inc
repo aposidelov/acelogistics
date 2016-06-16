@@ -412,8 +412,6 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
 
   echo '</table>';
 
-  echo '<div style="height:60px;"></div>';
-
   $content = ob_get_contents(); ob_end_clean();
   return $content;
 }
