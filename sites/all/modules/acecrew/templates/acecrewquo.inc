@@ -183,7 +183,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     //  $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
     //}
 
-    echo '<table border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin-left:5%; margin-bottom: 160px;">';
+    echo '<table width="90%" border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin-left:5%; margin-bottom: 160px;">';
     echo '<tr><td colspan=9>'.$job_cancelation_status.'</td><td>&nbsp;</td><td>Unit Price</td><td>Total</td></tr>';
     $call_index = 1;
     $sum = 0;
@@ -408,7 +408,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
   echo '<tr><td colspan="11" align="right">+ VAT</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat', $call->cancellation_status, $job->cancellation_status)) . '</td></tr>';
   echo '<tr><td colspan="11" align="right">TOTAL</td><td>&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat', $call->cancellation_status, $job->cancellation_status)) . '</td></tr>';
 
-  echo '<tr border="0"><td colspan="11" align="right"><span style="color:#f00;font-size:9px;">FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.</span>  </td></tr>';
+  echo '<tr border="0"><td colspan="12" align="right"><span style="color:#f00;font-size:9px;">FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.</span>  </td></tr>';
 
   echo '</table>';
 
