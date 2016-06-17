@@ -257,7 +257,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
               <td colspan=4 valign=top>' . $call->field_job_session_crew_value . '</td>
               <td valign=top width="5px">&#xd7;</td>
               <td valign=top width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($default_boundary_charge, 'unit_price', $call->cancellation_status, $job->cancellation_status)) . '</td>
-              <td valign=top  width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
+              <td valign=top width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($boundary_charge, 'total', $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
         }
         if ($call->field_session_num_vehicles_value >= 1) {
@@ -356,7 +356,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
                 <td colspan=8 valign=top>' . $discount_desc . '</td>
                 <td valign=top width="5px">&nbsp;</td>
                 <td valign=top width="35px">&nbsp;</td>
-                <td valign=top  width="35px">- &pound;' . sprintf("%01.2f", acecrew_cancellation_price($discount, 'discount', $call->cancellation_status, $job->cancellation_status)) . '</td>
+                <td valign=top width="35px">- &pound;' . sprintf("%01.2f", acecrew_cancellation_price($discount, 'discount', $call->cancellation_status, $job->cancellation_status)) . '</td>
             </tr>';
     }
 
