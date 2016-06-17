@@ -342,8 +342,8 @@ class PDFLib_Adapter implements Canvas {
    * @param string $where
    */
   function add_object($object, $where = 'all') {
-
-    if ( mb_strpos($where, "next") !== false ) {
+    
+    if ( mb_strpos($where, "next") !== false ) {      
       $this->_objs[$object]["start_page"]++;
       $where = str_replace("next", "", $where);
       if ( $where == "" )

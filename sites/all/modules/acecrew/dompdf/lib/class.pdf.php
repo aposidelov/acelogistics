@@ -4150,6 +4150,7 @@ class  Cpdf {
    * after an object has been created, it wil only show if it has been added, using this function.
    */
   function  addObject($id, $options =  'add') {
+    //watchdog('th', '<pre>'.print_r($this, TRUE).'</pre>');
 
     // add the specified object to the page
     if  (isset($this->looseObjects[$id]) &&  $this->currentContents !=  $id) {

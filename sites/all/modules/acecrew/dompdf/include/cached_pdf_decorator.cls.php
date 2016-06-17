@@ -75,7 +75,9 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas {
   
   function close_object() { $this->_pdf->close_object(); }
 
-  function add_object($object, $where = 'all') { $this->_pdf->add_object($object, $where); }
+  function add_object($object, $where = 'all') {     
+    $this->_pdf->add_object($object, $where); 
+  }
 
   function serialize_object($id) { $this->_pdf->serialize_object($id); }
 
