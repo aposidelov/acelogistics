@@ -801,13 +801,13 @@ function _acecrew_invoice_get_html($invoice_id, $type = 'print') {
     $html .= '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />';
     $html .= '<html><head>';
     $html .= '<style>table {page-break-before:auto;font-size:8px;} td {height: 10px;}</style>';
-    $html .= '</head><body>';
-
+    $html .= '</head>';
+    $html .= '<body style="">';
     $html .= theme_acecrew_invoice_body($job, $client, $client_contact, $venue, $callings);
-
+    $html .= '</body>';
     // The eurosign is not supported as applicable character, so replace it with a ascii code
 
-    $html .= '</body></html>';
+    //$html .= '</html>';
     return $html;
 }
 

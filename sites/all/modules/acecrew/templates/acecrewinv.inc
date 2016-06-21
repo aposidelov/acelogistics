@@ -37,68 +37,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $footer_content_s4 = isset($footer_txt[3]) ? $footer_txt[3] : "";
     $footer_content_s5 = isset($footer_txt[4]) ? $footer_txt[4] : "";
     
-    $credit_image = drupal_get_path('module', 'acecrew') . '/theme/invoice-footer-credit.png';
-    
-    if ($type == 'pdf') {
-      $footer = '<script type="text/php">
-                if (isset($pdf)) {
-                  $footer = $pdf->open_object();
-                  
-                  $w = $pdf->get_width();
-                  $h = $pdf->get_height();
-                  
-                  $font = Font_Metrics::get_font("arial");
-                  
-                  $r=128; $g=128; $b=128;
-                  
-                  $a_line_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
-                    "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
-                    "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
-                  
-                  $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
-                    "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
-                    "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
-                    
-                  $pdf->line(40, $h-120, $w-40, $h-120, $a_line_color, 1, array()); 
-                    
-                  $footer_content_font_size = 8;
-                  $footer_content_font_space = 1;
-                  
-                  $footer_content_s1 = \'' . $footer_content_s1 . '\';
-                  $footer_content_s2 = \'' . $footer_content_s2 . '\';
-                  $footer_content_s3 = \'' . $footer_content_s3 . '\';
-                  $footer_content_s4 = \'' . $footer_content_s4 . '\';
-                  $footer_content_s5 = \'' . $footer_content_s5 . '\';
-                  
-                  $offset = 120;
-
-                  $footer_content_s1_len  = $pdf->get_text_width($footer_content_s1, $font, $footer_content_font_size);
-                  $footer_content_s2_len  = $pdf->get_text_width($footer_content_s2, $font, $footer_content_font_size);
-                  $footer_content_s3_len  = $pdf->get_text_width($footer_content_s3, $font, $footer_content_font_size);
-                  $footer_content_s4_len  = $pdf->get_text_width($footer_content_s4, $font, $footer_content_font_size);
-                  $footer_content_s5_len  = $pdf->get_text_width($footer_content_s5, $font, $footer_content_font_size);
-
-                  $pdf->text(($w - $footer_content_s1_len) / 2, $h - $offset + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s2_len) / 2, $h - $offset + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s3_len) / 2, $h - $offset + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s4_len) / 2, $h - $offset + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
-                  $pdf->text(($w - $footer_content_s5_len) / 2, $h - $offset + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
-                  
-                  $pdf->image("'.$credit_image.'", "png", (($w - $footer_content_s5_len) / 2) + 20, $h - 100 + $footer_content_font_space + $footer_content_font_size*4, 162, 60);
-
-                  $pdf->page_text($w-57, $h-39, "{PAGE_NUM}/{PAGE_COUNT}", $font, 10, $a_text_color);
-                                                                                        
-                  $pdf->close_object();
-                
-                  $pdf->add_object($footer, "all");
-                }
-                </script>';
-    echo $footer;
-    $footer = '';
-    }
-    else {
-    $footer = $footer_content;
-    }    
+    $credit_image = drupal_get_path('module', 'acecrew') . '/theme/invoice-footer-credit.gif';
+    //echo "<body>";
+     
 
     $image = drupal_get_path('module', 'acecrew') . '/theme/acecrewquo.png';
   	$comp_address_1 = $client->field_client_company_address_value;
@@ -110,7 +51,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $venue_postcode = '';
     $venue_postcode = !empty($venue->field_venue_post_code_value) ? ' ('.$venue->field_venue_post_code_value.')' : '';
  
-    echo '<div style="margin-bottom: 100px;">';
+    echo '<div style="">'; //margin-bottom: 115px;
 
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
@@ -132,7 +73,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         <td>' . $client->field_client_name_value . '</td>
         <td style="font-weight:bold;"> ' . t('Purchase Order') . ':</td>
         <td> ' . $job->field_job_po_number_value . '</td>
-        <td style="font-weight:bold;"> ' . t('Job Number') . ':</td>
+        <td style="font-weight:bold;"> ' . t('Ace Job Reference') . ':</td>
         <td> ' . $job->job_id . ' </td>
     </tr>
     <tr> 
@@ -216,7 +157,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       }            
 
       // quoted hours
-      $quoted_hours = $call->field_job_session_hours_value;
+      $quoted_hours = !empty($call->field_job_session_hours_value) ? $call->field_job_session_hours_value : '&nbsp;';
 
       $quoted_amount = _get_call_client_charge_amount($job, $client, $call);
 
@@ -414,28 +355,91 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         $call_index++;
     }
 
-    echo '<table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;">';
+    
+    echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;">';
 
-    echo '<tr><td colspan="12" align="left">NOTES:&nbsp;'.$job->field_invoice_notes_value.'</tr>';
+    echo '<tr><td colspan="12" align="left">NOTES:&nbsp;'.$job->field_invoice_notes_value.'</tr></table></div>';
 
-    if ($discount >= 1) {
-        echo '
-            <tr>
+    if ($discount >= 1) {        
+        echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr>
                 <td colspan=1 valign=top>Discount: </td>
                 <td colspan=10 valign=top>' . $discount_desc . '</td>
                 <td valign=top width="35px">- &pound;' . sprintf("%01.2f", acecrew_cancellation_price($discount, 'discount', $call->cancellation_status, $job->cancellation_status)) . '</td>
-            </tr>';
+            </tr></tr></table></div>';
     }    
     $sum -= $discount;
 
     $vat = round(getVAT() * $sum / 100, 2);    
 
-    echo '<tr><td colspan="11" align="right">Total (Excluding VAT)</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, 'excluding_vat')) . '</td></tr>';
-    echo '<tr><td colspan="11" align="right">+ VAT</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat')) . '</td></tr>';
-    echo '<tr><td colspan="11" align="right">TOTAL</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat')) . '</td></tr>';
-    echo '</table>';  
+    echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">Total (Excluding VAT)</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, 'excluding_vat')) . '</td></tr></table></div>';
+    echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">+ VAT</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat')) . '</td></tr></table></div>';
+    echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">TOTAL</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat')) . '</td></tr></table></div>';
+    
+    echo '</div>';
 
-    echo '</div>';    
+    echo '<div style="width: 20px; height: 120px;"></div>';
+
+    if ($type == 'pdf') {
+      $footer = '<script type="text/php">
+      if (isset($pdf)) {
+        $footer = $pdf->open_object();
+        
+        $w = $pdf->get_width();
+        $h = $pdf->get_height();
+        
+        $font = Font_Metrics::get_font("arial");
+        
+        $r=128; $g=128; $b=128;
+        
+        $a_line_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
+          "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
+          "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
+        
+        $a_text_color = array(0 => $r / 0xff, 1 => $g / 0xff, 2 => $b / 0xff,
+          "r"=>$r / 0xff, "g"=>$g / 0xff, "b"=>$b / 0xff,
+          "hex" => sprintf("#%02X%02X%02X", $r, $g, $b));
+          
+        $offset = 125;
+
+        $pdf->line(40, $h-$offset, $w-40, $h-$offset, $a_line_color, 1, array()); 
+          
+        $footer_content_font_size = 8;
+        $footer_content_font_space = 1;
+        
+        $footer_content_s1 = \'' . $footer_content_s1 . '\';
+        $footer_content_s2 = \'' . $footer_content_s2 . '\';
+        $footer_content_s3 = \'' . $footer_content_s3 . '\';
+        $footer_content_s4 = \'' . $footer_content_s4 . '\';
+        $footer_content_s5 = \'' . $footer_content_s5 . '\';                                    
+
+        $footer_content_s1_len  = $pdf->get_text_width($footer_content_s1, $font, $footer_content_font_size);
+        $footer_content_s2_len  = $pdf->get_text_width($footer_content_s2, $font, $footer_content_font_size);
+        $footer_content_s3_len  = $pdf->get_text_width($footer_content_s3, $font, $footer_content_font_size);
+        $footer_content_s4_len  = $pdf->get_text_width($footer_content_s4, $font, $footer_content_font_size);
+        $footer_content_s5_len  = $pdf->get_text_width($footer_content_s5, $font, $footer_content_font_size);
+
+        $pdf->text(($w - $footer_content_s1_len) / 2, $h - $offset + $footer_content_font_space, $footer_content_s1, $font, $footer_content_font_size, $a_text_color);
+        $pdf->text(($w - $footer_content_s2_len) / 2, $h - $offset + $footer_content_font_space*2 + $footer_content_font_size, $footer_content_s2, $font, $footer_content_font_size, $a_text_color);
+        $pdf->text(($w - $footer_content_s3_len) / 2, $h - $offset + $footer_content_font_space*3 + $footer_content_font_size*2, $footer_content_s3, $font, $footer_content_font_size, $a_text_color);
+        $pdf->text(($w - $footer_content_s4_len) / 2, $h - $offset + $footer_content_font_space*4 + $footer_content_font_size*3, $footer_content_s4, $font, $footer_content_font_size, $a_text_color);
+        $pdf->text(($w - $footer_content_s5_len) / 2, $h - $offset + $footer_content_font_space*5 + $footer_content_font_size*4, $footer_content_s5, $font, $footer_content_font_size, $a_text_color);
+        
+        $pdf->image("'.$credit_image.'", "gif", (($w - $footer_content_s5_len) / 2) + 20, $h - $offset + 20 + $footer_content_font_space + $footer_content_font_size*4, 162, 64);
+
+        $pdf->page_text($w-27, $h-27, "{PAGE_NUM}/{PAGE_COUNT}", $font, 10, $a_text_color);
+                                                                              
+        $pdf->close_object();
+      
+        $pdf->add_object($footer, "all");
+      }
+      </script>';
+    echo $footer;
+    $footer = '';
+    }
+    else {
+    $footer = $footer_content;
+    }   
+    //echo '</body>';  
 
     $content = ob_get_contents(); ob_end_clean();
     return $content;
