@@ -79,7 +79,7 @@ function _acecrew_proinv_get_template_output($proinv, $type = NULL) {
         new PHPRtfLite_Border_Format(0.1, '#8c8c8c')  // bottom border: 1pt, blue color
     );
 
-    $qi_table->setBorderForCellRange($border,1,1,2,4);
+    $qi_table->setBorderForCellRange($border,1,1,3,4);
     for($i = 1; $i <=3; $i++) {
         for($j = 1; $j <= 4; $j++) {
             $cell = $qi_table->getCell($i, $j);

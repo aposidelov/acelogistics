@@ -75,7 +75,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         new PHPRtfLite_Border_Format(0.1, '#8c8c8c')  // bottom border: 1pt, blue color
     );
 
-    $qi_table->setBorderForCellRange($border,1,1,3,4);
+    $qi_table->setBorderForCellRange($border,1,1,3,6);
     for($i = 1; $i <=3; $i++) {
         for($j = 1; $j <= 6; $j++) {
             $cell = $qi_table->getCell($i, $j);
@@ -96,7 +96,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $qi_table->writeToCell(1, 2, $client->field_client_name_value, $small_font);
     $qi_table->writeToCell(1, 3, 'Purchase Order:', $bold);
     $qi_table->writeToCell(1, 4, $job->field_job_po_number_value, $small_font);
-    $qi_table->writeToCell(1, 5, 'Job Number:', $bold);
+    $qi_table->writeToCell(1, 5, 'Ace Job Reference:', $bold);
     $qi_table->writeToCell(1, 6, $job->job_id, $small_font);
 
     $qi_table->mergeCellRange(2,2,2,6);
