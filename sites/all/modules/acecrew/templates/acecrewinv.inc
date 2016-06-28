@@ -50,9 +50,34 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $venue_postcode = '';
     $venue_postcode = !empty($venue->field_venue_post_code_value) ? ' ('.$venue->field_venue_post_code_value.')' : '';
- 
-    echo '<div style="">'; //margin-bottom: 115px;
 
+    $comp_address = nl2br($client->field_client_company_address_value);
+
+    echo '<table class="acecrew_top_tbl" border=0 width=90% style="margin:0 auto;border-collapse:collapse;margin-top:30px;"><tr>';
+
+    echo '<td>';
+      echo '<table  width="200px" border=1 cellspacing=-1 cellpadding=5 align="left" style="margin-top:90px;border:0px solid;font-size:11px;">
+        <tr><td>Invoice To:</td></tr>';
+      echo '<tr><td><strong>'.$client->field_client_name_value.'</strong><br/>
+            '.$comp_address.'
+            <br/>'.$comp_address_2.'</td></tr>
+            </table>';
+    echo '</td>';
+
+    echo '<td align="right" width="170px" style="">';
+      echo '<img src=' . $image . ' height=220 alt=Acecrew style="text-align:right;" />';
+      echo '<table style="width:170px;margin-top:20px;" border=1 cellspacing=-1 cellpadding=5 align="right" style="border:0px solid;">
+        <tr><td width="50%">TAX DATE</td><td width="50%">Invoice NO.</td></tr>';
+      echo '<tr><td>'.date("d/m/Y", $job->created).'</td><td>'._get_invoice_number($job->job_id).'</td></tr></table>';
+
+      echo '<table style="width:170px;margin-top:20px;" border=1 cellspacing=-1 cellpadding=5 align="right" style="border:0px solid;">
+        <tr><td width="50%">TERMS</td><td width="50%">ACE JOB NO.</td></tr>';
+      echo '<tr><td>30 days</td><td>'.$job->job_id.'</td></tr></table>';
+    echo '</td>';
+
+    echo '</tr></table>';
+
+    /*
     echo '
     <table class="acecrew_top_tbl" width=90% style="margin:0 auto;border:0px solid;border-collapse:collapse;">
     <tr>
@@ -98,7 +123,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         <td width=15% style="font-weight:bold;">' . t('Postcode') . ': </td><td width=80% style="border-bottom:1px solid black;padding-left:10px;">' . $venue->field_venue_post_code_value . '</td>
     </tr>
     </table><br/><br/>';
-
+    */
     $vat = NULL;
     $multiple_vat_values = FALSE;
     if (isset($invoice->invoice_items)) {
@@ -113,9 +138,9 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
     }
     
-    $job_cancelation_status = '';   
+    $job_cancelation_status = 'Description';   
 
-    echo '<table width=100% border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin: 0 30px;">';
+    echo '<table width=100% border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin: 0 30px;margin-top:40px;">';
     echo '<tr><td style="vertical-align:middle;" colspan=9>'.$job_cancelation_status.'</td><td width="5px">&nbsp;</td><td width="35px">Unit Price</td><td width="35px">Total</td></tr></table>';
 
     $call_index = 1;
@@ -356,9 +381,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     }
 
     
-    echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;">';
-
-    echo '<tr><td colspan="12" align="left">NOTES:&nbsp;'.$job->field_invoice_notes_value.'</tr></table></div>';
+    //echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="12" align="left">NOTES:&nbsp;'.$job->field_invoice_notes_value.'</tr></table></div>';
 
     if ($discount >= 1) {        
         echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr>
@@ -374,11 +397,26 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">Total (Excluding VAT)</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum, 'excluding_vat')) . '</td></tr></table></div>';
     echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">+ VAT</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($vat, 'vat')) . '</td></tr></table></div>';
     echo '<div style="page-break-inside: avoid;"><table width=100% border=1 cellspacing=0 cellpadding=5 style="page-break-inside: avoid; border:0px solid;border-collapse:collapse;margin: 0 30px;"><tr><td colspan="11" align="right">TOTAL</td><td width="35px">&pound;' . sprintf("%01.2f", acecrew_cancellation_price($sum + $vat, 'including_vat')) . '</td></tr></table></div>';
-    
-    echo '</div>';
 
+    $notes_tr = empty($job->field_invoice_notes_value) ? '' : '<tr><td colspan="12" align="left"><span style="color:#f00;">'.$job->field_invoice_notes_value.'</span></td></tr>';
+
+    echo '<table width="370px" border=1 cellspacing=-1 cellpadding=5 align="left" style="margin-top:5px;margin-left:30px;border:0px solid;font-size:11px;">
+        '.$notes_tr.'
+        <tr><td colspan="6" align="center" valign=middle><img src=' . $credit_image . ' height=220 alt=Acecrew style="text-align:center;vertical-align: middle;" /></td><td colspan="6">BACS details:<br/>
+Account Name: Ace Crew Ltd<br/>
+Account Number: 30724459<br/>
+Sort Code: 20-96-55<br/>
+IBAN: GB18BARC20965530724459<br/>
+SWIFT: BARCGB22</td></tr>
+    <tr><td colspan="6">VAT Reg No: 918965374<br/>
+Company No: 06128298</td><td colspan="6">Ace Crew Ltd<br/>
+Unit 6 Princess Court, Horace Road,<br/> Kingston Upon Thames, KT1 2SL</td></tr>
+      </table>';
+
+
+    /*
     echo '<div style="width: 20px; height: 120px;"></div>';
-
+     
     if ($type == 'pdf') {
       $footer = '<script type="text/php">
       if (isset($pdf)) {
@@ -434,12 +472,12 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
       }
       </script>';
     echo $footer;
-    $footer = '';
+      $footer = '';
     }
     else {
-    $footer = $footer_content;
-    }   
-    //echo '</body>';  
+      $footer = $footer_content;
+    } 
+    */     
 
     $content = ob_get_contents(); ob_end_clean();
     return $content;

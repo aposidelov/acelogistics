@@ -1428,7 +1428,7 @@ function _acecrew_proinv_rtf_get_html($proinv_id) {
 , `drupal_acecrew_job_pro_inv` ajpi         
         WHERE ajpi.job_id = ctj.field_job_number_value AND ajpi.acecrew_job_pro_inv_id = '%s'";
     $job = db_fetch_object(db_query($query, $proinv_id));  
-    watchdog('jjj', '<pre>'.print_r($job, TRUE).'</pre>'); 
+    //watchdog('jjj', '<pre>'.print_r($job, TRUE).'</pre>'); 
 
     $client = _get_client_by_job($job);
     $client_contact = _get_client_contact_by_id($job);
