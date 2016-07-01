@@ -16,26 +16,117 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $rtf = new PHPRtfLite();
     //Set page margins
-    $rtf->setMargins(1, 0.2, 1, 0);
+    $rtf->setMargins(1, 0.6, 1, 0);
 
     $section = $rtf->addSection();
-
-    //Set top table
-    $table = $section->addTable();
-    $border = new PHPRtfLite_Border(
+    
+    $border_header = new PHPRtfLite_Border(
         $rtf,                                       // PHPRtfLite instance
         new PHPRtfLite_Border_Format(1, '#fff'), // left border: 2pt, green color
         new PHPRtfLite_Border_Format(1, '#fff'), // top border: 1pt, yellow color
         new PHPRtfLite_Border_Format(1, '#fff'), // right border: 2pt, red color
         new PHPRtfLite_Border_Format(1, '#000')  // bottom border: 1pt, blue color
     );
+    //Style quote table
+    $border = new PHPRtfLite_Border(
+        $rtf,                                       // PHPRtfLite instance
+        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // left border: 2pt, green color
+        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // top border: 1pt, yellow color
+        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // right border: 2pt, red color
+        new PHPRtfLite_Border_Format(0.1, '#8c8c8c')  // bottom border: 1pt, blue color
+    );
+    //Style quote table
+    $border_table = new PHPRtfLite_Border(
+        $rtf,                                       // PHPRtfLite instance
+        new PHPRtfLite_Border_Format(0.5, '#000'), // left border: 2pt, green color
+        new PHPRtfLite_Border_Format(0.5, '#000'), // top border: 1pt, yellow color
+        new PHPRtfLite_Border_Format(0.5, '#000'), // right border: 2pt, red color
+        new PHPRtfLite_Border_Format(0.5, '#000')  // bottom border: 1pt, blue color
+    );
 
     $bold = new PHPRtfLite_Font(10);
     $bold->setBold();
     $small_font = new PHPRtfLite_Font(10);
 
+    //Set top table
+    $table = $section->addTable();
+    //Add 3 row
+    $table->addRows(8, 0.5);
+    $table->addColumnsList(array(6,4.85,4,4));
+    $table->mergeCellRange(2,1,5,1);
+    $font_normal = new PHPRtfLite_Font(12, 'arial', '#000');
+    $table->writeToCell(1,1, 'Invoice To:', $font_normal); 
+    $table->getCell(1,1)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $font = new PHPRtfLite_Font(12, 'arial', '#000');
+    $font->setBold();
+    $table->writeToCell(2,1, $client->field_client_name_value, $font);
+    $table->getCell(2,1)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $font = new PHPRtfLite_Font(12, 'arial', '#000');
+    $table->writeToCell(2,1, '<br>'.$client->field_client_company_address_value, $font);
+    $table->writeToCell(2,1, '<br>'.$client->field_client_company_postcode_value, $font);
+    $table->setBorderForCellRange($border_table,1,1);
+    $table->setBorderForCellRange($border_table,2,1); 
+
+    // clean empty cells
+    $table->writeToCell(1,2, '');
+    $table->writeToCell(1,3, '');
+    $table->writeToCell(2,2, '');
+    $table->writeToCell(3,1, '');
+    $table->writeToCell(3,2, '');
+    $table->writeToCell(3,3, '');
+    $table->writeToCell(3,4, '');
+    $table->writeToCell(4,1, '');
+    $table->writeToCell(4,2, '');
+    $table->writeToCell(5,1, '');
+    $table->writeToCell(5,2, '');
+    $table->writeToCell(6,1, '');
+    $table->writeToCell(6,2, '');
+    $table->writeToCell(6,3, '');
+    $table->writeToCell(6,4, '');
+    $table->writeToCell(7,1, '');
+    $table->writeToCell(7,2, '');
+    $table->writeToCell(8,1, '');
+    $table->writeToCell(8,2, '');
+
+    // image cell
+    $table->mergeCellRange(1,3,2,4);    
+    $cell = $table->getCell(2,3);
+    $cell->setCellPaddings(3,0,0,0);
+    $image = $cell->addImage($logo);
+    $image->setWidth(5);
+    $image->setHeight(3.5);
+    //
+    $table->writeToCell(4,3, 'TAX DATE', $font);
+    $table->getCell(4,3)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,4,3);
+    $table->writeToCell(4,4, 'Invoice NO.', $font);
+    $table->getCell(4,4)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,4,4);
+    $table->writeToCell(5,3, date("d/m/Y", $job->created), $font);
+    $table->getCell(5,3)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,5,3);
+    $table->writeToCell(5,4, _get_invoice_number($job->job_id), $font);
+    $table->getCell(5,4)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,5,4);
+
+    $table->writeToCell(7,3, 'TERMS', $font);
+    $table->getCell(7,3)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,7,3);
+    $table->writeToCell(7,4, 'ACE JOB NO.', $font);
+    $table->getCell(7,4)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,7,4);
+    $table->writeToCell(8,3, '30 days', $font);
+    $table->getCell(8,3)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,8,3);
+    $table->writeToCell(8,4, $job->job_id, $font);
+    $table->getCell(8,4)->setCellPaddings(0.1,0.1,0.1,0.1);
+    $table->setBorderForCellRange($border_table,8,4);
+    
+    /*
+    //Set top table
+    $table = $section->addTable();
     //Set borders
-    $table->setBorderForCellRange($border,1,2);
+    $table->setBorderForCellRange($border_header,1,2);
     //Add 1 row
     $table->addRow(0.7);
     //Add column
@@ -54,28 +145,19 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     //Quote cell
     $cell = $table->getCell(1, 1);
     $cell->setVerticalAlignment('bottom');
-    $cell->setBorder($border);
+    $cell->setBorder($border_header);
     $cell->setCellPaddings(0.5,0,5,1);
     //Image cell
     $cell = $table->getCell(1, 2);
-    $cell->setBorder($border);
-
+    $cell->setBorder($border_header);
+    */
     //Quote info
-    $qi_table = $section->addTable();
+    /*$qi_table = $section->addTable();
 
     $qi_table->addRows(3, 0.7);
-    $qi_table->addColumnsList(array(3,5,3,2.8,2.5,2.5));
+    $qi_table->addColumnsList(array(3,5,3,2.8,2.5,2.5));    
 
-    //Style quote table
-    $border = new PHPRtfLite_Border(
-        $rtf,                                       // PHPRtfLite instance
-        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // left border: 2pt, green color
-        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // top border: 1pt, yellow color
-        new PHPRtfLite_Border_Format(0.1, '#8c8c8c'), // right border: 2pt, red color
-        new PHPRtfLite_Border_Format(0.1, '#8c8c8c')  // bottom border: 1pt, blue color
-    );
-
-    $qi_table->setBorderForCellRange($border,1,1,3,6);
+    $qi_table->setBorderForCellRange($border_full,1,1,3,6);
     for($i = 1; $i <=3; $i++) {
         for($j = 1; $j <= 6; $j++) {
             $cell = $qi_table->getCell($i, $j);
@@ -108,8 +190,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $qi_table->writeToCell(3, 2, $booked_by, $small_font);
     $qi_table->writeToCell(3, 3, 'Date:', $bold);
     $qi_table->writeToCell(3, 4, date("d/m/Y", $job->created), $small_font);
-
-
+    */
+    /*
     $qi_table2 = $section->addTable();
 
     $qi_table2->addRows(3,0.7);
@@ -140,18 +222,18 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $qi_table2->writeToCell(2, 2, trim(preg_replace('/\s\s+/', ' ', $venue->field_venue_address_value)), $small_font);
     $qi_table2->writeToCell(3, 1, 'Postcode:', $bold, $small_font);
     $qi_table2->writeToCell(3, 2, $venue->field_venue_post_code_value, $small_font);
-
+    */
     $job_cancelation_status = '';
     //if ($job->cancellation_status != CANCELLATION_NA) {
     //    $job_cancelation_status = acecrew_get_inv_cancellation_titles($job->cancellation_status);
     //    $job_cancelation_status = '<strong>'. $job_cancelation_status . '</strong>';
     //}
-
+    
     //Listing table top
     $li_top_table = $section->addTable();
     $li_top_table->addRow(0.7);
     $li_top_table->addColumnsList(array(14,0.8,2,2));
-    $li_top_table->writeToCell(1,1, $job_cancelation_status, $bold);
+    $li_top_table->writeToCell(1,1, 'Description', $small_font);
     $li_top_table->writeToCell(1,2, '', $small_font);
     $li_top_table->writeToCell(1,3, 'Unit Price', $small_font);
     $li_top_table->writeToCell(1,4, 'Total', $small_font);
