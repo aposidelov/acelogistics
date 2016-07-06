@@ -16,9 +16,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
     $rtf = new PHPRtfLite();
     //Set page margins
-    $rtf->setMargins(1, 0.6, 1, 0);
+    $rtf->setMargins(1, 0.6, 1, 0); // 1, 0.6, 1, 0
 
     $section = $rtf->addSection();
+    //$section->setPaperWidth(18);
     
     $border_header = new PHPRtfLite_Border(
         $rtf,                                       // PHPRtfLite instance
@@ -38,10 +39,10 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     //Style quote table
     $border_table = new PHPRtfLite_Border(
         $rtf,                                       // PHPRtfLite instance
-        new PHPRtfLite_Border_Format(0.5, '#000'), // left border: 2pt, green color
-        new PHPRtfLite_Border_Format(0.5, '#000'), // top border: 1pt, yellow color
-        new PHPRtfLite_Border_Format(0.5, '#000'), // right border: 2pt, red color
-        new PHPRtfLite_Border_Format(0.5, '#000')  // bottom border: 1pt, blue color
+        new PHPRtfLite_Border_Format(0.5, '#8c8c8c'), // left border: 2pt, green color
+        new PHPRtfLite_Border_Format(0.5, '#8c8c8c'), // top border: 1pt, yellow color
+        new PHPRtfLite_Border_Format(0.5, '#8c8c8c'), // right border: 2pt, red color
+        new PHPRtfLite_Border_Format(0.5, '#8c8c8c')  // bottom border: 1pt, blue color
     );
 
     $bold = new PHPRtfLite_Font(10);
@@ -53,7 +54,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     //Add 3 row
     $table->addRows(8, 0.5);
     $table->addColumnsList(array(6,4.85,4,4));
-    $table->mergeCellRange(2,1,5,1);
+    //$table->mergeCellRange(2,1,5,1);
     $font_normal = new PHPRtfLite_Font(12, 'arial', '#000');
     $table->writeToCell(1,1, 'Invoice To:', $font_normal); 
     $table->getCell(1,1)->setCellPaddings(0.1,0.1,0.1,0.1);
@@ -65,32 +66,13 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $table->writeToCell(2,1, '<br>'.$client->field_client_company_address_value, $font);
     $table->writeToCell(2,1, '<br>'.$client->field_client_company_postcode_value, $font);
     $table->setBorderForCellRange($border_table,1,1);
-    $table->setBorderForCellRange($border_table,2,1); 
-
-    // clean empty cells
-    $table->writeToCell(1,2, '');
-    $table->writeToCell(1,3, '');
-    $table->writeToCell(2,2, '');
-    $table->writeToCell(3,1, '');
-    $table->writeToCell(3,2, '');
-    $table->writeToCell(3,3, '');
-    $table->writeToCell(3,4, '');
-    $table->writeToCell(4,1, '');
-    $table->writeToCell(4,2, '');
-    $table->writeToCell(5,1, '');
-    $table->writeToCell(5,2, '');
-    $table->writeToCell(6,1, '');
-    $table->writeToCell(6,2, '');
-    $table->writeToCell(6,3, '');
-    $table->writeToCell(6,4, '');
-    $table->writeToCell(7,1, '');
-    $table->writeToCell(7,2, '');
-    $table->writeToCell(8,1, '');
-    $table->writeToCell(8,2, '');
+    $table->setBorderForCellRange($border_table,2,1);     
 
     // image cell
     $table->mergeCellRange(1,3,2,4);    
-    $cell = $table->getCell(2,3);
+    //$table->mergeCellRange(2,3,2,4);    
+    $cell = $table->getCell(1,3);
+    $cell->setCellPaddings(0,0,0,0); //
     $cell->setCellPaddings(3,0,0,0);
     $image = $cell->addImage($logo);
     $image->setWidth(5);
@@ -103,9 +85,11 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $table->getCell(4,4)->setCellPaddings(0.1,0.1,0.1,0.1);
     $table->setBorderForCellRange($border_table,4,4);
     $table->writeToCell(5,3, date("d/m/Y", $job->created), $font);
+    //
     $table->getCell(5,3)->setCellPaddings(0.1,0.1,0.1,0.1);
     $table->setBorderForCellRange($border_table,5,3);
     $table->writeToCell(5,4, _get_invoice_number($job->job_id), $font);
+    //
     $table->getCell(5,4)->setCellPaddings(0.1,0.1,0.1,0.1);
     $table->setBorderForCellRange($border_table,5,4);
 
@@ -230,23 +214,32 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     //}
     
     //Listing table top
-    $li_top_table = $section->addTable();
-    $li_top_table->addRow(0.7);
-    $li_top_table->addColumnsList(array(14,0.8,2,2));
+    $li_top_table = $section->addTable();    
+    $li_top_table->addColumnsList(array(1.5,3,1.5,3,1.5,1,1.5,1,0.8,2,2));        
+    $li_top_table->addRow(1);
+    $li_top_table->mergeCellRange(1,1,1,8);
+    //$li_top_table->addColumnsList(array(16,0.8,2,2));
     $li_top_table->writeToCell(1,1, 'Description', $small_font);
-    $li_top_table->writeToCell(1,2, '', $small_font);
-    $li_top_table->writeToCell(1,3, 'Unit Price', $small_font);
-    $li_top_table->writeToCell(1,4, 'Total', $small_font);
+    $li_top_table->writeToCell(1,9, '&nbsp;', $small_font);
+    $li_top_table->writeToCell(1,10, 'Unit Price', $small_font);
+    $li_top_table->writeToCell(1,11, 'Total', $small_font);
 
-    $li_top_table->setBorderForCellRange($border,1,1,1,4);
+    $li_top_table->setBorderForCellRange($border,1,1,1,11);
+    $li_top_table->setBorderForCellRange($border,1,1);
+    $li_top_table->setBorderForCellRange($border,1,9);
+    $li_top_table->setBorderForCellRange($border,1,10);
+    $li_top_table->setBorderForCellRange($border,1,11);
+
+    //$li_top_table->addRow(1);
+    //$li_top_table->writeToCell(2,1, 'D', $small_font);
 
     $cell = $li_top_table->getCell(1, 1);
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.22, 0, 0, 0);
-    $cell = $li_top_table->getCell(1, 3);
+    $cell = $li_top_table->getCell(1, 10);
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.1, 0, 0, 0);
-    $cell = $li_top_table->getCell(1,4);
+    $cell = $li_top_table->getCell(1,11);
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.2, 0, 0, 0);
 
@@ -258,8 +251,13 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
 
     $li_table = $section->addTable();
-    $li_table->addColumnsList(array(1.5,3,1.5,3,1.5,1,1.5,1,0.8,2,2));
-
+    $li_table->addColumnsList(array(1.5,3,1.5,3,1.5,1,1.5,1,0.8,2,2));  //16,0.8,2,2 //0.8,2,2 // 18.8
+    // 1.5,3,1.5,3,1.5,1,1.5,1,0.8,2,2
+   
+    $li_table->addRow(1);
+    $li_table->setBorderForCellRange($border,$row,1,$row,11);
+    //$li_table->mergeCellRange($row,1,$row,11);
+    
 
     $vat = NULL;
     $multiple_vat_values = FALSE;
@@ -276,6 +274,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $call_index = 1;
     $sum = 0;
     $row = 0;
+    //$callings = array();
     //watchdog('jj', '<pre>'.print_r($job, TRUE).'</pre>');
     //watchdog('ccc', '<pre>'.print_r($callings, TRUE).'</pre>');
     foreach ($callings as $data) {
@@ -308,7 +307,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         $li_table->writeToCell($row, 1, 'Call: ' . $call_number. '. @ '. $venue_name . $venue_code . $call_cancelation_status, $bold);
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
-        $cell->setCellPaddings(0.2, 0, 0, 0);
+        $cell->setCellPaddings(0.2, 0, 0, 0); //0.2                
 
         $row++;
         $li_table->addRow(0.7);
@@ -320,7 +319,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
         // date & time
         $date = substr($call->field_job_session_date_time_value, 0, 10);
-        $time = substr($call->field_job_session_date_time_value, 11, 20);
+        $time = substr($call->field_job_session_date_time_value, 11, -3);
 
         // number of standard crews
         if (acecrew_is_cancellation_notice($call->cancellation_status) ||
@@ -456,9 +455,6 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
         }*/
 
         if ($additional_hours > 0) $inc++;
-
-
-
 
         //Date
         $li_table->writeToCell($row,1,'Date:', $small_font);
@@ -686,8 +682,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
         $call_index++;
     }
-
-    $row++;
+    
+    /*$row++;
     $li_table->addRow(0.7);
     $li_table->mergeCellRange($row,1,$row,11);
     $li_table->writeToCell($row, 1, 'NOTES:', $small_font);
@@ -695,7 +691,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $cell = $li_table->getCell($row, 1);
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.2, 0, 0, 0);
-
+    */
 
     if ($discount >= 1) {
 
@@ -767,11 +763,59 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $cell = $li_table->getCell($row, 11);
     $cell->setVerticalAlignment('center');
     $cell->setCellPaddings(0.2, 0, 0, 0);
-
+    
     $credit_image = dirname(__FILE__) . '/../theme/invoice-footer-credit.png';
-
-
     $settings = db_fetch_object(db_query("SELECT * FROM {content_type_admin_settings}"));
+    $li_table->setBorderForCellRange($border,1,1,$row,11);
+    $li_table->preventEmptyParagraph();
+    $font = new PHPRtfLite_Font(11, 'arial', '#000');
+    //Set bottom table    
+    $table = $section->addTable();
+    //Add 2 row    
+    $table->addColumnsList(array(6.5,6.5));
+
+    $row = 1;
+    $notes = trim($job->field_invoice_notes_value);
+    if (!empty($notes)) {
+        $font_red = new PHPRtfLite_Font(10, 'arial', '#f00');
+        $table->addRow(0.7);    
+        $table->mergeCellRange($row,1,$row,2); 
+        $table->getCell($row,1)->setCellPaddings(0.2,0,0,0);
+        $table->getCell($row,1)->setVerticalAlignment('center');
+        $table->writeToCell($row,1, $notes, $font_red);
+        $row++;
+    }
+
+    $table->addRow(1);    
+    //$table->mergeCellRange(2,3,2,4);    
+    $cell = $table->getCell($row,1);    
+    $cell->setCellPaddings(0.7,0,0,0);
+    $cell->setVerticalAlignment('center');
+    $image = $cell->addImage($credit_image);
+    $image->setWidth(5);
+    $image->setHeight(2);
+    $table->writeToCell($row, 2, 'BACS details:<br/>Account Name: Ace Crew Ltd<br/>Account Number: 30724459<br/>Sort Code: 20-96-55<br/>IBAN:<br/>GB18BARC20965530724459<br/>SWIFT: BARCGB22', 
+    $font);
+    $table->getCell($row,2)->setCellPaddings(0.3,0.3,0.3,0.3);
+
+    $table->addRow(1);
+    $row++;
+    $table->writeToCell($row, 1, 'VAT Reg No: 918965374<br/>Company No: 06128298', $font);
+    $table->getCell($row,1)->setCellPaddings(0.3,0.3,0.3,0.3);
+    $table->writeToCell($row, 2, 'Ace Crew Ltd<br/>Unit 6 Princess Court, Horace<br/>Road,<br/>Kingston Upon Thames, KT1<br/>2SL', 
+    $font);
+    $table->getCell($row,2)->setCellPaddings(0.3,0.3,0.3,0.3);
+    $table->setBorderForCellRange($border,1,1,$row,2);
+
+    // red label
+    $section->setSpaceBetweenColumns(0.2);
+    $message_font = new PHPRtfLite_Font(11, 'Arial', '#ff0000');
+    $message_text_format = new PHPRtfLite_ParFormat();
+    $message_text_format->setIndentLeft(0.5);
+    $message_text_format->setIndentRight(0.5);
+    $message_text_format->setTextAlignment('left');
+    $section->writeText('FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.', $message_font, $message_text_format);
+
     $footer_text = $settings->field_inv_footer_text_value;
     $footer_font = new PHPRtfLite_Font(9, 'Arial', '#555555');
 
@@ -783,13 +827,12 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $image->setWidth(7);
     $image->setHeight(4);*/
 
-    $footer = $section->addFooter();
+    /*$footer = $section->addFooter();
     $footer->writeText($footer_text, $footer_font, $footer_text_format);
     $image = $footer->addImage($credit_image, $footer_text_format);
     $image->setWidth(5.5);
-    $image->setHeight(2);
-    /* End rtf */
-    $li_table->setBorderForCellRange($border,1,1,$row,11);
+    $image->setHeight(2);    
+    */    
     $invoice_id = $quote['job']->acecrew_job_invoice_id;
     $invoice_number = acecrew_get_invoice_number_by_id($invoice_id);
     $file =  dirname(__FILE__) . '/../rtf/files/Ace-Invoice-'.$invoice_number.'.rtf';

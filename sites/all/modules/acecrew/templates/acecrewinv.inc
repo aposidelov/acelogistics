@@ -170,7 +170,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
 
       // date & time
       $date = substr($call->field_job_session_date_time_value, 0, 10);
-      $time = substr($call->field_job_session_date_time_value, 11, 20);
+      $time = substr($call->field_job_session_date_time_value, 11, -3);
 
       //watchdog('cc', '<pre>'.print_r($call->field_job_session_crew_value, TRUE).'</pre>');
       
@@ -412,6 +412,8 @@ SWIFT: BARCGB22</td></tr>
 Company No: 06128298</td><td colspan="6">Ace Crew Ltd<br/>
 Unit 6 Princess Court, Horace Road,<br/> Kingston Upon Thames, KT1 2SL</td></tr>
       </table>';
+
+      echo '<div style="page-break-inside: avoid;margin-left: 30px;margin-top: 10px;"><span style="color:#f00;font-size:9px; text-align: right;padding:0;margin:0;">FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.</span></div>';
 
 
     /*
