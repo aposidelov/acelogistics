@@ -811,8 +811,8 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $section->setSpaceBetweenColumns(0.2);
     $message_font = new PHPRtfLite_Font(11, 'Arial', '#ff0000');
     $message_text_format = new PHPRtfLite_ParFormat();
-    $message_text_format->setIndentLeft(0.5);
-    $message_text_format->setIndentRight(0.5);
+    $message_text_format->setIndentLeft(0);
+    $message_text_format->setIndentRight(0);
     $message_text_format->setTextAlignment('left');
     $section->writeText('FYI - We have launched our new Man & Van service, we have long wheel based lutons available from as little as 2hours. Please enquire.', $message_font, $message_text_format);
 
