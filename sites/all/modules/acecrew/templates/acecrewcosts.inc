@@ -388,7 +388,7 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
                     
                   $pdf->line(40, $h-60, $w-40, $h-60, $a_line_color, 1, array()); 
                     
-                  $footer_content_font_size = 8;
+                  $footer_content_font_size = 14;
                   $footer_content_font_space = 1;
                   
                   $footer_content_s1 = \'' . $footer_content_s1 . '\';
