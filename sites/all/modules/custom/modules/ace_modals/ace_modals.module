@@ -105,6 +105,9 @@ function ace_modals_form_alter(&$form, &$form_state, $form_id) {
         $second_contact = $second_contact['field_client_contact_name'][0]['value'];
       }
     }
+    if (empty($second_contact)) {
+      $second_contact = '-';
+    }
 
     $form['field_job_client_contact']['#suffix'] = '<div '.$styles.' class="client-contact-add-container">'.ctools_modal_text_button(t('Add Contact'), 'ace_modals/nojs/client_contact_add/'.$client_nid.'/'.$second_contact, t('Open')).'</div>';
 

@@ -5,8 +5,7 @@ require_once dirname(__FILE__) .'/acecrew_func.inc';
 /**
  * Implements hook_update_6001().
  */
-function acecrew_update_6001() { 
-  // HAVE BEEN EXECUTED ON LIVE   
+function acecrew_update_6001() {   
   $schema = drupal_get_schema('acecrew_job_costs', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_job_costs', $schema);
@@ -16,8 +15,7 @@ function acecrew_update_6001() {
 /**
  * Implements hook_update_6002().
  */
-function acecrew_update_6002() {    
-  // HAVE NOT BEEN EXECUTED ON LIVE !!!!!!!!!!!!!!
+function acecrew_update_6002() {      
   $schema = drupal_get_schema('acecrew_job_pro_inv', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_job_pro_inv', $schema);
@@ -27,8 +25,7 @@ function acecrew_update_6002() {
 /**
  * Implements hook_update_6003().
  */
-function acecrew_update_6003() {    
-  // HAVE NOT BEEN EXECUTED ON LIVE !!!!!!!!!!!!!!
+function acecrew_update_6003() {      
   $schema = drupal_get_schema('acecrew_user_supplement', TRUE);
   $ret = array();
   db_create_table($ret, 'acecrew_user_supplement', $schema);

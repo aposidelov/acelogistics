@@ -56,12 +56,18 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     echo '<table class="acecrew_top_tbl" border=0 width=90% style="margin:0 auto;border-collapse:collapse;margin-top:30px;"><tr>';
 
     echo '<td>';
-      echo '<table  width="200px" border=1 cellspacing=-1 cellpadding=5 align="left" style="margin-top:90px;border:0px solid;font-size:11px;">
+      echo '<table  width="200px" border=1 cellspacing=-1 cellpadding=5 align="left" style="margin-top:40px;border:0px solid;font-size:11px;">
         <tr><td>Invoice To:</td></tr>';
       echo '<tr><td><strong>'.$client->field_client_name_value.'</strong><br/>
             '.$comp_address.'
             <br/>'.$comp_address_2.'</td></tr>
             </table>';
+      if (!empty($job->field_job_po_number_value)) {
+        echo '<table width="200px" border=1 cellspacing=-1 cellpadding=5 align="left" style="margin-top:20px;border:0px solid;font-size:11px;">
+          <tr><td>Purchase Order:</td></tr>';
+        echo '<tr><td><strong>'.$job->field_job_po_number_value.'</strong></td></tr>
+              </table>';
+      }
     echo '</td>';
 
     echo '<td align="right" width="170px" style="">';

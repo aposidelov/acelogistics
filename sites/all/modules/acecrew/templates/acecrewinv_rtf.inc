@@ -66,7 +66,17 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $table->writeToCell(2,1, '<br>'.$client->field_client_company_address_value, $font);
     $table->writeToCell(2,1, '<br>'.$client->field_client_company_postcode_value, $font);
     $table->setBorderForCellRange($border_table,1,1);
-    $table->setBorderForCellRange($border_table,2,1);     
+    $table->setBorderForCellRange($border_table,2,1); 
+
+    if (!empty($job->field_job_po_number_value)) {
+        $font_normal = new PHPRtfLite_Font(12, 'arial', '#000');
+        $table->writeToCell(4,1, 'Purchase Order:', $font_normal);
+        $table->getCell(4,1)->setCellPaddings(0.1,0.1,0.1,0.1);
+        $table->setBorderForCellRange($border_table,4,1);        
+        $table->writeToCell(5,1, $job->field_job_po_number_value, $font_normal);     
+        $table->getCell(5,1)->setCellPaddings(0.1,0.1,0.1,0.1);
+        $table->setBorderForCellRange($border_table,5,1);
+    }
 
     // image cell
     $table->mergeCellRange(1,3,2,4);    
@@ -78,6 +88,7 @@ function _acecrew_invoice_get_template_output($quote, $type=NULL) {
     $image->setWidth(5);
     $image->setHeight(3.5);
     //
+    $font = new PHPRtfLite_Font(12, 'arial', '#000');
     $table->writeToCell(4,3, 'TAX DATE', $font);
     $table->getCell(4,3)->setCellPaddings(0.1,0.1,0.1,0.1);
     $table->setBorderForCellRange($border_table,4,3);
