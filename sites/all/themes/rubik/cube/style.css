@@ -1442,3 +1442,11 @@ ul.call-listing li.cancel-btn,
 #user-profile-form table input {
     border: 1px solid #ccc;
 }
+
+#autocomplete {
+    height: 200px;
+    max-height: 200px;
+    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}

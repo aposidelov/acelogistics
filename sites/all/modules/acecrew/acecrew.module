@@ -103,6 +103,18 @@ function acecrew_form_alter(&$form, &$form_state, $form_id) {
     drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-call.js');      
     $form['buttons']['submit']['#submit'][] = 'acecrew_call_close_dialog_submit';    
   } 
+  if ($form_id == 'job_node_form') {
+    $form['#after_build'][] = 'fck_job_after_build';
+  }  
+}
+
+/**
+ * Modify CCK form elements on the example node form.
+ */
+function fck_job_after_build($form, &$form_state) {    
+  $form['field_job_venue'][0]['value']['#autocomplete_path'] = 'acecrew/venue/autocomplete';
+  //drupal_set_message('<pre>'.print_r($form['field_job_venue'], TRUE).'</pre>');
+  return $form;
 }
 
 function acecrew_call_close_dialog_submit($form, &$form_state) {
@@ -453,8 +465,31 @@ function acecrew_menu() {
     'access arguments' => array('admin content'),
     'type' => MENU_CALLBACK,
   );
+  $items['acecrew/venue/autocomplete'] = array(
+    'title' => 'Autocomplete for venues',
+    'page callback' => '_acecrew_venue_autocomplete',
+    'access arguments' => array('access content'),  //or whatever permission makes sense
+    'type' => MENU_CALLBACK
+  );
 
   return $items;
+}
+
+function _acecrew_venue_autocomplete($string = '') {
+  $matches = array();
+  $sql = "SELECT field_venue_id_value, field_venue_name_value FROM `drupal_content_type_venue` WHERE LOWER(field_venue_name_value) REGEXP LOWER('[[:<:]]%s') OR field_venue_name_value REGEXP LOWER('[[:<:]]%s[[:>:]]') ORDER BY field_venue_name_value ASC";
+  $result = db_query($sql, $string, $string);
+  watchdog('sql', '<pre>'.print_r($sql, TRUE).'</pre>');
+  // add matches to $matches
+  while ($data = db_fetch_object($result)) {
+    $matches[$data->field_venue_name_value] = '<div class="reference-autocomplete">'.check_plain($data->field_venue_name_value).'</div>';
+  }
+  /*$options = _autocomplete_widgets_get_options($field, $string, $match, NULL, 10);
+  foreach ($options as $key => $value) {
+    // Add a class wrapper for a few required CSS overrides.
+    $matches[$value] = '<div class="reference-autocomplete">'. check_plain($value) .'</div>';
+  }*/
+  drupal_json($matches);
 }
 
 function acecrew_call_title($call_id) {
