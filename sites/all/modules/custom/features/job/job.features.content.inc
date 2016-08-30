@@ -723,7 +723,8 @@ function job_content_default_fields() {
     'text_processing' => '0',
     'max_length' => '',
     'allowed_values' => '',
-    'allowed_values_php' => 'return acecrew_get_job_client_contacts();',
+    'allowed_values_php' => '$contacts = acecrew_get_job_client_contacts();
+return $contacts;',
     'widget' => array(
       'default_value' => array(
         '0' => array(
@@ -744,24 +745,16 @@ function job_content_default_fields() {
     'field_name' => 'field_job_client_name',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '39',
+      'weight' => '36',
       'parent' => '',
       'label' => array(
-        'format' => 'inline',
+        'format' => 'above',
       ),
       'teaser' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
       'full' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'inline' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'modal' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
@@ -785,18 +778,26 @@ function job_content_default_fields() {
         'format' => 'default',
         'exclude' => 0,
       ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
       'token' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
     ),
     'widget_active' => '1',
-    'type' => 'text',
+    'type' => 'number_integer',
     'required' => '1',
     'multiple' => '0',
     'module' => 'text',
     'active' => '1',
-    'text_processing' => 0,
+    'text_processing' => '',
     'max_length' => '',
     'allowed_values' => '',
     'allowed_values_php' => 'return acecrew_get_job_clients();',
@@ -1462,24 +1463,16 @@ function job_content_default_fields() {
     'field_name' => 'field_job_venue',
     'type_name' => 'job',
     'display_settings' => array(
-      'weight' => '42',
+      'weight' => '36',
       'parent' => '',
       'label' => array(
-        'format' => 'inline',
+        'format' => 'above',
       ),
       'teaser' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
       'full' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'inline' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'modal' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
@@ -1503,18 +1496,26 @@ function job_content_default_fields() {
         'format' => 'default',
         'exclude' => 0,
       ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
       'token' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
     ),
     'widget_active' => '1',
-    'type' => 'text',
+    'type' => 'number_integer',
     'required' => '1',
     'multiple' => '0',
     'module' => 'text',
     'active' => '1',
-    'text_processing' => 0,
+    'text_processing' => '',
     'max_length' => '',
     'allowed_values' => '',
     'allowed_values_php' => '$result = db_query(db_rewrite_sql("SELECT `nid`, `field_venue_name_value`,  `field_venue_id_value` FROM `drupal_content_type_venue` WHERE 1 ORDER BY `field_venue_name_value` ASC"));

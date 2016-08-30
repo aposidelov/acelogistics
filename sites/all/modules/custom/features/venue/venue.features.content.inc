@@ -587,9 +587,10 @@ function venue_content_default_fields() {
     'field_name' => 'field_venue_id',
     'type_name' => 'venue',
     'display_settings' => array(
+      'weight' => '36',
+      'parent' => '',
       'label' => array(
         'format' => 'above',
-        'exclude' => 0,
       ),
       'teaser' => array(
         'format' => 'default',
@@ -619,17 +620,31 @@ function venue_content_default_fields() {
         'format' => 'default',
         'exclude' => 0,
       ),
+      'inline' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'modal' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
       'token' => array(
         'format' => 'default',
         'exclude' => 0,
       ),
     ),
     'widget_active' => '1',
-    'type' => 'serial',
+    'type' => 'number_integer',
     'required' => '0',
     'multiple' => '0',
     'module' => 'serial',
     'active' => '1',
+    'prefix' => '',
+    'suffix' => '',
+    'min' => '',
+    'max' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
     'widget' => array(
       'label' => 'Venue ID',
       'weight' => '34',
@@ -1001,87 +1016,6 @@ function venue_content_default_fields() {
     ),
   );
 
-  // Exported field: field_venue_type
-  $fields['venue-field_venue_type'] = array(
-    'field_name' => 'field_venue_type',
-    'type_name' => 'venue',
-    'display_settings' => array(
-      'label' => array(
-        'format' => 'above',
-        'exclude' => 0,
-      ),
-      'teaser' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'full' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '4' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '2' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '3' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '100' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '101' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'inline' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'modal' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      '5' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-      'token' => array(
-        'format' => 'default',
-        'exclude' => 0,
-      ),
-    ),
-    'widget_active' => '1',
-    'type' => 'text',
-    'required' => '0',
-    'multiple' => '0',
-    'module' => 'text',
-    'active' => '1',
-    'text_processing' => '0',
-    'max_length' => '',
-    'allowed_values' => '1|Hotel
-2|Airport
-3|Palace. Private Residence',
-    'allowed_values_php' => '',
-    'widget' => array(
-      'default_value' => array(
-        '0' => array(
-          'value' => '',
-        ),
-      ),
-      'default_value_php' => NULL,
-      'label' => 'Type',
-      'weight' => '36',
-      'description' => '',
-      'type' => 'optionwidgets_select',
-      'module' => 'optionwidgets',
-    ),
-  );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Address');
@@ -1096,7 +1030,6 @@ function venue_content_default_fields() {
   t('Post Code');
   t('Round Trip In Miles');
   t('Telephone');
-  t('Type');
   t('Venue ID');
   t('Venue Job Call Comments Box');
 

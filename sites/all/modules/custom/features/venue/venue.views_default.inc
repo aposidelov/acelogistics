@@ -11,10 +11,9 @@ function venue_views_default_views() {
   $view->name = 'new_venue_listing';
   $view->description = 'New Venue Listing created by Rob';
   $view->tag = '';
-  $view->view_php = '';
   $view->base_table = 'node';
-  $view->is_cacheable = FALSE;
-  $view->api_version = 2;
+  $view->core = 0;
+  $view->api_version = '2';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'Defaults', 'default');
   $handler->override_option('fields', array(
@@ -312,10 +311,9 @@ function venue_views_default_views() {
   $view->name = 'venue';
   $view->description = 'Venues';
   $view->tag = '';
-  $view->view_php = '';
   $view->base_table = 'node';
-  $view->is_cacheable = FALSE;
-  $view->api_version = 2;
+  $view->core = 0;
+  $view->api_version = '2';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
   $handler = $view->new_display('default', 'Defaults', 'default');
   $handler->override_option('fields', array(
@@ -587,30 +585,6 @@ function venue_views_default_views() {
         'button' => 'Override',
       ),
       'relationship' => 'none',
-    ),
-    'field_venue_type_value_many_to_one' => array(
-      'operator' => 'or',
-      'value' => array(),
-      'group' => '0',
-      'exposed' => TRUE,
-      'expose' => array(
-        'use_operator' => 0,
-        'operator' => 'field_venue_type_value_many_to_one_op',
-        'identifier' => 'field_venue_type_value_many_to_one',
-        'label' => 'Type',
-        'optional' => 1,
-        'single' => 1,
-        'remember' => 0,
-        'reduce' => 0,
-      ),
-      'id' => 'field_venue_type_value_many_to_one',
-      'table' => 'node_data_field_venue_type',
-      'field' => 'field_venue_type_value_many_to_one',
-      'override' => array(
-        'button' => 'Override',
-      ),
-      'relationship' => 'none',
-      'reduce_duplicates' => 0,
     ),
   ));
   $handler->override_option('access', array(
