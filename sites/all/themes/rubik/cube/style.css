@@ -1006,6 +1006,8 @@ table.ui-datepicker-calendar {margin: 0 !important;}
 }
 
 .node-type-job .field-type-text,
+.node-type-job .field-type-number-integer.field-field-job-client-name,
+.node-type-job .field-type-number-integer.field-field-job-venue,
 .node-type-job .field-field-no-po-required,
 .node-type-job .field-type-number-decimal, 
 .node-type-job .field-type-number-integer.field-field-names-needed,
@@ -1449,4 +1451,48 @@ ul.call-listing li.cancel-btn,
     overflow: auto;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+#op-custom-job-listing-form { 
+
+}
+
+#op-custom-job-listing-form #edit-job-number-wrapper,
+#op-custom-job-listing-form #edit-job-status-wrapper,
+#op-custom-job-listing-form #edit-venue-wrapper,
+#op-custom-job-listing-form #edit-client-wrapper,
+#op-custom-job-listing-form div.date-filter,
+#op-custom-job-listing-form #edit-po-number-wrapper,
+#op-custom-job-listing-form #edit-invoice-number-wrapper { 
+    float: left;    
+    padding: 5px 5px 0 0;
+}
+
+#op-custom-job-listing-form .form-item {
+    margin: 0px 0px 5px;
+}
+
+#op-custom-job-listing-form div.date-filter { 
+    width: 250px;
+}
+
+#op-custom-job-listing-form input.form-submit { 
+    clear: both;
+    display: block;
+}
+
+.status_pencil td ,
+.job_status_Pencil {
+    color: #777777;
+}
+
+.status_confirmed td, 
+.status_confirmed td a,
+.job_status_Confirmed {
+    color: #11b900;
+}
+
+.status_cancel td ,
+.job_status_Cancel {
+    color: #e00000;
 }

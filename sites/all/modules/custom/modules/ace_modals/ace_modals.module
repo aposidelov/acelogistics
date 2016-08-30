@@ -408,7 +408,7 @@ function ace_modals_client_contact_add_popup($js = NULL, $client_nid = NULL, $se
       $options = '<option value="0">'.$client->field_client_company_contact[0]['value'].'</option>';
     }
 
-    $options_second = $options;
+    $options_second = '<option value="">--None--</option>'.$options;
 
     $created_contact_name = $form_state['values']['contact_name'];
     $created_contact_id = '';

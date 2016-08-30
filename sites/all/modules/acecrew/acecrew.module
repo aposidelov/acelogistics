@@ -1243,16 +1243,9 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $ses_number_vehicles = $row->num_vehicles;            
             $job_status_label    = $job_statuses[$job_status];
             $is_call_cancelled   = $row->call_cancellation_status != CANCELLATION_NA;
-            $is_job_cancelled    = $row->job_cancellation_status != CANCELLATION_NA;
-            
-            // if job status is 'quote' it should not appear on diary page
-            // --- removed 'canceled'
-            /*if (in_array($job_status, array(QUOTE))) { // CANCELLED, 
-                continue;
-            }*/
-
+            $is_job_cancelled    = $row->job_cancellation_status != CANCELLATION_NA;  
             // Job calls with ‘cancelled status’ must not appear on the diary page at all.
-            if ($is_job_cancelled || $is_call_cancelled) { 
+            if ($is_job_cancelled || $is_call_cancelled || $job_status == CANCELLED) { 
               continue;
             }
 
@@ -1286,8 +1279,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
 
             $supps = $supp_name;
 
-            $crews = array();
-            //$user_crew_query = "SELECT u.name, u.uid FROM {users} u WHERE u.uid IN (SELECT uid FROM {crew_call} WHERE jsid='%s');";
+            $crews = array();            
             $user_crew_query = "SELECT u.name, u.uid FROM {users} u INNER JOIN {crew_call} cc ON u.uid = cc.uid WHERE cc.jsid='%s'";
             $user_crew_result =  db_query($user_crew_query, $row->vid);
             while ($user_crew_row = db_fetch_object($user_crew_result)) {
@@ -1365,6 +1357,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             // conditions when call should go to Top category 
             // (also grouped by days)
             if ($job_status == QUOTE ||
+              $job_status == PENCIL ||
               $row->call_time_tbc || 
               $row->call_crew_tbc || 
               $row->call_hours_tbc || 
@@ -1476,9 +1469,9 @@ function get_flag_count($call_id) {
     }
 
     //Flag for: if there is more allocated members than required for job call
-
+    //watchdog('cccc', '<pre>'.print_r($call, TRUE).'</pre>');
     //Find assigned crew members number for this call
-    $crew_members_assigned = db_result(db_query("SELECT COUNT(*) FROM {crew_call} WHERE cid = '%s'", $call->field_session_callid[0]['value']));
+    $crew_members_assigned = db_result(db_query("SELECT COUNT(*) FROM {crew_call} WHERE jsid = %d", $call->vid));
     //Find required crew members number for this call
     $crew_members_required = $call->field_job_session_crew[0]['value'];
     //If there are more crew members assigned than required, add flag
@@ -3069,7 +3062,7 @@ function acecrew_get_job_clients() {
 }
 
 function acecrew_get_job_client_contacts() {
-  $result = db_query(db_rewrite_sql("SELECT `vid`, `field_client_contact_name_value` FROM {content_type_client_contact}"));
+  $result = db_query(db_rewrite_sql("SELECT `vid`, `field_client_contact_name_value` FROM {content_type_client_contact}"));  
   $items[0] = 'D';
   while ($item = db_fetch_object($result)) {
     $items[$item->vid] = $item->field_client_contact_name_value;

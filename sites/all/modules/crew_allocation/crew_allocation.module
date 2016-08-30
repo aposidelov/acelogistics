@@ -1334,8 +1334,9 @@ function _crew_allocation_get_booked_off_user_list($call_id, $js_id )
 
 function _crew_allocation_is_crew_allocated($uid, $call_id, $jsid)
 {
-    if(db_fetch_object(db_query("SELECT * FROM {crew_call} WHERE uid = $uid AND cid = '$call_id' AND jsid = $jsid")) == NULL)
+    if (db_fetch_object(db_query("SELECT * FROM {crew_call} WHERE uid = $uid AND jsid = $jsid")) == NULL) {
         return false;
+      }
     return true;
 }
 

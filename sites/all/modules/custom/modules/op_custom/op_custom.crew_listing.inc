@@ -47,7 +47,7 @@ function op_custom_crew_listing_form(&$form_state) {
     '#type' => 'submit',
     '#value' => t('Generate CSV file'),    
   );
-
+  watchdog('name', '<pre>'.print_r($form_state['values'], TRUE).'</pre>');
   $form['crew_listing']['results'] = array(
     '#type' => 'markup',
     '#value' => op_custom_crew_listing_build_table($form, $form_state['values']),    
@@ -104,8 +104,8 @@ function op_custom_crew_listing_build_table($form, $fs_values) {
 function op_custom_crew_listing_build_rows($form, $fs_values, $exclude_link = FALSE) {	
 	$supplement_values = $form['crew_listing']['supplements']['#options'];
 	$supplements 		 = array_filter($fs_values['supplements']);
-	$employment_type = $fs_values['employment_type'];
-	$crew_status = $fs_values['crew_status'];
+	$employment_type = isset($fs_values['employment_type']) ? $fs_values['employment_type'] : 'any';
+	$crew_status = isset($fs_values['crew_status']) ? $fs_values['crew_status'] : 'any';
 	//
 	$where_supplements = '';
 	if (sizeof($supplements)) {
@@ -129,7 +129,7 @@ function op_custom_crew_listing_build_rows($form, $fs_values, $exclude_link = FA
 		LEFT JOIN `drupal_profile_values` pc ON u.uid = pc.uid AND pc.fid = 4
 		LEFT JOIN `drupal_profile_values` et ON u.uid = et.uid AND et.fid = 39
 		WHERE sp.fid = 41 $where_supplements $where_employed $where_crew_status ORDER BY u.name";	
-	//drupal_set_message($query);
+	watchdog('qq', '<pre>'.print_r($query, TRUE).'</pre>');
 	$result = db_query($query);			
 	$items = array();
   while ($data = db_fetch_array($result)) {  	

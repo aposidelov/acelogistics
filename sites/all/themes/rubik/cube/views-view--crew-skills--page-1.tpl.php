@@ -90,7 +90,7 @@ $payrate = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 28
 
 $rate_date = db_result(db_query("SELECT value FROM {profile_values} WHERE fid = 48 AND uid = %d", $uid));
 
-//watchdog('rd1', '<pre>'.print_r($rate_date, TRUE).'</pre>');
+watchdog('rd1', '<pre>'.print_r($rate_date, TRUE).'</pre>');
 $rate_date_before_unser = unserialize($rate_date_before);
 
 $rate_date_table = '';
@@ -128,7 +128,13 @@ if (module_exists('acetracker_profile')) {
   $rows = acetracker_profile_get_rates_dates($uid);
   $rate_date_table = theme('table', array(t('Date'), t('Rate')), $rows);
 }
-$rate_date = unserialize($rate_date);
+if (!empty($rate_date)) {
+  $rate_date = unserialize($rate_date);
+} else {
+  $rate_date['day'] = date('j');
+  $rate_date['month'] = date('n');
+  $rate_date['year'] = date('Y');
+}
 
 $monthes = array(
   1 => 'Jan',

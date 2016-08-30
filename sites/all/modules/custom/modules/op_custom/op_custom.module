@@ -57,6 +57,61 @@ function op_custom_update_6002() {
 }
 
 /**
+ * Implements hook_update_6003().
+ */
+function op_custom_update_6003() {
+  $ret = array();
+  
+  acecrew_update_cck_field_type(
+    'field_session_job_nid',
+    'content_type_job_session', 
+    'integer', 
+    'field_job_number'
+  );
+  db_add_index($ret, 'content_type_job_session', 'job_id', array('field_session_job_nid_value'));
+  // content_type_job - client_id
+  acecrew_update_cck_field_type(
+    'field_job_client_name',
+    'content_type_job',
+    'integer', 
+    'field_job_number'
+  );
+  db_add_index($ret, 'content_type_job', 'client', array('field_job_client_name_value'));
+  // content_type_job - venue_id
+  acecrew_update_cck_field_type(
+    'field_job_venue',
+    'content_type_job', 
+    'integer', 
+    'field_job_number'
+  );
+  db_add_index($ret, 'content_type_job', 'venue', array('field_job_venue_value'));  
+  // content_type_client - field_client_id
+  acecrew_update_cck_field_type(
+    'field_client_id',
+    'content_type_client', 
+    'integer', 
+    'field_job_number'
+  );
+  db_add_index($ret, 'content_type_client', 'field_client_id_value', array('field_client_id_value'));
+  // content_type_venue - field_venue_id
+  acecrew_update_cck_field_type(
+    'field_venue_id',
+    'content_type_venue', 
+    'integer', 
+    'field_job_number'
+  );
+  db_add_index($ret, 'content_type_venue', 'field_venue_id_value', array('field_venue_id_value'));
+  
+  db_add_index($ret, 'acecrew_job_invoices', 'job_id', array('job_id'));  
+  db_add_index($ret, 'crew_call', 'uid', array('uid'));
+  db_add_index($ret, 'crew_call', 'jsid', array('jsid'));
+  db_add_index($ret, 'crew_call', 'uid_jsid', array('uid','jsid'));
+  db_add_index($ret, 'crew_js_supplement', 'jsid', array('jsid'));
+  db_add_index($ret, 'crew_js_supplement', 'uid_jsid', array('uid','jsid'));
+
+  return $ret;
+}
+/**
  * Implements hook_init().
  */
 function op_custom_init() {
@@ -141,6 +196,15 @@ function op_custom_menu() {
     'type' => MENU_CALLBACK,    
     'title' => 'Crew listing',
     'file' => 'op_custom.crew_listing.inc',
+  );
+
+  $items['jobs-all'] = array(
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('op_custom_job_listing_form'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,    
+    'title' => 'Jobs All',
+    'file' => 'op_custom.job_listing.inc',
   );
 
 
@@ -1581,18 +1645,18 @@ function acecrew_get_crew_hours_by_date($crew_uid, $date_from, $date_to) {
  * the decimal settings will be taken for our field
  * @return [type]                 [description]
  */
-function acecrew_update_cck_field_type($int_field_name, $table_name, $decimal_field_name = 'field_fine_rate_amount') {
+function acecrew_update_cck_field_type($old_type_field_name, $table_name, $new_column_type = 'decimal', $new_type_sample_field_name = 'field_fine_rate_amount') {
   // we will copy decimal settings from another decimal field
-  $decimal_field_data = db_fetch_array(db_query('SELECT * 
+  $new_type_sample_field_data = db_fetch_array(db_query('SELECT * 
                                   FROM {content_node_field} 
                                   WHERE field_name = "%s"', 
-                                  $decimal_field_name));
+                                  $new_type_sample_field_name));
 
   // we will copy decimal settings from another decimal field instance
-  $decimal_field_instance_data = db_fetch_array(db_query('SELECT * 
+  $new_type_sample_field_instance_data = db_fetch_array(db_query('SELECT * 
                                   FROM {content_node_field_instance} 
                                   WHERE field_name = "%s"', 
-                                  $decimal_field_name));
+                                  $new_type_sample_field_name));
   
   // update field in content_node_field table with existing 
   // data of another decimal field
@@ -1601,10 +1665,10 @@ function acecrew_update_cck_field_type($int_field_name, $table_name, $decimal_fi
     global_settings = "%s", 
     db_columns = "%s"
     WHERE field_name = "%s"', 
-    $decimal_field_data['type'],
-    $decimal_field_data['global_settings'],
-    $decimal_field_data['db_columns'],
-    $int_field_name
+    $new_type_sample_field_data['type'],
+    $new_type_sample_field_data['global_settings'],
+    $new_type_sample_field_data['db_columns'],
+    $old_type_field_name
   );
   
   // update field in content_node_field_istance table with
@@ -1612,18 +1676,30 @@ function acecrew_update_cck_field_type($int_field_name, $table_name, $decimal_fi
   db_query('UPDATE {content_node_field_instance} 
     SET display_settings = "%s"
     WHERE field_name = "%s"', 
-    $decimal_field_instance_data['display_settings'],
-    $int_field_name
+    $new_type_sample_field_instance_data['display_settings'],
+    $old_type_field_name
   );
   
   $ret = array();
-  $field_name = $int_field_name . '_value';
+  $field_name = $old_type_field_name . '_value';
   
-  db_change_field($ret, $table_name, 
-    $field_name, $field_name, 
-    array('type' => 'numeric', 'precision' => 10, 
-      'scale' => 2, 'not null' => FALSE)
-  );      
+  $column_type = array();
+  if ($new_column_type == 'decimal') {
+    $column_type = array(
+      'type' => 'numeric', 
+      'precision' => 10, 
+      'scale' => 2, 
+      'not null' => FALSE
+    );
+  } elseif ($new_column_type == 'integer') {
+    $column_type = array(
+      'type' => 'int', 
+      'unsigned' => TRUE, 
+      'not null' => FALSE, 
+      'default' => 0
+    );
+  }
+  db_change_field($ret, $table_name, $field_name, $field_name, $column_type);      
 }
 
 function op_custom_ajax_client_comment($value, $type) {

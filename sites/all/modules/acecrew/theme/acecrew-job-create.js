@@ -33,9 +33,12 @@ function fill_client_contacts_second_selectbox(selected_contact){
 
     $.get(Drupal.settings.basePath + "acecrew/ajax/client_contacts/" + client_name, function(data){
         var result = Drupal.parseJson(data);
-
-        $.each(result, function(val, text) {
-
+        //result = $.extend({}, result,  { '': 'None' });
+        console.log(result);
+        var arr = Object.keys(result).map(function (key) {var pKey = key; var obj = {}; obj[key] = result[key]; return obj; });        
+        arr.unshift({'': '--None--'});
+        $.each(arr, function(index, obj) {            
+            var val = Object.keys(obj)[0], text = obj[val];
             if(selected_contact == val) {
                 $("#edit-field-job-client-contact-second-value").append($('<option selected="selected"></option>').val(val).html(text));
             } else {
