@@ -93,11 +93,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
     $call_index = 1;
     $sum = 0;    
 
-    //watchdog('calli', '<pre>'.print_r($callings, TRUE).'</pre>');
     foreach ($callings as $data) {
-
-      //echo '<div style="page-break-inside: avoid;"><table width="100%" border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin: 0 30px;">';
-
         $call = $data['data'];
 
         if ($call->cancellation_status == CANCELLATION_NORMAL ||
@@ -174,18 +170,9 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $call->field_job_session_hours_value = empty($call->field_job_session_hours_value) ? '&nbsp;' : $call->field_job_session_hours_value;
 
         echo '<div style="page-break-inside: avoid;"><table width="100%" border=1 cellspacing=0 cellpadding=5 style="border:0px solid;border-collapse:collapse;margin: 0 30px;">';
-        
-        
-
-        //continue;
 
         $call_cancelation_status = '';
-        //if ($call->cancellation_status != CANCELLATION_NA) {
-        //  $call_cancelation_status = '<br><br>'.acecrew_get_inv_cancellation_titles($call->cancellation_status);
-        //}
 
-        
-        
         echo '
         <tr>
             <td rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $venue_code . $call_cancelation_status . '</td>
@@ -238,16 +225,14 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $total += $additional_client_charge;
         $total += $boundary_charge;
         $total += $mileage_charge;        
-        $supplement_total = 0;
-        foreach ($supplements as $supplement) {
+        $supplement_total = 0;        
+        foreach ($supplements as $supplement) {            
             $node = node_load($supplement->field_call_supplements_nid);
             $quantity = explode("\"", $supplement->field_call_supplements_fields);
             $quantity = $quantity[3];
             $quantity = $quantity == NULL ? 1 : $quantity;
 
-            /**
-             * Set default supplement price based on quoted hours
-             */            
+                        
             if($call->field_job_session_hours_value <= 4) {
                 //hours 0-4
                 $hp = $node->field_supp_0to4_client_hour[0]['value'];
@@ -274,8 +259,8 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
                 $value = $hp * $quantity * $call->field_job_session_hours_value;
             } else {
                 $value = $op * $quantity;
-            }
-            if (is_numeric($value)) {
+            }            
+            if (is_numeric($value) && $value > 0) {
                 echo '
                 <tr>
                     <td colspan=4 valign=top>' . $node->title . ':</td>

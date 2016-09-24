@@ -417,7 +417,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
         $total += $boundary_charge;
         $total += $mileage_charge;        
         $supplement_total = 0;
-        foreach($supplements as $supplement) {
+        foreach ($supplements as $supplement) {
             $node = node_load($supplement->field_call_supplements_nid);
             $quantity = explode("\"", $supplement->field_call_supplements_fields);
             $quantity = $quantity[3];
@@ -426,7 +426,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             /**
              * Set default supplement price based on quoted hours
              */
-            if($call->field_job_session_hours_value <= 4) {
+            if ($call->field_job_session_hours_value <= 4) {
                 //hours 0-4
                 $hp = $node->field_supp_0to4_client_hour[0]['value'];
                 $op = $node->field_supp_0to4_client_single[0]['value'];
@@ -447,12 +447,12 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             }
 
             $is_hourly = $hp != NULL ? true : false;
-            if($is_hourly) {
+            if ($is_hourly) {
                 $value = $hp * $quantity * $call->field_job_session_hours_value;
             } else {
                 $value = $op * $quantity;
             }
-            if($value) {
+            if (is_numeric($value) && $value > 0) {
                 $row++;
                 $li_table->addRow(0.7);
                 $li_table->mergeCellRange($row,1,$row,4);
