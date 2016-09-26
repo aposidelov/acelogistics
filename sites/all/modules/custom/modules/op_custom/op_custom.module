@@ -86,20 +86,8 @@ function op_custom_update_6003() {
   );
   db_add_index($ret, 'content_type_job', 'venue', array('field_job_venue_value'));  
   // content_type_client - field_client_id
-  acecrew_update_cck_field_type(
-    'field_client_id',
-    'content_type_client', 
-    'integer', 
-    'field_job_number'
-  );
   db_add_index($ret, 'content_type_client', 'field_client_id_value', array('field_client_id_value'));
   // content_type_venue - field_venue_id
-  acecrew_update_cck_field_type(
-    'field_venue_id',
-    'content_type_venue', 
-    'integer', 
-    'field_job_number'
-  );
   db_add_index($ret, 'content_type_venue', 'field_venue_id_value', array('field_venue_id_value'));
   
   db_add_index($ret, 'acecrew_job_invoices', 'job_id', array('job_id'));  
@@ -111,6 +99,29 @@ function op_custom_update_6003() {
 
   return $ret;
 }
+
+/**
+ * Implements hook_update_6004().
+ */
+function op_custom_update_6004() {
+  $ret = array();
+  
+  acecrew_update_cck_field_type(
+    'field_client_id',
+    'content_type_client', 
+    'serial', 
+    'field_ser_test'
+  );
+  acecrew_update_cck_field_type(
+    'field_venue_id',
+    'content_type_venue', 
+    'integer', 
+    'field_ser_test'
+  );
+  
+  return $ret;
+}
+
 /**
  * Implements hook_init().
  */
