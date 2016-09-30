@@ -144,7 +144,8 @@ function op_custom_job_listing_build_rows($form, $fs_values, $exclude_link = FAL
 		LEFT JOIN `drupal_content_type_venue` v ON v.field_venue_id_value = j.field_job_venue_value
 		LEFT JOIN `drupal_acecrew_job_invoices` i ON i.job_id = j.field_job_number_value
 		LEFT JOIN `drupal_content_type_job_session` js ON js.field_session_job_nid_value = j.nid
-		WHERE 1=1 $where_job_number $where_job_status $where_po_number $where_venue $where_client $where_invoice_number $where_date GROUP BY j.field_job_number_value ORDER BY j.field_job_number_value";	
+		INNER JOIN `drupal_node` jn ON jn.nid = j.nid
+		WHERE 1=1 $where_job_number $where_job_status $where_po_number $where_venue $where_client $where_invoice_number $where_date GROUP BY j.field_job_number_value ORDER BY jn.created DESC";	
 	
 	$count_query = "SELECT COUNT(*) FROM ($query) AS count_query";
 	$result = pager_query($query, 25, 0, $count_query);		

@@ -240,7 +240,7 @@ function bookoff_crew_content_default_fields() {
       'minute' => 'minute',
     ),
     'timezone_db' => 'UTC',
-    'tz_handling' => 'site',
+    'tz_handling' => 'utc',
     'todate' => '',
     'repeat' => 0,
     'repeat_collapsed' => '',
