@@ -1025,8 +1025,12 @@ function op_custom_client_after_submit($form, &$form_state) {
   //
   //return;
   foreach ($result_items as $old_item_id => $new_item_id) {
+    // job
     db_query('UPDATE {content_type_job} SET field_job_client_contact_value = %d WHERE field_job_client_contact_value = %d', $new_item_id, $old_item_id);
+    db_query('UPDATE {content_type_job} SET field_job_client_contact_second_value = %d WHERE field_job_client_contact_second_value = %d', $new_item_id, $old_item_id);
+    // job call
     db_query('UPDATE {content_type_job_session} SET field_call_contact_value = %d WHERE field_call_contact_value = %d', $new_item_id, $old_item_id);
+    db_query('UPDATE {content_type_job_session} SET field_call_contact_second_value = %d WHERE field_call_contact_second_value = %d', $new_item_id, $old_item_id);
   }
   //
   unset($_SESSION['contact_items']);
