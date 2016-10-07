@@ -105,6 +105,17 @@ function op_custom_admin_settins_cck_form_submit($form, &$form_state) {
   $is_field_name_2 = content_fields($field_name_2, $admin_content_type);
   $is_field_name_3 = content_fields($field_name_3, $admin_content_type);
 
+  if ($type == 'both' && (!empty($is_field_name_2) && !empty($is_field_name_3))) {
+    form_set_error('rate_index', t('2hr and 3hr fields with !rate rate index have already existed', array('!rate' => $rate_index)));
+    return;
+  } elseif ($type == $default_2_rate && !empty($is_field_name_2)) {
+    form_set_error('rate_index', t('2hr field with !rate rate index has already existed', array('!rate' => $rate_index)));
+    return;
+  } elseif ($type == $default_3_rate && !empty($is_field_name_3)) {
+    form_set_error('rate_index', t('3hr field with !rate rate index has already existed', array('!rate' => $rate_index)));
+    return;
+  }
+
   //$is = content_fields('field_8_per_hour', $admin_content_type);
   //drupal_set_message('<pre>'.print_r($is, TRUE).'</pre>');
   //return;
