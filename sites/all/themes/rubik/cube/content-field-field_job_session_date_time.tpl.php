@@ -28,28 +28,39 @@
 
 ?>
 <?php if (!$field_empty) : ?>
-<div class="field field-type-<?php print $field_type_css ?> field-<?php print $field_name_css ?>">
-  <?php if ($label_display == 'above') : ?>
-    <div class="field-label"><?php print t($label) ?>:&nbsp;</div>
-  <?php endif;?>
-  <div class="field-items hours">
-    <?php $count = 1;
-    foreach ($items as $delta => $item) :
-      if (!$item['empty']) : ?>
-        <div class="field-item <?php print ($count % 2 ? 'odd' : 'even') ?>">
-          <?php if ($label_display == 'inline') { ?>
-            <div class="field-label-inline<?php print($delta ? '' : '-first')?>">
-              <?php print t($label) ?>:&nbsp;</div>
-          <?php } ?>
-          <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
-            <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
-          <?php else : ?>
-            <?php print substr($item['view'], 0, -7) ?>
-          <?php endif; ?>
-        </div>
-      <?php $count++;
-      endif;
-    endforeach;?>
+  <?php if (!$teaser) : ?>
+  <div class="field field-type-<?php print $field_type_css ?> field-<?php print $field_name_css ?>">
+    <?php if ($label_display == 'above') : ?>
+      <div class="field-label"><?php print t($label) ?>:&nbsp;</div>
+    <?php endif;?>
+    <div class="field-items hours">
+      <?php $count = 1;
+      foreach ($items as $delta => $item) :
+        if (!$item['empty']) : ?>
+          <div class="field-item <?php print ($count % 2 ? 'odd' : 'even') ?>">
+            <?php if ($label_display == 'inline') { ?>
+              <div class="field-label-inline<?php print($delta ? '' : '-first')?>">
+                <?php print t($label) ?>:&nbsp;</div>
+            <?php } ?>
+            <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
+              <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
+            <?php else : ?>          
+              <?php print substr($item['view'], 0, -7) ?>fu            
+            <?php endif; ?>
+          </div>
+        <?php $count++;
+        endif;
+      endforeach;?>
+    </div>
   </div>
-</div>
+  <?php else : ?>
+    <?php foreach ($items as $delta => $item) : ?>
+      <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
+        <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
+      <?php else : ?>          
+        <?php watchdog('vv', '<pre>'.print_r($item, TRUE).'</pre>'); ?>
+        <?php print $item['view'] ?>|<?php print substr($item['view'], 0, -7) ?>ts            
+      <?php endif; ?>
+    <?php endforeach; ?>
+  <?php endif; ?>
 <?php endif; ?>

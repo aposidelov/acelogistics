@@ -1318,10 +1318,14 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $call->field_session_callid     = $row->field_session_callid;
             $call->field_call_supplements   = $call_supp;
             */
-            //$row->cancellation_status = trim($row->cancellation_status);            
+            //$row->cancellation_status = trim($row->cancellation_status);
+            $call_node = node_load($row->nid);          
+            $field = array('field_name' => 'field_job_session_date_time', 'type' => 'datetime');
+            $time = content_view_field($field, $call_node, TRUE, FALSE); //, FALSE, TRUE
+            watchdog('tim', '<pre>'.print_r($time, TRUE).'</pre>');
             $call_item_data = array(
               'job_session_id' => $row->vid,
-              'time' => $row->jstime,
+              'time' => $time,//$row->jstime,
               'venue_nid' => $venue_nid,
               'venue' => $venue_name,
               'venue_address' => $venue_address,
