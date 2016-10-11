@@ -59,7 +59,7 @@
         <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
       <?php else : ?>          
         <?php watchdog('vv', '<pre>'.print_r($item, TRUE).'</pre>'); ?>
-        <?php print $item['view'] ?>|<?php print substr($item['view'], 0, -7) ?>ts            
+        <?php print converToTz($item['value'], $item['timezone_db'], $item['timezone']) ?>|<?php print $item['view'] ?>ts            
       <?php endif; ?>
     <?php endforeach; ?>
   <?php endif; ?>

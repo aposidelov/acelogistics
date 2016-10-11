@@ -3225,3 +3225,11 @@ function acecrew_format_tbc(
     }
   }
 }
+
+function converToTz($datetime = '', $fromTz = 'UTC', $toTz = 'Europe/London') {   
+  // timezone by php friendly values
+  $date = new DateTime($datetime, new DateTimeZone($fromTz));
+  $date->setTimezone(new DateTimeZone($toTz));
+  $time= $date->format('H:i');
+  return $time;
+}
