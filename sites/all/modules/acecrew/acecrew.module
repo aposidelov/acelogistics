@@ -1032,9 +1032,10 @@ function acecrew_calendar_popup_sms($callNodeid) {
 //    $ses_call_contact = $ses_call_contact->field_client_name[0]['value'];
     $node_id = $session_node->nid;
 
-    $ses_call_time = $session_node->field_job_session_date_time[0]['value'];
+    /*$ses_call_time = $session_node->field_job_session_date_time[0]['value'];
     $ses_call_day = date('D', strtotime($ses_call_time));
-    $ses_call_time = date("d/m/Y H:i", strtotime($ses_call_time));
+    $ses_call_time = date("d/m/Y H:i", strtotime($ses_call_time));*/
+    $ses_call_time = acecrew_get_call_time($session_node, FALSE, TRUE);
     //$ses_call_day = date('l', strtotime($ses_call_time));
     $ses_call_id = $session_node->field_session_callid[0]['value'];
     $ses_call_comment = nl2br($session_node->field_job_session_comment[0]['value']);
@@ -1068,7 +1069,7 @@ function acecrew_calendar_popup_sms($callNodeid) {
 
     $output = <<<EOD
         J:$ses_call_id <br/>
-        $ses_call_day $ses_call_time  <br/>
+        $ses_call_time  <br/>
         $ses_count_crews crew ($ses_count_hours hrs$plus_call) <br/>
         $client_name <br/>
         @ $venue_name, $venu_address, $venu_post_code <br/>
@@ -1298,7 +1299,7 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
                 $crew = array($user_crew_row->name, $user_crew_row->uid, $supplements, $allocated_skills, $fine, $no_show);
                 $crews[] = $crew;
             }
-
+            
             // field_call_supplements
             // nid
             // field_job_session_crew
@@ -1319,10 +1320,8 @@ function acecrew_calendar_date($date, $forward_days = 0, $show_current_day_calls
             $call->field_call_supplements   = $call_supp;
             */
             //$row->cancellation_status = trim($row->cancellation_status);
-            $call_node = node_load($row->nid);          
-            $field = array('field_name' => 'field_job_session_date_time', 'type' => 'datetime');
-            $time = content_view_field($field, $call_node, TRUE, FALSE); //, FALSE, TRUE
-            watchdog('tim', '<pre>'.print_r($time, TRUE).'</pre>');
+            $call_node = node_load($row->nid);                      
+            $time = acecrew_get_call_time($call_node);            
             $call_item_data = array(
               'job_session_id' => $row->vid,
               'time' => $time,//$row->jstime,
@@ -1702,9 +1701,10 @@ function acecrew_session_sms($session_id)
     }
 
     //calc session date/time
-    $sess_time = $session->field_job_session_date_time[0]['value'];
+    /*$sess_time = $session->field_job_session_date_time[0]['value'];
     $sess_time = strtotime($sess_time);
-    $sess_time = date('l m/d G:i', $sess_time);
+    $sess_time = date('l m/d G:i', $sess_time);*/
+    $sess_time = acecrew_get_call_time($session, FALSE, TRUE);
 
     //variables for message
     //$job_number
@@ -2407,9 +2407,7 @@ function theme_acecrew_calendar_scheduler($scheduler, $date)
         $call_crew_amount = $event['ses_count_crews'] . ' crew';
         $call_hours       = $event['ses_count_hours'] . ' hours' . (acecrew_is_plus_call($event['nodeid']) ? ' +' : '');
 
-        acecrew_format_tbc(
-          $call_time, 
-          $event['call_time_tbc'],
+        acecrew_format_tbc(          
           $call_crew_amount,
           $event['call_crew_tbc'],
           $call_hours,
@@ -3184,9 +3182,7 @@ function acecrew_is_valid_date_format($date) {
   return preg_match("/\d{4}\-\d{2}-\d{2}/", $date);
 }
 
-function acecrew_format_tbc(  
-    &$call_time, 
-    $call_time_tbc,
+function acecrew_format_tbc(     
     &$call_crew_amount,
     $call_crew_tbc,
     &$call_hours,
@@ -3196,13 +3192,16 @@ function acecrew_format_tbc(
   ) {
   $tbc_short = 'TBC';
 
-  if ($call_time_tbc) {
-    if (empty($call_time)) {
+  /*if (!is_null($call_time) && $call_time_tbc) {
+    $ct_formatted = strip_tags($call_time);
+    $ct_formatted = trim($ct);
+    if (empty($call_time) || ($ct_formatted === 'TBC')) {
       $call_time = $tbc_short;
     } else {
       $call_time .= ' - ' . $tbc_short;
     }
-  }
+  }*/
+
   if ($call_crew_tbc) {
     if (empty($call_crew_amount)) {
       $call_crew_amount = $tbc_short;
@@ -3226,10 +3225,16 @@ function acecrew_format_tbc(
   }
 }
 
-function converToTz($datetime = '', $fromTz = 'UTC', $toTz = 'Europe/London') {   
+function converToTz($datetime = '', $fromTz = 'UTC', $toTz = 'Europe/London', $format = 'H:i') {   
   // timezone by php friendly values
   $date = new DateTime($datetime, new DateTimeZone($fromTz));
   $date->setTimezone(new DateTimeZone($toTz));
-  $time= $date->format('H:i');
+  $time= $date->format($format);
+  return $time;
+}
+
+function acecrew_get_call_time($call_node, $is_teaser = TRUE, $is_full = FALSE) {
+  $field = array('field_name' => 'field_job_session_date_time', 'type' => 'datetime');
+  $time = content_view_field($field, $call_node, $is_teaser, $is_full); //, FALSE, TRUE
   return $time;
 }

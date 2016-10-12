@@ -132,8 +132,8 @@ function _acecrew_cost_get_template_output($cost, $type = NULL) {
       $call_data = _get_call_data($call);
 
       // date & time
-      $date = substr($call->field_job_session_date_time_value, 0, 10);
-      $time = substr($call->field_job_session_date_time_value, 11, 20);
+      $date = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'Y-m-d');
+      $time = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'H:i');
 
       //watchdog('cc', '<pre>'.print_r($call->field_job_session_crew_value, TRUE).'</pre>');
       

@@ -277,14 +277,16 @@ function template_preprocess_supplement_allocation(&$variables) {
   $variables['call_id'] = $session_node->field_session_callid[0]['value'];
   $datetime = $session_node->field_job_session_date_time[0]['value'];
   $tmp = explode(' ', $datetime);
+  //$variables['date_time'] = substr($tmp[1], 0, 5);
+  $time = acecrew_get_call_time($session_node);
+             
+
   
+  $variables['date_time']      = $time; //substr($tmp[1], 0, 5);
 
-
-  $variables['date_time']      = substr($tmp[1], 0, 5);
-
-  if ($field_call_time_tbc) {
+  /*if ($field_call_time_tbc) {
     $variables['date_time'] .= ' - ' . $tbc_short;
-  }
+  }*/
   
   $variables['count_crews']    = $session_node->field_job_session_crew[0]['value'];
 

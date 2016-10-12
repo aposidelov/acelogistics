@@ -260,9 +260,13 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
             $inc++;
         }
 
+        // date time
+        $date = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'Y-m-d');
+        $time = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'H:i');
+
         //Date
         $li_table->writeToCell($row,1,'Date:', $small_font);
-        $li_table->writeToCell($row,2, substr($call->field_job_session_date_time_value, 0, 10), $small_font);
+        $li_table->writeToCell($row,2, $date, $small_font);
 
         $cell = $li_table->getCell($row, 1);
         $cell->setVerticalAlignment('center');
@@ -273,7 +277,7 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
 
         //Time
         $li_table->writeToCell($row,3,'Time:', $small_font);
-        $li_table->writeToCell($row,4, substr($call->field_job_session_date_time_value, 11, 20), $small_font);
+        $li_table->writeToCell($row,4, $time, $small_font);
 
         $cell = $li_table->getCell($row, 3);
         $cell->setVerticalAlignment('center');

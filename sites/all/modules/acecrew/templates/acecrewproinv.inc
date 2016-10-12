@@ -200,9 +200,9 @@ function _acecrew_proinv_get_template_output($proinv, $type = NULL) {
       // get call data from crew call table
       $call_data = _get_call_data($call);
 
-      // date & time
-      $date = substr($call->field_job_session_date_time_value, 0, 10);
-      $time = substr($call->field_job_session_date_time_value, 11, 20);
+      // date time
+      $date = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'Y-m-d');
+      $time = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'H:i');
 
       //watchdog('cc', '<pre>'.print_r($call->field_job_session_crew_value, TRUE).'</pre>');
       

@@ -45,7 +45,7 @@
             <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
               <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
             <?php else : ?>          
-              <?php print substr($item['view'], 0, -7) ?>fu            
+              <?php print substr($item['view'], 0, -7) ?>          
             <?php endif; ?>
           </div>
         <?php $count++;
@@ -56,10 +56,10 @@
   <?php else : ?>
     <?php foreach ($items as $delta => $item) : ?>
       <?php if (!empty($node->field_call_time_tbc[0]['value']) && $node->field_call_time_tbc[0]['value']) : ?>
-        <span class="tbc"><?php print substr($item['view'], 0, -12) ?>TBC</span></span>
+        <span class="tbc">TBC</span></span>
       <?php else : ?>          
-        <?php watchdog('vv', '<pre>'.print_r($item, TRUE).'</pre>'); ?>
-        <?php print converToTz($item['value'], $item['timezone_db'], $item['timezone']) ?>|<?php print $item['view'] ?>ts            
+        
+        <?php print converToTz($item['value'], $item['timezone_db'], $item['timezone']); ?>            
       <?php endif; ?>
     <?php endforeach; ?>
   <?php endif; ?>

@@ -173,13 +173,17 @@ function _acecrew_quote_get_template_output($quote, $type=NULL) {
 
         $call_cancelation_status = '';
 
+        // date time
+        $date = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'Y-m-d');
+        $time = converToTz($call->field_job_session_date_time_value, 'UTC', 'Europe/London', 'H:i');
+        
         echo '
         <tr>
             <td rowspan=' . (count($supplements) + $inc) . ' valign=top style="font-weight:bold;">Call: ' . $call_number . '. @ '. $venue_name . $venue_code . $call_cancelation_status . '</td>
             <td width="10px" valign=top>Date: </td>
-            <td width="45px" valign=top>' . substr($call->field_job_session_date_time_value, 0, 10) . '</td>
+            <td width="45px" valign=top>' . $date . '</td>
             <td width="10px" valign=top>Time: </td>
-            <td width="5px" valign=top>' . substr($call->field_job_session_date_time_value, 11, 20) . '</td>
+            <td width="5px" valign=top>' . $time . '</td>
             <td width="10px" valign=top>Crew: </td>
             <td width="8px" valign=top>' . $call->field_job_session_crew_value . '</td>
             <td width="10px" valign=top>Hours: </td>
