@@ -478,8 +478,7 @@ function acecrew_menu() {
 function _acecrew_venue_autocomplete($string = '') {
   $matches = array();
   $sql = "SELECT field_venue_id_value, field_venue_name_value FROM `drupal_content_type_venue` WHERE LOWER(field_venue_name_value) REGEXP LOWER('[[:<:]]%s') OR field_venue_name_value REGEXP LOWER('[[:<:]]%s[[:>:]]') ORDER BY field_venue_name_value ASC";
-  $result = db_query($sql, $string, $string);
-  watchdog('sql', '<pre>'.print_r($sql, TRUE).'</pre>');
+  $result = db_query($sql, $string, $string);  
   // add matches to $matches
   while ($data = db_fetch_object($result)) {
     $matches[$data->field_venue_name_value] = '<div class="reference-autocomplete">'.check_plain($data->field_venue_name_value).'</div>';
@@ -1035,7 +1034,11 @@ function acecrew_calendar_popup_sms($callNodeid) {
     /*$ses_call_time = $session_node->field_job_session_date_time[0]['value'];
     $ses_call_day = date('D', strtotime($ses_call_time));
     $ses_call_time = date("d/m/Y H:i", strtotime($ses_call_time));*/
-    $ses_call_time = acecrew_get_call_time($session_node, FALSE, TRUE);
+
+    // date & time
+    $ses_call_time = converToTz($session_node->field_job_session_date_time[0]['value'], 'UTC', 'Europe/London', 'D d/m/Y H:i');    
+
+    //$ses_call_time = acecrew_get_call_time($session_node, FALSE, TRUE);
     //$ses_call_day = date('l', strtotime($ses_call_time));
     $ses_call_id = $session_node->field_session_callid[0]['value'];
     $ses_call_comment = nl2br($session_node->field_job_session_comment[0]['value']);
@@ -2836,8 +2839,7 @@ function acecrew_email_quote($quote_id){
     $mail->CreateBody();
     $mail->Subject  = t('Ace Crew Quote');
     $mail->Body = t('This is your quote. Please see that attached file.');
-    $file_link = $filepath . $filename;
-    watchdog('fl', '<pre>'.print_r($file_link, TRUE).'</pre>');
+    $file_link = $filepath . $filename;    
     //$mail->AddAttachment($filepath . $filename, $filename, "base64", "application/pdf");
 
     if(!$mail->Send()) {
