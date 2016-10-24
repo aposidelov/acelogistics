@@ -1958,6 +1958,8 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
       //Check if node is about to be edited (new nodes do not have nid set)
       if($node->nid) {
           $node_db = node_load($node->nid);
+          watchdog('cn', '<pre>'.print_r($node, TRUE).'</pre>');
+          watchdog('cndb', '<pre>'.print_r($node_db, TRUE).'</pre>');
           //Check if there is crew members allocated for this call
           $cid = $node->field_session_callid[0]['value'];
           $result = db_query("SELECT * FROM {crew_call} WHERE cid = '%s'", $cid);
@@ -1982,6 +1984,8 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
         //Check if node is about to be edited (new nodes do not have nid set)
         if($node->nid) {
             $node_db = node_load($node->nid);
+            watchdog('jn', '<pre>'.print_r($node, TRUE).'</pre>');
+            watchdog('jndb', '<pre>'.print_r($node_db, TRUE).'</pre>');
             //Check if fields are changed
             if(
                 $node->field_job_venue[0]['value'] != $node_db->field_job_venue[0]['value'] ||
