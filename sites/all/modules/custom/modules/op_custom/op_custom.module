@@ -132,6 +132,10 @@ function op_custom_init() {
     $a2 = arg(2);
     drupal_goto($a0.'/'.$a1.'/'.$a2.'/CrewSupplement');
   }  
+
+  if (arg(0) == 'node') {
+    drupal_add_js(drupal_get_path('module', 'acecrew').'/theme/jquery.blockui.js');
+  }
 }
 
 /**
@@ -142,19 +146,25 @@ function op_custom_menu() {
   $items['jobs/venue/autocomplete/%'] = array(
     'page callback' => 'op_jobs_venue_autocomplete',
     'page arguments' => array(3),
-    'access callback' => TRUE,
+    'access arguments' => array('admin content'),
     'type' => MENU_CALLBACK,
   );
   $items['jobs/venue/form'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_jobs_venue_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('administer nodes'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['jobs/client/form'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('op_custom_jobs_client_form'),
+    'access arguments' => array('admin content'),
     'type' => MENU_CALLBACK,
   );
   $items['crews/bookoff/repeat-form'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_bookoff_repeat_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('admin content'),
     'file' => 'op_custom.forms.inc',
     'type' => MENU_CALLBACK,
   );
@@ -169,7 +179,7 @@ function op_custom_menu() {
   $items['admin/admin-settings/cck-add'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_admin_settins_cck_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('admin content'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'op_custom.admin_settings.inc',
     'title' => 'Add crew rate',
@@ -178,7 +188,7 @@ function op_custom_menu() {
   $items['admin/cck-field-type/update'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_field_type_update_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('admin content'),
     'type' => MENU_CALLBACK,
     'file' => 'op_custom.field_type_update.inc',
     'title' => 'CCK Field Type Update',
@@ -187,7 +197,7 @@ function op_custom_menu() {
   $items['admin/invoice-update'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_invoice_update_form'),
-    'access callback' => TRUE,
+    'access arguments' => array('admin content'),
     'type' => MENU_NORMAL_ITEM,    
     'title' => 'Invoice update',
   );
@@ -203,7 +213,7 @@ function op_custom_menu() {
   $items['crew-listing'] = array(
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('op_custom_crew_listing_form'),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,    
     'title' => 'Crew listing',
     'file' => 'op_custom.crew_listing.inc',
@@ -212,52 +222,67 @@ function op_custom_menu() {
   $items['jobs-all'] = array(
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('op_custom_job_listing_form'),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,    
     'title' => 'Jobs All',
     'file' => 'op_custom.job_listing.inc',
   );
 
-
+  $items['jobs-timezone'] = array(
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('op_custom_job_timezone_listing_form'),
+    'access arguments' => TRUE,
+    'type' => MENU_CALLBACK,    
+    'title' => 'Jobs with Timezones',
+    'file' => 'op_custom.job_timezone_listing.inc',
+  );
+  
   $items['admin/settings/allocate_skills'] = array(
     'page callback' => 'drupal_get_form',
     'page arguments' => array('op_custom_allocate_skills_form'),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,    
   );
 
   $items['admin/ajax/client-account/%'] = array(
     'page callback' => 'op_custom_ajax_client_account',
     'page arguments' => array(3),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/ajax/client-nid-by-name/%'] = array(
+    'page callback' => 'op_custom_ajax_client_id_by_name',
+    'page arguments' => array(3),
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
   $items['admin/ajax/client-comment/%/%'] = array(
     'page callback' => 'op_custom_ajax_client_comment',
     'page arguments' => array(3,4),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
   $items['admin/ajax/venue-comment/%/%'] = array(
     'page callback' => 'op_custom_ajax_venue_comment',
     'page arguments' => array(3,4),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
   $items['admin/ajax/client-call-crew-is-blocked/%/%'] = array(
     'page callback' => 'op_custom_ajax_client_call_is_blocked_crew',
     'page arguments' => array(3,4),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
   $items['admin/ajax/venue-call-crew-is-blocked/%/%'] = array(
     'page callback' => 'op_custom_ajax_venue_call_is_blocked_crew',
     'page arguments' => array(3,4),
-    'access callback' => TRUE,
+    'access arguments' => TRUE,
     'type' => MENU_CALLBACK,
   );  
   
@@ -303,11 +328,36 @@ function op_custom_readonly_after_build($form, &$form_state) {
   return $form;                                                               
 }
 
+function op_custom_call_before_submit($form, &$form_state) {   
+  $job_nid = $form_state['values']['field_session_job_nid'][0]['value'];
+  $client_id = acecrew_get_client_id_by_job_id($job_nid);
+  $client_nid = acecrew_get_client_nid_by_client_id($client_id);
+  variable_set('acecrew_client_locked_'.$client_nid, TRUE);  
+}
+
+function op_custom_call_after_submit($form, &$form_state) {   
+  $job_nid = $form_state['values']['field_session_job_nid'][0]['value'];
+  $client_id = acecrew_get_client_id_by_job_id($job_nid);
+  $client_nid = acecrew_get_client_nid_by_client_id($client_id);
+  variable_set('acecrew_client_locked_'.$client_nid, FALSE);  
+}
+
+function op_custom_job_before_submit($form, &$form_state) {     
+  $client_id = $form_state['values']['field_job_client_name'][0]['value'];
+  $client_nid = acecrew_get_client_nid_by_client_id($client_id);
+  variable_set('acecrew_client_locked_'.$client_nid, TRUE);  
+}
+
+function op_custom_job_after_submit($form, &$form_state) {     
+  $client_id = $form_state['values']['field_job_client_name'][0]['value'];
+  $client_nid = acecrew_get_client_nid_by_client_id($client_id);
+  variable_set('acecrew_client_locked_'.$client_nid, FALSE);  
+}
+
 /**
  * Implements hook_form_alter().
  */
-function op_custom_form_alter(&$form, &$form_state, $form_id) {
-  //watchdog('f_id', '<pre>'.print_r($form_id, TRUE).'</pre>');  
+function op_custom_form_alter(&$form, &$form_state, $form_id) {  
   if ($form_id == 'views_exposed_form' && isset($form_state['view'])) {
     if ($form_state['view']->name == 'call_search') {
       // add extra statuses
@@ -328,19 +378,34 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
     $form['buttons']['duplicate']['#submit'][0] = 'op_custom_client_before_submit';
     $form['buttons']['duplicate']['#submit'][1] = 'node_form_submit';
     $form['buttons']['duplicate']['#submit'][2] = 'op_custom_client_after_submit'; 
-    $form['buttons']['duplicate']['#submit'][3] = 'op_custom_client_duplicate_venue_submit'; 
-
-    //watchdog('ffc', '<pre>'.print_r($form, TRUE).'</pre>');   
+    $form['buttons']['duplicate']['#submit'][3] = 'op_custom_client_duplicate_venue_submit';  
   } elseif ($form_id == 'job_node_form') {    
     drupal_add_js(drupal_get_path('module', 'op_custom').'/js/job.js');    
     //$form['field_job_number'][0]['value']['#attributes']['readonly'] = 'readonly';
     if (!empty($form['nid']['#value'])) {
       $form['#after_build'][] = 'op_custom_readonly_after_build';
-    }    
+    } 
+
+    $form['buttons']['submit']['#submit'][0] = 'op_custom_job_before_submit';
+    $form['buttons']['submit']['#submit'][1] = 'node_form_submit';
+    $form['buttons']['submit']['#submit'][2] = 'op_custom_job_after_submit';   
+    //watchdog('ffdd', '<pre>'.print_r($form_state['values'], TRUE).'</pre>');
     //$form['field_job_number'][0]['#disabled'] = TRUE;
     //$form['field_job_number']['#attributes'] = array('disabled' => 'disabled');
-  } elseif ($form_id == 'job_session_node_form') {              
-      $form['buttons']['submit']['#submit'][] = 'op_custom_call_duplicate_submit';
+  } elseif ($form_id == 'job_session_node_form') {  
+      drupal_add_js(drupal_get_path('module', 'acecrew').'/theme/jquery.blockui.js');     
+      $form['buttons']['submit']['#submit'][0] = 'op_custom_call_before_submit';
+      $form['buttons']['submit']['#submit'][1] = 'node_form_submit';
+      $form['buttons']['submit']['#submit'][2] = 'op_custom_call_after_submit';
+      $form['buttons']['submit']['#submit'][3] = 'acecrew_call_close_dialog_submit';
+      $form['buttons']['submit']['#submit'][4] = 'ajax_submitter';      
+      $form['buttons']['submit']['#submit'][5] = 'op_custom_call_duplicate_submit';
+      
+      /*$form['buttons']['submit']['#submit'][0] = 'node_form_submit';
+      $form['buttons']['submit']['#submit'][1] = 'acecrew_call_close_dialog_submit';
+      $form['buttons']['submit']['#submit'][2] = 'ajax_submitter';
+      $form['buttons']['submit']['#submit'][3] = 'op_custom_call_duplicate_submit';*/      
+      
       $form['duplications'] = array(
         '#type' => 'select',
         '#title' => t('Duplications by Days (optional)'),
@@ -362,7 +427,6 @@ function op_custom_form_alter(&$form, &$form_state, $form_id) {
       );      
   } elseif ($form_id == 'user_bookedoff_node_form') {
     drupal_add_js(drupal_get_path('module', 'op_custom') . '/js/bookoff.js');
-    //watchdog('ff', '<pre>'.print_r($form, TRUE).'</pre>');
     $form['title']['#access'] = 0;
     $form['revision_information']['#access'] = 0;
     $form['author']['#access'] = 0;
@@ -995,6 +1059,7 @@ function op_custom_client_before_submit($form, &$form_state) {
   //watchdog('cl_bef', '<pre>'.print_r($form_state, TRUE).'</pre>');
   
   $nid = $form_state['values']['nid'];
+  variable_set('is_client_editing_'.$nid, TRUE);
   $before_items = acecrew_client_contracts_getItems($nid);
   //watchdog('it', '<pre>'.print_r($before_items, TRUE).'</pre>');
   $_SESSION['contact_before_items'] = $before_items;  
@@ -1011,9 +1076,9 @@ function op_custom_client_after_submit($form, &$form_state) {
   $result_items = array();
   foreach ($after_items as $after_item) {
     foreach ($before_items as $before_item) {
-      if ( (!empty($before_item['name']) && !empty($after_item['name']) && $after_item['name'] == $before_item['name']) ||
-      ( !empty($before_item['mobile']) && !empty($after_item['mobile']) && $after_item['mobile'] == $before_item['mobile']) ||
-      ( !empty($before_item['email']) && !empty($after_item['email']) && $after_item['email'] == $before_item['email']) ) {
+      if ( (!empty($before_item['name']) && !empty($after_item['name']) && $after_item['name'] == $before_item['name']) ||      
+      ( !empty($before_item['email']) && !empty($after_item['email']) && $after_item['email'] == $before_item['email']) ||
+        ( !empty($before_item['mobile']) && !empty($after_item['mobile']) && $after_item['mobile'] == $before_item['mobile']) ) {
         $result_items[$before_item['item_id']] = $after_item['item_id'];
         break;
       }
@@ -1035,6 +1100,7 @@ function op_custom_client_after_submit($form, &$form_state) {
   //
   unset($_SESSION['contact_items']);
   drupal_flush_all_caches();
+  variable_set('is_client_editing_'.$nid, FALSE);
   drupal_set_message('cache flushed.');
 }
 
@@ -1236,8 +1302,36 @@ function op_custom_invoice_update_form_submit($form, &$form_state) {
 
 }
 
+function op_custom_jobs_client_form($form_state) {
+  $client_is_locked = variable_get('is_client_editing_106', FALSE);
+  unset($_SESSION['messages']['status']);
+  drupal_set_message('client_id = 106 is locked: '. $client_is_locked);
+  $form['lock_client'] = array(
+    '#type' => 'submit',
+    '#value' => 'Lock client',
+    '#submit' => array('op_custom_jobs_client_form_lock_submit'),
+  ); 
+  $form['unlock_client'] = array(
+    '#type' => 'submit',
+    '#value' => 'Unlock client',
+    '#submit' => array('op_custom_jobs_client_form_unlock_submit'),
+  ); 
+
+  return $form;
+}
+
+function op_custom_jobs_client_form_lock_submit($form, &$form_state) {
+  variable_set('is_client_editing_106', TRUE);
+}
+
+function op_custom_jobs_client_form_unlock_submit($form, &$form_state) {
+  variable_set('is_client_editing_106', FALSE);
+}
+
 function op_custom_jobs_venue_form($form_state) {
   $form = array();
+  drupal_add_js(drupal_get_path('module', 'op_custom') . '/js/client_checker.js');
+  drupal_add_js(array('jobNid' => 12776), 'setting');
   $form['nid'] = array(
     '#type' => 'textfield',
     '#default_value' => '',
@@ -1249,37 +1343,16 @@ function op_custom_jobs_venue_form($form_state) {
     '#value' => 'Save',
   );
 
+  $form['save_call'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save Call',
+  );  
+
   return $form;
 }
 
-function op_custom_jobs_venue_form_submit($form, &$form_state) {
-  $skill_nid = 647;
-  $uid = 303;
-  $call_vid = 23384;
-  $hours = op_get_call_hours_by_vid($call_vid);
-
-  $skill_values = acecrew_supplement_get_item($skill_nid, $hours);
-
-
-
-  drupal_set_message('<pre>'.print_r($skill_values, TRUE).'</pre>');
-
-  //$crews = acecrew_get_bookoff_crews('2014-09-18');
-  //drupal_set_message('<pre>'.print_r($crews, TRUE).'</pre>');
-
-  /*$row = new stdClass();
-  $row->src = 'node/6534/edit';
-  $row->dst = acecrew_generate_random_string(5);
-  $row->language = '';
-
-  drupal_write_record('url_alias', $row);
-
-  watchdog('cu_Alias', '<pre>'.print_r($row, TRUE).'</pre>');
-  */
-  // node/6534/edit
-  //drupal_set_message('submit: ' . $form_state['values']['nid']);
-  //
-
+function op_custom_jobs_venue_form_submit($form, &$form_state) {  
+  drupal_set_message('call has been saved');
 }
 
 function op_get_call_hours_by_vid($call_vid) {
@@ -1325,6 +1398,21 @@ function op_custom_ajax_client_account($client_name = '') {
   exit;
 }
 
+function op_custom_ajax_client_id_by_name($client_name = '') {
+  //$client_name = trim($client_name);
+  if (isset($_GET['client_name'])) {
+    $client_name = trim($_GET['client_name']);
+  }
+  $status = false;
+  if (!empty($client_name)) {
+    $data = db_fetch_object(db_query('SELECT ctc.nid FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
+    $nid = $data->nid;
+  }
+
+  print json_encode(array('client_name' => $client_name, 'client_nid' => $nid));
+  exit;
+}
+
 function op_custom_ajax_client_call_is_blocked_crew($call_vid = '', $crew_id = '') {    
   $is_not_blocked = db_result(db_query('SELECT COUNT(*) 
     FROM `drupal_content_type_job_session` c 
@@ -1357,11 +1445,31 @@ function acecrew_get_client_name($client_id) {
   return $client_name;
 }
 
-function acecrew_get_client_id_by_job_id($job_id) {
+function acecrew_get_client_id_by_job_id($job_nid) {
   $client_id = db_result(db_query("SELECT c.field_client_id_value 
     FROM {content_type_client} c INNER JOIN {content_type_job} j 
     ON c.field_client_id_value = j.field_job_client_name_value
-    WHERE j.nid = %d", $job_id));
+    WHERE j.nid = %d", $job_nid));
+
+  return $client_id;
+}
+
+function acecrew_get_client_nid_by_client_id($client_id) {
+  $client_nid = db_result(db_query('SELECT nid FROM {content_type_client} WHERE field_client_id_value = %d', $client_id));
+  return $client_nid;
+}
+
+function acecrew_get_client_id_by_client_nid($client_nid) {
+  $client_id = db_result(db_query('SELECT field_client_id_value FROM {content_type_client} WHERE nid = %d', $client_nid));
+  return $client_id;
+}
+
+function acecrew_get_client_id_by_call_id($call_id) {
+  $client_id = db_result(db_query("SELECT c.field_client_id_value 
+    FROM {content_type_client} c 
+    INNER JOIN {content_type_job} j ON c.field_client_id_value = j.field_job_client_name_value
+    INNER JOIN {content_type_job_session} js ON j.nid = js.field_session_job_nid_value
+    WHERE js.nid = %d", $call_id));
 
   return $client_id;
 }

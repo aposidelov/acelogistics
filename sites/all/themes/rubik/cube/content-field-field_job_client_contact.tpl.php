@@ -28,8 +28,7 @@
   $client = '';
   // if client name is set for Job
   if (!empty($node->field_job_client_name[0]['value'])) {
-    $client_id            = $node->field_job_client_name[0]['value'];
-    //watchdog('cl_id', '<pre>'.print_r($client_id, TRUE).'</pre>');
+    $client_id            = $node->field_job_client_name[0]['value'];    
     $client_contact       = $node->field_job_client_contact[0]['value'];
     // if client_contact is 0 - we need to take Default contact name, otherwise - Normal contact name
     if (!$client_contact) {

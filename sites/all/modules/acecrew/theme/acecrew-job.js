@@ -1,7 +1,6 @@
 var acecrew_current_edit_item = null;
 
-function acecrew_session_edit(ses_id)
-{
+function acecrew_session_edit(ses_id) {
     acecrew_current_edit_item = 'acecrew_session_form_' + ses_id;
     $('#acecrew_session_content_' + ses_id).hide('fast');
     $('#acecrew_session_buttons_' + ses_id).hide('fast');
@@ -10,15 +9,13 @@ function acecrew_session_edit(ses_id)
     $('#' + acecrew_current_edit_item + "  form").attr("action", "/node/" + ses_id +"/edit");
 }
 
-function acecrew_session_del(ses_id)
-{
+function acecrew_session_del(ses_id) {
     $.get(Drupal.settings.basePath + "acecrew/ajax/delsession/" + ses_id, function(data) {
         window.location.reload();
     });
 }
 
-function acecrew_session_status_toogle(ses_id)
-{
+function acecrew_session_status_toogle(ses_id) {
     $.get(Drupal.settings.basePath + "acecrew/ajax/status-session/" + ses_id, function(data) {
         window.location.reload();
     });
@@ -54,6 +51,124 @@ function acecrewUpdateComments(commentField, jobNid, venueName) {
 }
 
 $(document).ready(function() {
+
+    console.log('job-page2');    
+    var clientName = $('#edit-field-job-client-name-0-value').val();
+    console.log('clientName', clientName);  
+    if (clientName != undefined && clientName !== '') {
+        $('body').append('<div class="loader"></div>');
+            //$('.buttons').prepend('<div class="loader"></div>');
+        $.blockUI({message: $('.loader')});
+        //$('body').append('<div id="blockMessage"></div>');
+        var isEditing = false;        
+        $('.loader').html('<h4>Check if a client is being editing...<span class="views-throbbing">&nbsp;</span></h4>');
+        var intId = setInterval(function() {            
+            $.getJSON('/admin/ajax/client-is-editing/' + clientName, function(data) {
+                console.log('data', data);
+                if (data.isClientEditing) {
+                    isEditing = true;
+                    console.log('editing');                    
+                    $('.loader').html('<h4>Client is being editing by another user please wait and reload page...<span class="views-throbbing">&nbsp;</span></h4>');                    
+                } else {
+                    console.log('no-edit');
+                    clearInterval(intId);
+                    if (isEditing) {
+                        /*acecrew_refresh_contacts(clientName, 
+                            '#edit-field-job-client-contact-value', 
+                            '#edit-field-job-client-contact-second-value', 
+                            $('#edit-submit-1'), $('#blockMessage'),
+                            true,
+                            function() {
+                                $.unblockUI();
+                                $('#blockMessage').html('');
+                            }
+                        );*/
+                        window.location.reload(true);
+                    } else {
+                        $.unblockUI();
+                        $('.loader').html('');
+                    }                   
+                }
+            });
+        }, 2000);
+    } 
+
+    //$.blockUI();
+    //$.unblockUI();
+
+    $('#edit-submit-1').click(function() {
+        var button = $(this);
+        var clientName = $('#edit-field-job-client-name-0-value').val();  
+        console.log('clientName', clientName);        
+        // add loader above button if it does not exist
+        if (!$('.loader').length) {
+            $('.buttons').prepend('<div class="loader"></div>');
+        }  
+        $.blockUI({message: $('.loader')});      
+        $('.loader').html('<h4>Check if a client is being editing...<span class="views-throbbing">&nbsp;</span></h4>');
+        var isEditing = false;
+        var intervalId = setInterval(function() {
+            $.getJSON('/admin/ajax/client-is-editing/' + clientName, function(data) {                
+                if (data.isClientEditing) {
+                    isEditing = true;                    
+                    $('.loader').html('<h4>Client is editing by another user please wait...<span class="views-throbbing">&nbsp;</span></h4>');                
+                } else {
+                    clearInterval(intervalId);                    
+                    // if client was edited...                    
+                    acecrew_refresh_contacts(clientName, 
+                        '#edit-field-job-client-contact-value', 
+                        '#edit-field-job-client-contact-second-value', 
+                        $('.loader'), false,
+                        function() {
+                            $('.loader').html('<h4>The job is being saving...<span class="views-throbbing">&nbsp;</span></h4>');
+                            button.unbind('click');
+                            button.trigger('click');
+                        }
+                    );
+                                            
+                }
+            });
+        }, 3000);
+        return false;
+    });
+
+    $('.acecrewAddNewCall, .acecrew_session_edit_button').click(function() {
+        var $self = $(this);
+
+        if (!$('.loader').length) {
+            $('body').append('<div class="loader"></div>');
+            $.blockUI({message: $('.loader')});
+            //$self.parent().after('<div style="float:right;text-align:right;" class="loader"></div>');
+        }        
+        $('.loader').html('<h4>Check if a client is being editing...<span class="views-throbbing">&nbsp;</span></h4>');
+        var intervalId = setInterval(function() {
+            $.getJSON('/admin/ajax/client-is-editing/' + Drupal.settings.jobNid, function(data) {
+                if (data.isClientEditing) {                    
+                    $('.loader').html('<h4>Client is editing by another user please wait...<span class="views-throbbing">&nbsp;</span></h4>');                
+                } else {
+                    clearInterval(intervalId);
+                    $('.loader').html('');
+                    $.unblockUI();
+                    if ($self.hasClass('acecrewAddNewCall')) {                
+                            Drupal.modalFrame.open({
+                                url: '/acecrew/get_call_add_form/' + Drupal.settings.jobNid, 
+                                width: 700,
+                                height: 1200
+                            });                            
+                    } else if ($self.hasClass('acecrew_session_edit_button')) {            
+                        var callNid = $self.attr('data-call-id');
+                        Drupal.modalFrame.open({
+                            url: '/acecrew/get_call_edit_form/' + callNid, 
+                            width: 700, 
+                            height: 1200
+                        });
+                    }
+                    return false;
+                }
+            });
+        }, 2000);        
+    });
+
     var jobNid = $('#acecrew_session_add_buttons').attr('data-job-nid');
 
     $('.acecrew_sessions_container').each(function() {                
@@ -202,9 +317,6 @@ $(document).ready(function() {
      return false;
      });*/
 
-
-
-
     $('body').ajaxComplete(function(){
         //set default values for edit forms.  session crews generation
 
@@ -221,7 +333,6 @@ $(document).ready(function() {
 
     });
 
-
     Drupal.Ajax.plugins.acecrew = function(hook, args){
         if (hook == 'complete'){
             window.location.reload();
@@ -231,5 +342,4 @@ $(document).ready(function() {
             return false;
         }
     }
-
 });

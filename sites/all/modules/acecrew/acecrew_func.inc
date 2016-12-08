@@ -88,8 +88,10 @@ class acecrewmodule {
 
 }
 //saf added
-function _acecrew_get_jobclient_contacts() {
-    $curClientId = acecrewmodule::getInstance()->getCurrentClientId();
+function _acecrew_get_jobclient_contacts($curClientId = '') {
+    if (empty($curClientId)) {
+        $curClientId = acecrewmodule::getInstance()->getCurrentClientId();
+    }
 
     $client = node_load($curClientId);
 

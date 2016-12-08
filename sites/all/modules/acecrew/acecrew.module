@@ -81,11 +81,12 @@ function acecrew_theme_registry_alter(&$theme_registry) {
  * Implementaiton of hook_form_alter()
  */
 function acecrew_form_alter(&$form, &$form_state, $form_id) {
-    //?? saf modified
+  //?? saf modified
   if ($form_id == 'job_session_node_form' || $form_id == 'admin_settings_node_form') {
     unset($form['buttons']['preview']);
     unset($form['buttons']['delete']);    
   }
+
   if ($form_id == 'admin_settings_node_form' ){
     $form['#redirect'] = false;
   }
@@ -95,11 +96,17 @@ function acecrew_form_alter(&$form, &$form_state, $form_id) {
   }  
 
   if ($form_id == 'job_session_node_form') {    
-    $op = isset($_POST['op']) ? $_POST['op'] : '';
-    //watchdog('ff33', '<pre>'.print_r($form, TRUE).'</pre>');
+    $op = isset($_POST['op']) ? $_POST['op'] : '';    
+    $a0 = arg(0);
+    $a1 = arg(1);
+    $a2 = arg(2);
+    //watchdog('args:', '<pre>'.print_r($a0 . '|'.$a1  . '|'.$a2, TRUE).'</pre>');
+    drupal_add_js(array('jobNid' => $a2), 'setting');
     //$form_state['rebuild'] = TRUE;        
     //array_unshift($form['#submit'], 'acecrew_call_close_dialog_submit');
     //$form['#submit'][] = 'acecrew_call_close_dialog_submit';
+    
+    drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-refresh-contacts.js');
     drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-call.js');      
     $form['buttons']['submit']['#submit'][] = 'acecrew_call_close_dialog_submit';    
   } 
@@ -352,11 +359,12 @@ function acecrew_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['acecrew/ajax/client_contacts/%'] = array(
-    'title' => 'Ace Crew Client Contacts For Create Job Page',
-    'page callback' => 'acecrew_ajax_client_contacts',
+  // pass job_nid as param
+  $items['acecrew/ajax/check_client_lock/%'] = array(
+    'title' => 'Check if client is locked (editing)',
+    'page callback' => 'acecrew_ajax_client_is_locked',
     'page arguments' => array(3),
-    'access arguments' => array('edit field_job_client_name'),
+    'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
 
@@ -471,8 +479,59 @@ function acecrew_menu() {
     'access arguments' => array('access content'),  //or whatever permission makes sense
     'type' => MENU_CALLBACK
   );
+  // check if client is editing
+  $items['admin/ajax/client-is-editing/%'] = array(
+    'page callback' => 'op_custom_ajax_client_is_editing',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  // check if client is editing
+  $items['admin/ajax/client-get-contacts/%'] = array(
+    'page callback' => 'op_custom_ajax_client_get_contacts',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
 
   return $items;
+}
+
+function op_custom_ajax_client_is_editing($nid = '') {  
+  if (!is_numeric($nid)) {    
+    $client_name = trim($nid);
+    $client_nid = db_result(db_query('SELECT ctc.nid FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));    
+  } else {
+    $type = get_node_type($nid);
+    if ($type == 'job') {
+      $client_id = acecrew_get_client_id_by_job_id($nid);
+    } elseif($type == 'job_session') {
+      $client_id = acecrew_get_client_id_by_call_id($nid);
+    }
+    $client_nid = acecrew_get_client_nid_by_client_id($client_id);    
+  }
+  
+  $is_client_editing = variable_get('is_client_editing_'.$client_nid, FALSE);    
+  print json_encode(array('isClientEditing' => $is_client_editing));
+  exit;
+}
+
+function op_custom_ajax_client_get_contacts($nid = '') {
+  if (!is_numeric($nid)) {
+    $client_name = trim($nid);
+    $client_nid = db_result(db_query('SELECT ctc.nid FROM {content_type_client} ctc WHERE ctc.field_client_name_value = "%s"', $client_name));
+  } else {
+    $type = get_node_type($nid);
+    if ($type == 'job') {
+      $client_id = acecrew_get_client_id_by_job_id($nid);
+    } elseif($type == 'job_session') {
+      $client_id = acecrew_get_client_id_by_call_id($nid);
+    }
+    $client_nid = acecrew_get_client_nid_by_client_id($client_id);
+  }
+  $updated_contacts = _acecrew_get_jobclient_contacts($client_nid);    
+  print json_encode(array('updatedContacts' => $updated_contacts));
+  exit;
 }
 
 function _acecrew_venue_autocomplete($string = '') {
@@ -570,9 +629,7 @@ function acecrew_theme($existing, $type, $theme, $path) {
  * Implementaiton of hook_user()
  */
 function acecrew_user($op, &$edit, &$account, $category = NULL) {
-    global $user;
-    //watchdog('op_cat', '<pre>'.print_r($op, TRUE).'</pre>');
-    //watchdog('prof_cat', '<pre>'.print_r($category, TRUE).'</pre>');
+    global $user;  
     //check access
     if (!user_access('acecrew access user payrate', $user, true)){
         return;
@@ -1926,7 +1983,8 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
         //__ref_func_inline($node->field_admins_vatrate[0]['value']);
     }
 
-    if($node->type == 'job' && $op == 'load'){
+    if($node->type == 'job' && $op == 'load') {
+        drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-refresh-contacts.js');
         drupal_add_js(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job.js');
         drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew-job-sessions.css', 'module', 'all', false);
         drupal_add_css(drupal_get_path('module', 'acecrew') . '/theme/acecrew_session_crew_statused_name_colours.css', 'module', 'all', false);
@@ -1951,15 +2009,12 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
         }
     }
 
-    if($node->type == 'job_session' && $op == 'presave' ) {
+    if($node->type == 'job_session' && $op == 'presave') {
       //Checking before the content type job_session is saved. If certain fields are to be edited
       //than we should update crew members status (to text_not_sent) for that job call.
-
       //Check if node is about to be edited (new nodes do not have nid set)
       if($node->nid) {
           $node_db = node_load($node->nid);
-          watchdog('cn', '<pre>'.print_r($node, TRUE).'</pre>');
-          watchdog('cndb', '<pre>'.print_r($node_db, TRUE).'</pre>');
           //Check if there is crew members allocated for this call
           $cid = $node->field_session_callid[0]['value'];
           $result = db_query("SELECT * FROM {crew_call} WHERE cid = '%s'", $cid);
@@ -1980,12 +2035,9 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
     if($node->type == 'job' && $op == 'presave') {
         //If content type job fields "venue", "date", are edited, update crew members status to
         //"text_not_sent" for all calls for that job, that have date > edit date
-
         //Check if node is about to be edited (new nodes do not have nid set)
         if($node->nid) {
             $node_db = node_load($node->nid);
-            watchdog('jn', '<pre>'.print_r($node, TRUE).'</pre>');
-            watchdog('jndb', '<pre>'.print_r($node_db, TRUE).'</pre>');
             //Check if fields are changed
             if(
                 $node->field_job_venue[0]['value'] != $node_db->field_job_venue[0]['value'] ||
@@ -2070,18 +2122,20 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
 
     if ($node->type == 'job_session' && (($op == 'update') || ($op == 'insert'))) {
         $i = 1;
-        foreach($node->field_job_session_crews as $session_crew_id => $session_crew){
-            if(is_array($session_crew)){
-                $crew_not_valid = false;
-                $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
-                $crew_hours_quo = $session_crew['value']['field_crew_job_session_hours_quo'][0]['value'];
-                $crew_suppl = $session_crew['value']['field_call_supplements'][0]['value'];
+        if (isset($node->field_job_session_crews)) {
+          foreach ($node->field_job_session_crews as $session_crew_id => $session_crew){
+              if (is_array($session_crew)){
+                  $crew_not_valid = false;
+                  $crew_name = $session_crew['value']['field_crew_job_session_name'][0]['value'];
+                  $crew_hours_quo = $session_crew['value']['field_crew_job_session_hours_quo'][0]['value'];
+                  $crew_suppl = $session_crew['value']['field_call_supplements'][0]['value'];
 
-                if (empty($crew_name) && empty($crew_hours_quo) && empty($crew_suppl) && ($i != 1)){
-                    unset($node->field_job_session_crews[$session_crew_id]);
-                }
-                $i += 1;
-            }
+                  if (empty($crew_name) && empty($crew_hours_quo) && empty($crew_suppl) && ($i != 1)){
+                      unset($node->field_job_session_crews[$session_crew_id]);
+                  }
+                  $i += 1;
+              }
+          }
         }
         $j = 0;
         foreach ($node->field_call_supplements as $supp) {
@@ -2126,6 +2180,7 @@ function acecrew_nodeapi(&$node, $op, $teaser, $page) {
         drupal_add_js(array('acecrew' => $my_settings), "setting");
         $clientEmails = _acecrew_get_client_emails_data($node->field_job_client_name[0]['value']);
 
+        ace_modals_lib_init();
         $node->content['acecrew_assigned_sessions'] = array(
             '#value' => theme('acecrew_assigned_sessions', $node->acecrew_assigned_sessions),
             '#weight' => 100,
@@ -2223,22 +2278,17 @@ function theme_acecrew_customform($acecrew_customform) {
     // <div id="acecrew_session_add_buttons" data-job-nid="'.$job_nid.'">
     //    <a href="javascript:void(0)" id="acecrew_session_add_button">Add new call</a>
     // </div>
-
+    drupal_add_js(array('jobNid' => $job_nid), 'setting');
     $output =
         '
   <div class="acecrew_session_add_block clear-block">
-      <div id="acecrew_session_add_form">
 
-        ' . $acecrew_customform . '
-      </div>
       <div id ="acecrew_job_lock_message" style="display: none;">
         <p>Access Denied by job locking.</p>
       </div>
       
       <div id="acecrew_session_add_buttons">
-        <a href="javascript:void(0)" id="acecrew_session_add_button_2" onclick="Drupal.modalFrame.open({url: \'/acecrew/get_call_add_form/'.$job_nid.'\', onSubmit: function() {console.log(\'subm\');}, width: 700,
-
-height: 1200})">Add new call</a>
+        <a href="javascript:void(0)" class="acecrewAddNewCall" id="acecrew_session_add_button_2" onclick="">Add new call</a>
       </div>
   </div>';
     return $output;
@@ -3088,6 +3138,10 @@ function acecrew_get_job_venue() {
 
 function get_node_title($nid) {
   return check_plain(db_result(db_query('SELECT title FROM {node} WHERE nid = %d',$nid)));
+}
+
+function get_node_type($nid) {
+  return check_plain(db_result(db_query('SELECT type FROM {node} WHERE nid = %d',$nid)));
 }
 
 

@@ -1496,3 +1496,24 @@ ul.call-listing li.cancel-btn,
 .job_status_Cancel {
     color: #e00000;
 }
+
+div.ctools-modal-content .resizable-textarea {
+    width: 350px;
+    margin-left: 8px;
+}
+
+div.ctools-modal-content input.form-autocomplete, 
+div.ctools-modal-content input.form-text, 
+div.ctools-modal-content textarea.form-textarea, 
+div.ctools-modal-content select.form-select {
+        max-width: 350px;
+}
+
+div.ctools-modal-content .form-item label {
+    width: 350px;
+    float: none;
+}
+
+div.ctools-modal-content #edit-preview-changes-1 {
+    display: none !important;
+}
